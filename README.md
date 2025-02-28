@@ -67,24 +67,24 @@ GeminiAI::Client.logger.level = Logger::DEBUG  # More verbose
 ### Local Installation
 1. Clone the repository
 ```bash
-git clone https://github.com/bniladridas/gemini_ai.git
-cd gemini_ai
+git clone https://github.com/bniladridas/friday_gemini_ai.git
+cd friday_gemini_ai
 ```
 
 2. Build the gem
 ```bash
-gem build gemini_ai.gemspec
+gem build friday_gemini_ai.gemspec
 ```
 
 3. Install the gem locally
 ```bash
-gem install gemini_ai-0.1.0.gem
+gem install friday_gemini_ai-0.1.0.gem
 ```
 
 ### Using Bundler
 Add to your Gemfile:
 ```ruby
-gem 'gemini_ai', path: '/path/to/gemini_ai'
+gem 'friday_gemini_ai', path: '/path/to/friday_gemini_ai'
 ```
 
 ### From RubyGems
@@ -108,7 +108,7 @@ export GEMINI_API_KEY='your_api_key_here'
 
 3. Start using the gem:
 ```ruby
-require 'gemini_ai'
+require 'friday_gemini_ai'
 
 # Initialize client
 client = GeminiAI::Client.new
@@ -162,7 +162,7 @@ This will run a series of quick tests:
 
 ### Basic Text Generation
 ```ruby
-require 'gemini_ai'
+require 'friday_gemini_ai'
 
 # Initialize client with default model
 client = GeminiAI::Client.new(ENV['GEMINI_API_KEY'])
