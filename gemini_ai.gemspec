@@ -1,12 +1,13 @@
 Gem::Specification.new do |spec|
   spec.name        = "friday_gemini_ai"
-  spec.version     = "0.1.2"
+  spec.version     = "0.1.3"
   spec.authors     = ["bniladridas"]
   spec.email       = ["bniladridas@gmail.com"]
   spec.summary     = "A Ruby gem for interacting with Google's Gemini AI models"
   spec.description = "Provides easy text generation capabilities using Google's Gemini AI models"
   spec.homepage    = "https://github.com/bniladridas/friday_gemini_ai"
   spec.license     = "MIT"
+  spec.required_ruby_version = ">= 3.1.0"
 
   spec.files = Dir["lib/**/*", "LICENSE", "README.md"]
   spec.require_paths = ["lib"]
