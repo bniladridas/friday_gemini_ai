@@ -26,10 +26,7 @@ jobs:
         run: gem install bundler --user-install
 
       - name: Install Dependencies
-        run: |
-          gem install mini_mime
-          gem install multi_xml
-          gem install bigdecimal
+        run: bundle install
 
       - name: Run Tests
         run: bundle exec rake test
