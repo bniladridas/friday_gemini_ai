@@ -29,7 +29,12 @@ jobs:
           chmod 0600 $HOME/.gem/credentials
           printf -- "---\n:github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
           gem build *.gemspec
-          gem push --key github --host https://rubygems.pkg.github.com/${OWNER} *.gem
+          gem_version=$(gem specification friday_gemini_ai | grep version | awk '{print $2}')
+          if gem yank friday_gemini_ai -v $gem_version --host https://rubygems.pkg.github.com/${OWNER} 2>&1 | grep -q "This version has already been pushed."; then
+            echo "Version $gem_version already exists. Skipping push."
+          else
+            gem push --key github --host https://rubygems.pkg.github.com/${OWNER} *.gem
+          fi
         env:
           GEM_HOST_API_KEY: "${{secrets.GITHUB_TOKEN}}"
           OWNER: ${{ github.repository_owner }}
