@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Official documentation for the Friday Gemini AI Ruby gem - a simple and powerful interface to Google's Gemini AI models">
+    <meta name="keywords" content="Ruby, Gem, Gemini AI, Google AI, API, Documentation">
+    <meta name="author" content="bniladridas">
     <title>Friday Gemini AI - Ruby Gem Documentation</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
     <style>
         :root {
             --primary-color: #5436DA;
@@ -46,6 +50,10 @@
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
             padding: 24px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         
         .header-content {
@@ -107,6 +115,12 @@
             box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
             padding: 24px;
             margin-bottom: 24px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 24, 40, 0.15);
         }
         
         h2 {
@@ -114,6 +128,18 @@
             font-weight: 600;
             margin-bottom: 16px;
             color: var(--dark-text);
+            display: flex;
+            align-items: center;
+        }
+        
+        h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background-color: var(--primary-color);
+            margin-right: 12px;
+            border-radius: 2px;
         }
         
         h3 {
@@ -143,6 +169,7 @@
             border-radius: 8px;
             overflow-x: auto;
             margin-bottom: 16px;
+            border-left: 3px solid var(--primary-color);
         }
         
         pre code {
@@ -166,27 +193,37 @@
         a {
             color: var(--primary-color);
             text-decoration: none;
+            transition: color 0.2s ease;
         }
         
         a:hover {
             text-decoration: underline;
+            color: var(--accent-color);
         }
         
         .method {
             border-left: 3px solid var(--primary-color);
             padding-left: 16px;
             margin-bottom: 24px;
+            background-color: var(--light-bg);
+            padding: 16px;
+            border-radius: 8px;
         }
         
         .method-name {
             font-weight: 600;
             color: var(--dark-text);
             margin-bottom: 8px;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 15px;
         }
         
         .parameter {
             margin-left: 16px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.5);
         }
         
         .parameter-name {
@@ -217,6 +254,77 @@
             font-size: 14px;
         }
         
+        .toc {
+            position: sticky;
+            top: 100px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            padding-right: 16px;
+        }
+        
+        .toc-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .toc-list li {
+            margin-bottom: 12px;
+        }
+        
+        .toc-list a {
+            display: block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .toc-list a:hover {
+            background-color: var(--hover-bg);
+            text-decoration: none;
+        }
+        
+        .two-column {
+            display: flex;
+            gap: 32px;
+        }
+        
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+        }
+        
+        .content {
+            flex-grow: 1;
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+        }
+        
+        .back-to-top:hover {
+            background-color: var(--accent-color);
+            text-decoration: none;
+        }
+        
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -225,6 +333,20 @@
             
             .logo-section {
                 margin-bottom: 16px;
+            }
+            
+            .two-column {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                margin-bottom: 24px;
+            }
+            
+            .toc {
+                position: static;
+                max-height: none;
             }
         }
     </style>
@@ -243,6 +365,7 @@
                 <div>
                     <span class="badge">Ruby Gem</span>
                     <span class="badge version-badge">v0.1.4</span>
+                    <a href="https://github.com/bniladridas/friday_gemini_ai" target="_blank" class="badge">GitHub</a>
                 </div>
             </div>
         </div>
@@ -250,39 +373,56 @@
     
     <div class="main-content">
         <div class="container">
-            <div class="card">
-                <h2>Overview</h2>
-                <p>Friday Gemini AI is a Ruby gem that provides a simple interface for interacting with Google's Gemini AI models. It allows you to generate text, chat with the model, and process images with text prompts.</p>
+            <div class="two-column">
+                <div class="sidebar">
+                    <div class="toc">
+                        <h3>Contents</h3>
+                        <ul class="toc-list">
+                            <li><a href="#overview">Overview</a></li>
+                            <li><a href="#installation">Installation</a></li>
+                            <li><a href="#usage">Usage</a></li>
+                            <li><a href="#api-reference">API Reference</a></li>
+                            <li><a href="#error-handling">Error Handling</a></li>
+                            <li><a href="#development">Development</a></li>
+                            <li><a href="#license">License</a></li>
+                        </ul>
+                    </div>
+                </div>
                 
-                <h3>Features</h3>
-                <ul>
-                    <li>Simple, intuitive API for Gemini AI models</li>
-                    <li>Support for text generation</li>
-                    <li>Support for chat conversations</li>
-                    <li>Support for image-to-text generation</li>
-                    <li>Configurable parameters (temperature, max tokens, etc.)</li>
-                    <li>Error handling and logging</li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h2>Installation</h2>
-                <p>Add this line to your application's Gemfile:</p>
-                <pre><code>gem 'friday_gemini_ai'</code></pre>
-                
-                <p>And then execute:</p>
-                <pre><code>$ bundle install</code></pre>
-                
-                <p>Or install it yourself as:</p>
-                <pre><code>$ gem install friday_gemini_ai</code></pre>
-            </div>
-            
-            <div class="card">
-                <h2>Usage</h2>
-                
-                <h3>Setup</h3>
-                <p>First, you need to obtain an API key from Google AI Studio. Then, you can initialize the client:</p>
-                <pre><code>require 'gemini_ai'
+                <div class="content">
+                    <div class="card" id="overview">
+                        <h2>Overview</h2>
+                        <p>Friday Gemini AI is a Ruby gem that provides a simple interface for interacting with Google's Gemini AI models. It allows you to generate text, chat with the model, and process images with text prompts.</p>
+                        
+                        <h3>Features</h3>
+                        <ul>
+                            <li>Simple, intuitive API for Gemini AI models</li>
+                            <li>Support for text generation</li>
+                            <li>Support for chat conversations</li>
+                            <li>Support for image-to-text generation</li>
+                            <li>Configurable parameters (temperature, max tokens, etc.)</li>
+                            <li>Error handling and logging</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card" id="installation">
+                        <h2>Installation</h2>
+                        <p>Add this line to your application's Gemfile:</p>
+                        <pre><code>gem 'friday_gemini_ai'</code></pre>
+                        
+                        <p>And then execute:</p>
+                        <pre><code>$ bundle install</code></pre>
+                        
+                        <p>Or install it yourself as:</p>
+                        <pre><code>$ gem install friday_gemini_ai</code></pre>
+                    </div>
+                    
+                    <div class="card" id="usage">
+                        <h2>Usage</h2>
+                        
+                        <h3>Setup</h3>
+                        <p>First, you need to obtain an API key from Google AI Studio. Then, you can initialize the client:</p>
+                        <pre><code>require 'gemini_ai'
 
 # Initialize with API key
 client = GeminiAI::Client.new('your_api_key')
@@ -290,23 +430,23 @@ client = GeminiAI::Client.new('your_api_key')
 # Or use environment variable
 # export GEMINI_API_KEY=your_api_key
 client = GeminiAI::Client.new</code></pre>
-                
-                <h3>Text Generation</h3>
-                <p>Generate text with a prompt:</p>
-                <pre><code>response = client.generate_text('Tell me a short joke about programming')
+                        
+                        <h3>Text Generation</h3>
+                        <p>Generate text with a prompt:</p>
+                        <pre><code>response = client.generate_text('Tell me a short joke about programming')
 puts response</code></pre>
-                
-                <p>With additional parameters:</p>
-                <pre><code>response = client.generate_text(
+                        
+                        <p>With additional parameters:</p>
+                        <pre><code>response = client.generate_text(
   'Explain quantum computing in simple terms',
   temperature: 0.3,
   max_tokens: 500
 )
 puts response</code></pre>
-                
-                <h3>Chat</h3>
-                <p>Have a conversation with the model:</p>
-                <pre><code>messages = [
+                        
+                        <h3>Chat</h3>
+                        <p>Have a conversation with the model:</p>
+                        <pre><code>messages = [
   { role: 'user', content: 'Hello, how are you?' },
   { role: 'model', content: 'I\'m doing well, thank you! How can I help you today?' },
   { role: 'user', content: 'Can you explain what machine learning is?' }
@@ -314,10 +454,10 @@ puts response</code></pre>
 
 response = client.chat(messages)
 puts response</code></pre>
-                
-                <h3>Image-to-Text</h3>
-                <p>Process an image with a text prompt:</p>
-                <pre><code>require 'base64'
+                        
+                        <h3>Image-to-Text</h3>
+                        <p>Process an image with a text prompt:</p>
+                        <pre><code>require 'base64'
 
 # Load and encode image
 image_path = 'path/to/your/image.jpg'
@@ -330,129 +470,131 @@ response = client.generate_image_text(
   'Describe what you see in this image'
 )
 puts response</code></pre>
-            </div>
-            
-            <div class="card">
-                <h2>API Reference</h2>
-                
-                <div class="method">
-                    <div class="method-name">initialize(api_key = nil, model: :pro)</div>
-                    <p>Creates a new Gemini AI client.</p>
-                    
-                    <div class="parameter">
-                        <span class="parameter-name">api_key</span>
-                        <span class="parameter-type">String</span>
-                        <span class="parameter-default">(optional)</span>
-                        <div class="parameter-description">Your Google AI API key. If not provided, it will look for the GEMINI_API_KEY environment variable.</div>
                     </div>
                     
-                    <div class="parameter">
-                        <span class="parameter-name">model</span>
-                        <span class="parameter-type">Symbol</span>
-                        <span class="parameter-default">(default: :pro)</span>
-                        <div class="parameter-description">The Gemini model to use. Options: :pro, :flash, :flash_lite</div>
-                    </div>
-                </div>
-                
-                <div class="method">
-                    <div class="method-name">generate_text(prompt, options = {})</div>
-                    <p>Generates text based on a prompt.</p>
-                    
-                    <div class="parameter">
-                        <span class="parameter-name">prompt</span>
-                        <span class="parameter-type">String</span>
-                        <div class="parameter-description">The text prompt to generate from.</div>
-                    </div>
-                    
-                    <div class="parameter">
-                        <span class="parameter-name">options</span>
-                        <span class="parameter-type">Hash</span>
-                        <span class="parameter-default">(optional)</span>
-                        <div class="parameter-description">
-                            Additional parameters:
-                            <ul>
-                                <li><code>temperature</code> (Float, default: 0.7): Controls randomness. Lower values are more deterministic.</li>
-                                <li><code>max_tokens</code> (Integer, default: 1024): Maximum number of tokens to generate.</li>
-                                <li><code>top_p</code> (Float, default: 0.9): Nucleus sampling parameter.</li>
-                                <li><code>top_k</code> (Integer, default: 40): Top-k sampling parameter.</li>
-                            </ul>
+                    <div class="card" id="api-reference">
+                        <h2>API Reference</h2>
+                        
+                        <div class="method">
+                            <div class="method-name">initialize(api_key = nil, model: :pro)</div>
+                            <p>Creates a new Gemini AI client.</p>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">api_key</span>
+                                <span class="parameter-type">String</span>
+                                <span class="parameter-default">(optional)</span>
+                                <div class="parameter-description">Your Google AI API key. If not provided, it will look for the GEMINI_API_KEY environment variable.</div>
+                            </div>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">model</span>
+                                <span class="parameter-type">Symbol</span>
+                                <span class="parameter-default">(default: :pro)</span>
+                                <div class="parameter-description">The Gemini model to use. Options: :pro, :flash, :flash_lite</div>
+                            </div>
+                        </div>
+                        
+                        <div class="method">
+                            <div class="method-name">generate_text(prompt, options = {})</div>
+                            <p>Generates text based on a prompt.</p>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">prompt</span>
+                                <span class="parameter-type">String</span>
+                                <div class="parameter-description">The text prompt to generate from.</div>
+                            </div>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">options</span>
+                                <span class="parameter-type">Hash</span>
+                                <span class="parameter-default">(optional)</span>
+                                <div class="parameter-description">
+                                    Additional parameters:
+                                    <ul>
+                                        <li><code>temperature</code> (Float, default: 0.7): Controls randomness. Lower values are more deterministic.</li>
+                                        <li><code>max_tokens</code> (Integer, default: 1024): Maximum number of tokens to generate.</li>
+                                        <li><code>top_p</code> (Float, default: 0.9): Nucleus sampling parameter.</li>
+                                        <li><code>top_k</code> (Integer, default: 40): Top-k sampling parameter.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="method">
+                            <div class="method-name">chat(messages, options = {})</div>
+                            <p>Has a conversation with the model.</p>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">messages</span>
+                                <span class="parameter-type">Array</span>
+                                <div class="parameter-description">An array of message objects, each with 'role' (either 'user' or 'model') and 'content' (the message text).</div>
+                            </div>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">options</span>
+                                <span class="parameter-type">Hash</span>
+                                <span class="parameter-default">(optional)</span>
+                                <div class="parameter-description">Same options as generate_text.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="method">
+                            <div class="method-name">generate_image_text(image_base64, prompt, options = {})</div>
+                            <p>Generates text based on an image and a prompt.</p>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">image_base64</span>
+                                <span class="parameter-type">String</span>
+                                <div class="parameter-description">Base64-encoded image data.</div>
+                            </div>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">prompt</span>
+                                <span class="parameter-type">String</span>
+                                <div class="parameter-description">Text prompt to accompany the image.</div>
+                            </div>
+                            
+                            <div class="parameter">
+                                <span class="parameter-name">options</span>
+                                <span class="parameter-type">Hash</span>
+                                <span class="parameter-default">(optional)</span>
+                                <div class="parameter-description">Same options as generate_text.</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="method">
-                    <div class="method-name">chat(messages, options = {})</div>
-                    <p>Has a conversation with the model.</p>
                     
-                    <div class="parameter">
-                        <span class="parameter-name">messages</span>
-                        <span class="parameter-type">Array</span>
-                        <div class="parameter-description">An array of message objects, each with 'role' (either 'user' or 'model') and 'content' (the message text).</div>
-                    </div>
-                    
-                    <div class="parameter">
-                        <span class="parameter-name">options</span>
-                        <span class="parameter-type">Hash</span>
-                        <span class="parameter-default">(optional)</span>
-                        <div class="parameter-description">Same options as generate_text.</div>
-                    </div>
-                </div>
-                
-                <div class="method">
-                    <div class="method-name">generate_image_text(image_base64, prompt, options = {})</div>
-                    <p>Generates text based on an image and a prompt.</p>
-                    
-                    <div class="parameter">
-                        <span class="parameter-name">image_base64</span>
-                        <span class="parameter-type">String</span>
-                        <div class="parameter-description">Base64-encoded image data.</div>
-                    </div>
-                    
-                    <div class="parameter">
-                        <span class="parameter-name">prompt</span>
-                        <span class="parameter-type">String</span>
-                        <div class="parameter-description">Text prompt to accompany the image.</div>
-                    </div>
-                    
-                    <div class="parameter">
-                        <span class="parameter-name">options</span>
-                        <span class="parameter-type">Hash</span>
-                        <span class="parameter-default">(optional)</span>
-                        <div class="parameter-description">Same options as generate_text.</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Error Handling</h2>
-                <p>The gem uses the <code>GeminiAI::Error</code> class for all errors. You can catch these errors to handle them gracefully:</p>
-                <pre><code>begin
+                    <div class="card" id="error-handling">
+                        <h2>Error Handling</h2>
+                        <p>The gem uses the <code>GeminiAI::Error</code> class for all errors. You can catch these errors to handle them gracefully:</p>
+                        <pre><code>begin
   response = client.generate_text('Your prompt')
   puts response
 rescue GeminiAI::Error => e
   puts "Error: #{e.message}"
 end</code></pre>
-                
-                <p>Common errors include:</p>
-                <ul>
-                    <li>Missing or invalid API key</li>
-                    <li>Empty prompt</li>
-                    <li>API request failures</li>
-                    <li>Rate limiting or quota exceeded</li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h2>Development</h2>
-                <p>After checking out the repo, run <code>bundle install</code> to install dependencies. Then, run <code>rake test</code> to run the tests.</p>
-                
-                <h3>Contributing</h3>
-                <p>Bug reports and pull requests are welcome on GitHub at <a href="https://github.com/bniladridas/friday_gemini_ai" target="_blank">https://github.com/bniladridas/friday_gemini_ai</a>.</p>
-            </div>
-            
-            <div class="card">
-                <h2>License</h2>
-                <p>The gem is available as open source under the terms of the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
+                        
+                        <p>Common errors include:</p>
+                        <ul>
+                            <li>Missing or invalid API key</li>
+                            <li>Empty prompt</li>
+                            <li>API request failures</li>
+                            <li>Rate limiting or quota exceeded</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card" id="development">
+                        <h2>Development</h2>
+                        <p>After checking out the repo, run <code>bundle install</code> to install dependencies. Then, run <code>rake test</code> to run the tests.</p>
+                        
+                        <h3>Contributing</h3>
+                        <p>Bug reports and pull requests are welcome on GitHub at <a href="https://github.com/bniladridas/friday_gemini_ai" target="_blank">https://github.com/bniladridas/friday_gemini_ai</a>.</p>
+                    </div>
+                    
+                    <div class="card" id="license">
+                        <h2>License</h2>
+                        <p>The gem is available as open source under the terms of the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -462,5 +604,43 @@ end</code></pre>
             <p>Friday Gemini AI v0.1.4 | Created by <a href="https://github.com/bniladridas" target="_blank">bniladridas</a> | Documentation last updated: April 22, 2025</p>
         </div>
     </footer>
+    
+    <a href="#" class="back-to-top" id="back-to-top">↑</a>
+    
+    <script>
+        // Back to top button
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
