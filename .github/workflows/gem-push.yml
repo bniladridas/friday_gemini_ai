@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build + Publish
+    name: Build + Test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,30 +36,81 @@ jobs:
       - name: Run CI Tests
         run: bundle exec rake ci_test
 
-      - name: Publish to GPR
+      - name: Build Gem
+        run: |
+          gem build *.gemspec
+          echo "GEM_VERSION=$(gem specification friday_gemini_ai | grep version | awk '{print $2}')" >> $GITHUB_ENV
+          echo "Built gem version: $GEM_VERSION"
+
+  publish:
+    name: Publish
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1.2'
+
+      - name: Build Gem
+        run: |
+          gem build *.gemspec
+          echo "GEM_VERSION=$(gem specification friday_gemini_ai | grep version | awk '{print $2}')" >> $GITHUB_ENV
+          echo "Built gem version: $GEM_VERSION"
+
+      - name: Check if version exists on GitHub Packages
+        id: check_gpr
+        continue-on-error: true
+        run: |
+          gem install gems
+          if gem list -r -e friday_gemini_ai --source "https://rubygems.pkg.github.com/${OWNER}" | grep -q "$GEM_VERSION"; then
+            echo "Version $GEM_VERSION already exists on GitHub Packages. Skipping push."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $GEM_VERSION does not exist on GitHub Packages."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+      - name: Publish to GitHub Packages
+        if: steps.check_gpr.outputs.exists == 'false'
         run: |
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
           printf -- "---\n:github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          gem build *.gemspec
-          gem_version=$(gem specification friday_gemini_ai | grep version | awk '{print $2}')
-          if gem yank friday_gemini_ai -v $gem_version --host https://rubygems.pkg.github.com/${OWNER} 2>&1 | grep -q "This version has already been pushed."; then
-            echo "Version $gem_version already exists. Skipping push."
-          else
-            gem push --key github --host https://rubygems.pkg.github.com/${OWNER} *.gem
-          fi
+          gem push --key github --host https://rubygems.pkg.github.com/${OWNER} *.gem
         env:
           GEM_HOST_API_KEY: "${{secrets.GITHUB_TOKEN}}"
           OWNER: ${{ github.repository_owner }}
 
+      - name: Check if version exists on RubyGems
+        id: check_rubygems
+        continue-on-error: true
+        run: |
+          if gem list -r -e friday_gemini_ai | grep -q "$GEM_VERSION"; then
+            echo "Version $GEM_VERSION already exists on RubyGems. Skipping push."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $GEM_VERSION does not exist on RubyGems."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to RubyGems
+        if: steps.check_rubygems.outputs.exists == 'false'
         run: |
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
           printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
-          gem build *.gemspec
           gem push *.gem
         env:
           RUBYGEMS_API_KEY: "${{secrets.RUBYGEMS_API_KEY}}"

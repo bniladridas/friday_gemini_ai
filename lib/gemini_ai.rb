@@ -4,7 +4,7 @@ require 'base64'
 require 'logger'
 
 module GeminiAI
-  VERSION = '0.1.3'
+  VERSION = '0.1.4'
   class Error < StandardError; end
 
   class Client
