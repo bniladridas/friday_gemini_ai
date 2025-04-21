@@ -1,5 +1,13 @@
 # Friday Gemini AI Ruby Gem
 
+[![Gem Version](https://badge.fury.io/rb/friday_gemini_ai.svg)](https://badge.fury.io/rb/friday_gemini_ai)
+
+A Ruby gem for interacting with Google's Gemini AI models. Simple, intuitive, and powerful.
+
+## Documentation
+
+Full documentation is available at [https://bniladridas.github.io/friday_gemini_ai/](https://bniladridas.github.io/friday_gemini_ai/)
+
 ## Table of Contents
 1. [Installation](#installation)
 2. [Configuration](#configuration)
