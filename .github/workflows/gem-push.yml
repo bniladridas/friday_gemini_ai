@@ -31,7 +31,7 @@ jobs:
           bundle config set --local path vendor/bundle
 
       - name: Install Dependencies
-        run: bundle install --jobs 4 --retry 3 --trace
+        run: bundle install --jobs 4 --retry 3
 
       - name: Run Tests
         run: bundle exec rake test
