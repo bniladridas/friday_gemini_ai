@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2025-04-22
+
+### Added
+- Comprehensive HTML documentation in docs folder
+- GitHub Pages setup for hosting documentation
+- Improved README with documentation links
+
+### Changed
+- Enhanced documentation with responsive design
+- Added navigation sidebar and interactive elements
+- Updated badges and metadata
+
 ## [0.1.4] - 2025-04-22
 
 ### Added
