@@ -33,8 +33,8 @@ jobs:
       - name: Install Dependencies
         run: bundle install --jobs 4 --retry 3
 
-      - name: Run Tests
-        run: bundle exec rake test
+      - name: Run CI Tests
+        run: bundle exec rake ci_test
 
       - name: Publish to GPR
         run: |
