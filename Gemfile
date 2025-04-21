@@ -3,6 +3,9 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in gemini_ai.gemspec
 gemspec
 
+# Specify bundler version
+gem 'bundler', '>= 2.3.0'
+
 # Development dependencies
 group :development, :test do
   gem 'minitest', '5.25.4'
