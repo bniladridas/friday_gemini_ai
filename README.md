@@ -8,6 +8,10 @@ A Ruby gem for interacting with Google's Gemini AI models. Simple, intuitive, an
 
 Full documentation is available at [https://bniladridas.github.io/friday_gemini_ai/](https://bniladridas.github.io/friday_gemini_ai/)
 
+## Production Domain
+
+View at [https://friday-gemini-ai.netlify.app/](https://friday-gemini-ai.netlify.app/)
+
 ## Table of Contents
 1. [Installation](#installation)
 2. [Configuration](#configuration)
