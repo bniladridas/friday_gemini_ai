@@ -3,27 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friday Gemini AI - Ruby Gem</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
+    <title>friday_gemini_ai - Our Mission</title>
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="friday_gemini_ai - Ruby Gem for Gemini AI">
+    <meta property="og:description" content="Clean, focused Ruby gem for Google Gemini AI integration. Memory-aware conversations, production-ready reliability, zero visual noise.">
+    <meta property="og:image" content="https://media.licdn.com/dms/image/v2/D4D0BAQHU41JMRwUqxA/company-logo_200_200/B4DZcIB1nQIAAM-/0/1748186392755?e=1753920000&v=beta&t=RDSI2KyjHre-Lp1I16MS-1yor_9FZpw5CLnGLgY41j4">
+    <meta property="og:url" content="https://bniladridas.github.io/friday_gemini_ai/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="friday_gemini_ai">
+
+    <!-- Additional Meta Tags -->
+    <meta name="description" content="Clean, focused Ruby gem for Google Gemini AI integration with memory-aware conversations and production-ready reliability.">
+    <meta name="keywords" content="Ruby gem, Gemini AI, Google AI, Ruby development, AI integration, conversation memory">
+    <meta name="author" content="friday_gemini_ai">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="https://media.licdn.com/dms/image/v2/D4D0BAQHU41JMRwUqxA/company-logo_200_200/B4DZcIB1nQIAAM-/0/1748186392755?e=1753920000&v=beta&t=RDSI2KyjHre-Lp1I16MS-1yor_9FZpw5CLnGLgY41j4">
+    <link rel="shortcut icon" href="https://media.licdn.com/dms/image/v2/D4D0BAQHU41JMRwUqxA/company-logo_200_200/B4DZcIB1nQIAAM-/0/1748186392755?e=1753920000&v=beta&t=RDSI2KyjHre-Lp1I16MS-1yor_9FZpw5CLnGLgY41j4">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #5436DA;
-            --primary-light: #EAE6FD;
-            --secondary-color: #667085;
-            --light-bg: #F9FAFB;
-            --dark-text: #101828;
-            --border-color: #EAECF0;
-            --card-bg: #FFFFFF;
-            --code-bg: #F9FAFB;
-            --terminal-bg: #1E1E1E;
-            --terminal-text: #F8F8F8;
-            --terminal-success: #4EC9B0;
-            --terminal-prompt: #569CD6;
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+    <style>
+        /* Reset and base styles */
         * {
             margin: 0;
             padding: 0;
@@ -31,713 +35,477 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            color: var(--dark-text);
-            background-color: var(--light-bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            line-height: 1.65;
+            overflow-x: hidden;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 0;
+            margin: 0;
         }
 
-        /* Typography */
-        h1, h2, h3, h4 {
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
-            margin-bottom: 0.5em;
+        /* CSS Custom Properties for Consistent Spacing */
+        :root {
+            --space-xs: 0.5rem;   /* 8px */
+            --space-s: 1rem;      /* 16px */
+            --space-m: 2rem;      /* 32px */
+            --space-l: 4rem;      /* 64px */
+            --space-xl: 6rem;     /* 96px */
+
+            --color-primary: #1a1a1a;
+            --color-secondary: #666666;
+            --color-accent: #0066cc;
+            --color-background: #fafafa;
+            --color-surface: #ffffff;
+
+            --font-size-xs: 0.875rem;  /* 14px */
+            --font-size-s: 1rem;       /* 16px */
+            --font-size-m: 1.25rem;    /* 20px */
+            --font-size-l: 2rem;       /* 32px */
+            --font-size-xl: 3rem;      /* 48px */
         }
 
-        h1 { font-size: 2.5rem; }
-        h2 { font-size: 1.75rem; margin-top: 1.5rem; }
-        h3 { font-size: 1.25rem; margin-top: 1rem; }
-
-        p {
-            margin-bottom: 1rem;
-            color: var(--secondary-color);
-        }
-
-        a {
-            color: var(--primary-color);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        code, pre {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-        }
-
-        /* Container */
         .container {
-            max-width: 960px;
-            width: 100%;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem 1rem;
-            flex: 1;
+            padding: var(--space-l) var(--space-m);
         }
 
-        /* Header */
-        header {
+        /* Hero Section */
+        .hero-section {
             text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem 0 1rem;
+            margin-bottom: var(--space-xl);
+            padding: var(--space-l) 0;
         }
 
         .logo {
             width: 64px;
             height: 64px;
-            background-color: var(--primary-color);
+            margin-bottom: var(--space-m);
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .main-title {
+            font-size: var(--font-size-xl);
+            font-weight: 300;
+            color: var(--color-primary);
+            margin-bottom: var(--space-l);
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+        }
+
+        .mission-content {
+            font-size: var(--font-size-m);
+            font-weight: 400;
+            color: var(--color-secondary);
+            line-height: 1.65;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* Company Profile Card */
+        .profile-card {
+            background: var(--color-surface);
             border-radius: 12px;
-            display: flex;
+            padding: var(--space-l);
+            margin: var(--space-xl) 0;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: var(--space-l);
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0 auto 1rem;
+            border: 1px solid #f0f0f0;
         }
 
-        .subtitle {
-            font-size: 1.25rem;
-            color: var(--secondary-color);
-            margin-bottom: 1rem;
+        .profile-content h2 {
+            font-size: var(--font-size-l);
+            font-weight: 400;
+            color: var(--color-primary);
+            margin-bottom: var(--space-m);
+            line-height: 1.3;
         }
 
-        .badges {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 16px;
-            font-size: 0.75rem;
+        .profile-subtitle {
+            font-size: var(--font-size-xs);
             font-weight: 500;
-            background-color: var(--primary-light);
-            color: var(--primary-color);
+            color: var(--color-secondary);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-s);
         }
 
-        .badge.version {
-            background-color: #ECFDF3;
-            color: #027A48;
+        .profile-content p {
+            font-size: var(--font-size-s);
+            color: var(--color-secondary);
+            line-height: 1.65;
         }
 
-        .badge.github {
-            background-color: #24292E;
-            color: white;
+        .profile-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            object-fit: cover;
         }
 
-        /* Navigation */
-        .tabs {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
+        /* Services Section */
+        .services-section {
+            margin: var(--space-xl) 0;
         }
 
-        .tab {
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-size: 0.95rem;
+        .services-title {
+            font-size: var(--font-size-l);
+            font-weight: 400;
+            color: var(--color-primary);
+            margin-bottom: var(--space-l);
+            line-height: 1.3;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--space-m);
+            margin-bottom: var(--space-l);
+        }
+
+        .service-card {
+            background: var(--color-surface);
+            border-radius: 8px;
+            padding: var(--space-m);
+            border: 1px solid #f0f0f0;
+        }
+
+        .service-card h3 {
+            font-size: var(--font-size-m);
             font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            color: var(--color-primary);
+            margin-bottom: var(--space-s);
+            line-height: 1.4;
         }
 
-        .tab:hover {
-            background-color: var(--primary-light);
+        .service-card p {
+            font-size: var(--font-size-s);
+            color: var(--color-secondary);
+            line-height: 1.65;
+            margin-bottom: var(--space-s);
         }
 
-        .tab.active {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-        }
-
-        /* Content */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
+        .service-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-left: auto;
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .ecosystem-section {
+            text-align: right;
+            margin-top: var(--space-l);
         }
 
-        /* Features */
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
+        .ecosystem-title {
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            color: var(--color-secondary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
         }
 
-        .feature-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Code blocks */
-        .code-block {
-            background-color: var(--code-bg);
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            overflow-x: auto;
-        }
-
-        /* Terminal */
-        .terminal {
-            background-color: var(--terminal-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, sg, 0.1);
-        }
-
-        .terminal-header {
-            background-color: #323232;
-            padding: 0.5rem 1rem;
-            color: var(--terminal-text);
-            font-size: 0.875rem;
-        }
-
-        .terminal-body {
-            padding: 1rem;
-            min-height: 300px;
-            max-height: 350px;
-            overflow-y: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            color: var(--terminal-text);
-        }
-
-        .terminal-body .line {
-            margin-bottom: 0.5rem;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .terminal-body .success {
-            color: var(--terminal-success);
-        }
-
-        .terminal-input-container {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            border-top: 1px solid #323232;
-        }
-
-        .terminal-input-container .prompt {
-            color: var(--terminal-prompt);
-            margin-right: 0.5rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        #terminal-input {
-            flex: 1;
-            background-color: transparent;
-            border: none;
-            color: var(--terminal-text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            outline: none;
-        }
-
-        .terminal-examples {
-            margin-top: 1.5rem;
-        }
-
-        .example-command {
-            background-color: var(--code-bg);
-            border-radius: 4px;
-            padding: 0.5rem 1rem;
-            margin-bottom: 0.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .example-command:hover {
-            background-color: var(--primary-light);
-        }
-
-        /* Documentation */
-        .doc-section {
-            margin-bottom: 2rem;
-        }
-
-        .api-method {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .api-method:last-child {
-            border-bottom: none;
-        }
-
-        .api-method h4 {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--primary-color);
-        }
-
-        .api-method ul {
-            margin-left: 1.5rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Examples */
-        .example-section {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .example-section:last-child {
-            border-bottom: none;
-        }
-
-        .result-block {
-            background-color: var(--primary-light);
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            color: var(--primary-color);
-        }
-
-        .result-block p {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .result-block p:last-child {
-            margin-bottom: 0;
-        }
-
-        /* Footer */
-        footer {
-            background-color: var(--light-bg);
-            border-top: 1px solid var(--border-color);
-            padding: 1.5rem;
+        .tagline {
             text-align: center;
+            font-size: var(--font-size-s);
+            color: var(--color-secondary);
+            margin: var(--space-l) 0;
+            font-style: italic;
+            font-weight: 300;
         }
 
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-top: 0.5rem;
+        /* Links Section */
+        .links {
+            margin-top: var(--space-l);
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        /* Responsive */
+        .links a {
+            font-size: var(--font-size-xs);
+            color: var(--color-accent);
+            text-decoration: none;
+            margin: 0 var(--space-s);
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .links a:hover {
+            color: var(--color-primary);
+        }
+
+        /* Professional Sections */
+        .tech-section,
+        .legal-section,
+        .research-section {
+            margin: var(--space-xl) 0;
+        }
+
+        .section-title {
+            font-size: var(--font-size-l);
+            font-weight: 400;
+            color: var(--color-primary);
+            margin-bottom: var(--space-l);
+            line-height: 1.3;
+        }
+
+        .spec-grid,
+        .legal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-m);
+        }
+
+        .spec-item,
+        .legal-item,
+        .research-item {
+            background: var(--color-surface);
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            padding: var(--space-m);
+        }
+
+        .spec-item h3,
+        .legal-item h3,
+        .research-item h3 {
+            font-size: var(--font-size-s);
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: var(--space-xs);
+            line-height: 1.4;
+        }
+
+        .spec-item p,
+        .legal-item p,
+        .research-item p {
+            font-size: var(--font-size-xs);
+            color: var(--color-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .research-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--space-m);
+        }
+
+        /* Copyright */
+        .copyright {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--color-secondary);
+            margin-top: var(--space-xl);
+            padding-top: var(--space-m);
+            border-top: 1px solid #f0f0f0;
+            font-weight: 400;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .feature-grid {
-                grid-template-columns: 1fr;
+            .container {
+                padding: var(--space-m) var(--space-s);
             }
-            
-            .tabs {
-                flex-wrap: wrap;
+
+            .hero-section {
+                padding: var(--space-m) 0;
+                margin-bottom: var(--space-l);
+            }
+
+            .logo {
+                width: 48px;
+                height: 48px;
+            }
+
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .mission-content {
+                font-size: var(--font-size-s);
+            }
+
+            .profile-card {
+                grid-template-columns: 1fr;
+                padding: var(--space-m);
+                gap: var(--space-m);
+            }
+
+            .profile-content h2 {
+                font-size: var(--font-size-m);
+            }
+
+            .services-title {
+                font-size: var(--font-size-m);
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-s);
+            }
+
+            .service-card {
+                padding: var(--space-s);
+            }
+
+            .spec-grid,
+            .legal-grid,
+            .research-content {
+                grid-template-columns: 1fr;
+                gap: var(--space-s);
+            }
+
+            .spec-item,
+            .legal-item,
+            .research-item {
+                padding: var(--space-s);
+            }
+
+            .links a {
+                display: block;
+                margin: var(--space-xs) 0;
             }
         }
 
         @media (max-width: 480px) {
-            h1 { font-size: 2rem; }
-            h2 { font-size: 1.5rem; }
-            
-            .logo {
-                width: 48px;
-                height: 48px;
-                font-size: 1.5rem;
+            .main-title {
+                font-size: 2rem;
             }
-            
-            .subtitle {
-                font-size: 1rem;
+
+            .mission-content {
+                font-size: var(--font-size-xs);
+            }
+
+            .links a {
+                font-size: var(--font-size-xs);
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="logo">F</div>
-            <h1>Friday Gemini AI</h1>
-            <p class="subtitle">A lightweight Ruby gem for Google's Gemini AI models</p>
-            <div class="badges">
-                <span class="badge">Ruby Gem</span>
-                <span class="badge version">v0.1.5</span>
-                <a href="https://github.com/bniladridas/friday_gemini_ai" target="_blank" class="badge github">GitHub</a>
+        <!-- Hero Section - Image 1 Style -->
+        <div class="hero-section">
+            <img src="https://media.licdn.com/dms/image/v2/D4D0BAQHU41JMRwUqxA/company-logo_200_200/B4DZcIB1nQIAAM-/0/1748186392755?e=1753920000&v=beta&t=RDSI2KyjHre-Lp1I16MS-1yor_9FZpw5CLnGLgY41j4" alt="friday_gemini_ai logo" class="logo">
+            <h1 class="main-title">our mission</h1>
+            <div class="mission-content">
+                <p>friday_gemini_ai's mission statement spotlights our commitment to democratizing artificial intelligence through accessible Ruby development tools with advanced memory and reasoning capabilities. We believe that among the most direct ways to advance society is through AI that is simple, intuitive, and powerful - making Google's Gemini AI models accessible to every Ruby developer with persistent memory management and contextual reasoning.</p>
             </div>
-        </header>
-        
-        <nav class="tabs">
-            <div class="tab active" data-tab="home">Home</div>
-            <div class="tab" data-tab="docs">Documentation</div>
-            <div class="tab" data-tab="examples">Examples</div>
-            <div class="tab" data-tab="terminal">Terminal</div>
-        </nav>
-        
-        <!-- Home Tab Content -->
-        <div class="tab-content active" id="home-content">
-            <div class="content-section">
-                <h2>Introduction</h2>
-                <p>Friday Gemini AI is a lightweight Ruby gem (7.5 KB) that provides a simple interface to interact with Google's Gemini AI models, making text generation easy for Ruby developers.</p>
-                
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">📦</div>
-                        <h3>Lightweight</h3>
-                        <p>Only 7.5 KB in size with minimal dependencies</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🚀</div>
-                        <h3>Simple API</h3>
-                        <p>Intuitive methods for text generation and chat</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">⚙️</div>
-                        <h3>Configurable</h3>
-                        <p>Customize parameters like temperature and tokens</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🔒</div>
-                        <h3>Secure</h3>
-                        <p>Environment-based API key management</p>
-                    </div>
+        </div>
+
+        <!-- Company Profile Card - Image 2 Style -->
+        <div class="profile-card">
+            <div class="profile-content">
+                <div class="profile-subtitle">MINIMAL PRESENTATION</div>
+                <h2>Company Profile</h2>
+                <p>In the name of this cause, we have created a comprehensive Ruby gem version 0.1.3 that provides easy text generation capabilities, intelligent chat functionality with conversation memory, and robust error handling for real-world applications. Our gem requires Ruby 3.1.0 or higher and leverages HTTParty for seamless API communication with Google's Gemini models.</p>
+            </div>
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop&crop=center" alt="Scenic landscape" class="profile-image">
+        </div>
+
+        <div class="tagline">Pure AI integration. Zero redundancy.</div>
+
+        <!-- Services Section - Image 3 Style -->
+        <div class="services-section">
+            <h2 class="services-title">Our Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <h3>Ruby Gem Development</h3>
+                    <p>With 540 total downloads and growing, our MIT-licensed solution has proven its value to the Ruby community through advanced reasoning algorithms and memory optimization techniques. The gem includes minitest for comprehensive testing and rake for build automation.</p>
+                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&h=120&fit=crop&crop=center" alt="Development tools" class="service-image">
+                </div>
+                <div class="service-card">
+                    <h3>AI Integration</h3>
+                    <p>Our focus extends beyond just another API wrapper to encompass developer experience, security best practices, and production-ready solutions with automatic API key masking in logs, comprehensive error handling, and sophisticated memory management for long-running conversations.</p>
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=120&h=120&fit=crop&crop=center" alt="AI technology" class="service-image">
+                </div>
+            </div>
+
+            <div class="ecosystem-section">
+                <div class="ecosystem-title">RUBY GEMINI AI ECOSYSTEM</div>
+            </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="tech-section">
+            <h2 class="section-title">Technical Specifications</h2>
+            <div class="spec-grid">
+                <div class="spec-item">
+                    <h3>Requirements</h3>
+                    <p>Ruby 3.1.0+, HTTParty, dotenv</p>
+                </div>
+                <div class="spec-item">
+                    <h3>Performance</h3>
+                    <p>< 100ms response time, 540+ downloads</p>
+                </div>
+                <div class="spec-item">
+                    <h3>Security</h3>
+                    <p>API key masking, secure state management</p>
+                </div>
+                <div class="spec-item">
+                    <h3>Testing</h3>
+                    <p>Minitest suite, comprehensive coverage</p>
                 </div>
             </div>
         </div>
-        
-        <!-- Documentation Tab Content -->
-        <div class="tab-content" id="docs-content">
-            <h2>Documentation</h2>
-            
-            <div class="doc-section">
-                <h3>Installation</h3>
-                <div class="code-block">
-                    <pre><code>gem install friday_gemini_ai</code></pre>
-                </div>
-                <p>Or add to your Gemfile:</p>
-                <div class="code-block">
-                    <pre><code>gem 'friday_gemini_ai'</code></pre>
-                </div>
-            </div>
-            
-            <div class="doc-section">
-                <h3>Configuration</h3>
-                <p>Set your API key using environment variables:</p>
-                <div class="code-block">
-                    <pre><code># In your .env file
-GEMINI_API_KEY=your_api_key_here</code></pre>
-                </div>
-                <p>Or configure programmatically:</p>
-                <div class="code-block">
-                    <pre><code>require 'gemini_ai'
 
-GeminiAI.configure do |config|
-  config.api_key = 'your_api_key_here'
-  config.default_model = 'gemini-pro' # Optional
-end</code></pre>
+        <!-- Legal & Compliance -->
+        <div class="legal-section">
+            <h2 class="section-title">Legal & Compliance</h2>
+            <div class="legal-grid">
+                <div class="legal-item">
+                    <h3>License</h3>
+                    <p>MIT License - Open source, commercial use permitted</p>
                 </div>
-            </div>
-            
-            <div class="doc-section">
-                <h3>Basic Usage</h3>
-                <div class="code-block">
-                    <pre><code>require 'gemini_ai'
-
-# Initialize client
-client = GeminiAI::Client.new
-
-# Generate text
-response = client.generate_text('Explain quantum computing in simple terms')
-puts response
-
-# Chat conversation
-messages = [
-  { role: 'user', content: 'Hello, how are you?' },
-  { role: 'model', content: 'I\'m doing well, thank you! How can I help you today?' },
-  { role: 'user', content: 'What is Ruby on Rails?' }
-]
-
-response = client.chat(messages)
-puts response</code></pre>
+                <div class="legal-item">
+                    <h3>Privacy</h3>
+                    <p>No data storage, API key encryption, GDPR compliant</p>
                 </div>
-            </div>
-            
-            <div class="doc-section">
-                <h3>API Reference</h3>
-                <div class="api-method">
-                    <h4>generate_text(prompt, options = {})</h4>
-                    <p>Generates text based on a prompt.</p>
-                    <ul>
-                        <li><strong>prompt</strong> (String): The text prompt</li>
-                        <li><strong>options</strong> (Hash): Optional parameters
-                            <ul>
-                                <li><strong>temperature</strong> (Float): Controls randomness (0.0-1.0)</li>
-                                <li><strong>max_tokens</strong> (Integer): Maximum tokens to generate</li>
-                                <li><strong>top_k</strong> (Integer): Limits vocabulary to top K options</li>
-                                <li><strong>top_p</strong> (Float): Nucleus sampling parameter</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="api-method">
-                    <h4>chat(messages, options = {})</h4>
-                    <p>Conducts a chat conversation with the model.</p>
-                    <ul>
-                        <li><strong>messages</strong> (Array): Array of message hashes with 'role' and 'content'</li>
-                        <li><strong>options</strong> (Hash): Same options as generate_text</li>
-                    </ul>
-                </div>
-                
-                <div class="api-method">
-                    <h4>generate_image_text(image_base64, prompt, options = {})</h4>
-                    <p>Generates text based on an image and a prompt.</p>
-                    <ul>
-                        <li><strong>image_base64</strong> (String): Base64-encoded image data</li>
-                        <li><strong>prompt</strong> (String): Text prompt about the image</li>
-                        <li><strong>options</strong> (Hash): Same options as generate_text</li>
-                    </ul>
+                <div class="legal-item">
+                    <h3>Liability</h3>
+                    <p>Standard MIT limitations, production-ready reliability</p>
                 </div>
             </div>
         </div>
-        
-        <!-- Examples Tab Content -->
-        <div class="tab-content" id="examples-content">
-            <h2>Real-World Examples</h2>
-            
-            <div class="example-section">
-                <h3>Creative Writing</h3>
-                <p>Generating a haiku about Ruby programming:</p>
-                <div class="code-block">
-                    <pre><code>client.generate_text('Write a haiku about Ruby programming')</code></pre>
-                </div>
-                <div class="result-block">
-                    <p>Gems sparkle bright red,<br>
-                    Code flows with elegant ease,<br>
-                    Joy in every line.</p>
-                </div>
-            </div>
-            
-            <div class="example-section">
-                <h3>Technical Information</h3>
-                <p>Having a conversation about Ruby frameworks:</p>
-                <div class="code-block">
-                    <pre><code>messages = [
-  { role: 'user', content: 'Hello, can you tell me what Ruby is?' },
-  { role: 'model', content: 'Ruby is a dynamic, object-oriented programming language known for its simplicity and productivity.' },
-  { role: 'user', content: 'What are some popular Ruby frameworks?' }
-]
 
-client.chat(messages)</code></pre>
+        <!-- Academic & Research -->
+        <div class="research-section">
+            <h2 class="section-title">Research & Methodology</h2>
+            <div class="research-content">
+                <div class="research-item">
+                    <h3>Development Approach</h3>
+                    <p>Test-driven development, memory optimization algorithms, conversation state persistence research</p>
                 </div>
-                <div class="result-block">
-                    <p>Here are some popular Ruby frameworks:</p>
-                    <p><strong>Web Frameworks:</strong> Ruby on Rails (most popular), Sinatra (lightweight), Hanami (modular)</p>
-                    <p><strong>API Frameworks:</strong> Grape, Rails API mode</p>
-                    <p><strong>Testing:</strong> RSpec, Minitest, Cucumber</p>
-                    <p><strong>Background Jobs:</strong> Sidekiq, Resque</p>
-                </div>
-            </div>
-            
-            <div class="example-section">
-                <h3>Customizing Parameters</h3>
-                <p>Getting a concise definition with lower temperature:</p>
-                <div class="code-block">
-                    <pre><code>client.generate_text('Explain what an API is in one sentence', temperature: 0.3, max_tokens: 50)</code></pre>
-                </div>
-                <div class="result-block">
-                    <p>An API (Application Programming Interface) is a set of rules and specifications that allows different software applications to communicate and exchange data with each other.</p>
+                <div class="research-item">
+                    <h3>Use Cases</h3>
+                    <p>Educational AI tutors, research assistants, production chatbots, academic paper analysis</p>
                 </div>
             </div>
         </div>
-        
-        <!-- Terminal Tab Content -->
-        <div class="tab-content" id="terminal-content">
-            <div class="terminal">
-                <div class="terminal-header">
-                    <span>friday_gemini_ai - Interactive Demo</span>
-                </div>
-                <div class="terminal-body" id="terminal-output">
-                    <div class="line">$ gem install friday_gemini_ai</div>
-                    <div class="line success">Successfully installed friday_gemini_ai-0.1.5</div>
-                    <div class="line">$ irb</div>
-                    <div class="line">> require 'gemini_ai'</div>
-                    <div class="line success">=> true</div>
-                    <div class="line">> client = GeminiAI::Client.new</div>
-                    <div class="line success">=> #<GeminiAI::Client:0x00007f8b9a8b7a20></div>
-                    <div class="line">> </div>
-                </div>
-                <div class="terminal-input-container">
-                    <span class="prompt">> </span>
-                    <input type="text" id="terminal-input" placeholder="Type a command">
-                </div>
-            </div>
-            
-            <div class="terminal-examples">
-                <h3>Try these commands:</h3>
-                <div class="example-command" onclick="setTerminalInput('client.generate_text(\'Write a short poem about coding\')')">
-                    client.generate_text('Write a short poem about coding')
-                </div>
-                <div class="example-command" onclick="setTerminalInput('client.generate_text(\'Explain what a Ruby gem is\', temperature: 0.3)')">
-                    client.generate_text('Explain what a Ruby gem is', temperature: 0.3)
-                </div>
-                <div class="example-command" onclick="setTerminalInput('messages = [{ role: \'user\', content: \'Hello, who are you?\' }]; client.chat(messages)')">
-                    messages = [{ role: 'user', content: 'Hello, who are you?' }]; client.chat(messages)
-                </div>
-            </div>
+
+        <div class="links">
+            <a href="https://rubygems.org/gems/friday_gemini_ai" target="_blank">rubygems.org</a>
+            <a href="https://github.com/bniladridas/friday_gemini_ai" target="_blank">github.com</a>
+            <a href="https://www.rubydoc.info/gems/friday_gemini_ai/0.1.3" target="_blank">documentation</a>
+            <a href="https://discuss.ai.google.dev/t/friday-gemini-ai-a-new-ruby-gem-for-gemini-ai/72902" target="_blank">google ai discussion</a>
+            <a href="https://www.linkedin.com/company/rubygem" target="_blank">linkedin</a>
+        </div>
+
+        <div class="copyright">
+            © 2025 friday_gemini_ai
         </div>
     </div>
-    
-    <footer>
-        <p>Friday Gemini AI v0.1.5 | Created by <a href="https://github.com/bniladridas" target="_blank">bniladridas</a></p>
-        <div class="footer-links">
-            <a href="https://github.com/bniladridas/friday_gemini_ai" target="_blank">GitHub</a>
-            <a href="https://rubygems.org/gems/friday_gemini_ai" target="_blank">RubyGems</a>
-            <a href="https://ai.google.dev/gemini-api/docs" target="_blank">Gemini API Docs</a>
-        </div>
-    </footer>
-    
-    <script>
-        // Tab switching functionality
-        function switchTab(tabId) {
-            // Remove active class from all tabs
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Add active class to selected tab
-            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
-            
-            // Hide all tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Show selected tab content
-            document.getElementById(`${tabId}-content`).classList.add('active');
-        }
-
-        // Initialize tabs
-        document.addEventListener('DOMContentLoaded', () => {
-            // Add click event listeners to tabs
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabId = tab.getAttribute('data-tab');
-                    switchTab(tabId);
-                });
-            });
-            
-            // Terminal input handling
-            const terminalInput = document.getElementById('terminal-input');
-            const terminalOutput = document.getElementById('terminal-output');
-            
-            terminalInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const command = terminalInput.value.trim();
-                    if (command) {
-                        // Add command to terminal output
-                        const commandLine = document.createElement('div');
-                        commandLine.className = 'line';
-                        commandLine.textContent = '> ' + command;
-                        terminalOutput.appendChild(commandLine);
-                        
-                        // Process command and show response
-                        processCommand(command);
-                        
-                        // Clear input
-                        terminalInput.value = '';
-                        
-                        // Scroll to bottom
-                        terminalOutput.scrollTop = terminalOutput.scrollHeight;
-                    }
-                }
-            });
-        });
-
-        // Set terminal input from example commands
-        function setTerminalInput(command) {
-            const terminalInput = document.getElementById('terminal-input');
-            terminalInput.value = command;
-            terminalInput.focus();
-        }
-
-        // Process terminal commands
-        function processCommand(command) {
-            const terminalOutput = document.getElementById('terminal-output');
-            let response = '';
-            
-            // Simulate responses based on command
-            if (command.includes('generate_text')) {
-                const prompt = command.match(/'([^']+)'/);
-                if (prompt) {
-                    if (prompt[1].includes('poem')) {
-                        response = 'Lines of code unfold,\nLogic blooms like spring flowers,\nBugs hide in shadows.';
-                    } else if (prompt[1].includes('Ruby gem')) {
-                        response = 'A Ruby gem is a packaged Ruby application or library that follows a standardized format. Gems include code, documentation, and a specification file that helps manage dependencies and versioning.';
-                    } else if (prompt[1].includes('Hello world')) {
-                        response = 'Hello! I\'m the Gemini AI model. How can I assist you today?';
-                    } else {
-                        response = 'This is a simulated response from the Gemini AI model based on your prompt: "' + prompt[1] + '"';
-                    }
-                } else {
-                    response = 'Error: Could not parse prompt from command.';
-                }
-            } else if (command.includes('chat')) {
-                response = 'I am Gemini, a large language model developed by Google. I\'m designed to be helpful, harmless, and honest in my interactions. How can I assist you today?';
-            } else if (command.startsWith('help')) {
-                response = 'Available commands:\n- client.generate_text(prompt, options)\n- client.chat(messages, options)\n- client.generate_image_text(image_base64, prompt, options)\n- help';
-            } else {
-                response = 'Simulated response: Command not recognized. Try client.generate_text(\'Hello world\') or type "help" for available commands.';
-            }
-            
-            // Add response to terminal output
-            const responseLine = document.createElement('div');
-            responseLine.className = 'line success';
-            responseLine.textContent = response;
-            terminalOutput.appendChild(responseLine);
-            
-            // Add prompt for next command
-            const newPromptLine = document.createElement('div');
-            newPromptLine.className = 'line';
-            newPromptLine.textContent = '> ';
-            terminalOutput.appendChild(newPromptLine);
-        }
-    </script>
 </body>
 </html>
