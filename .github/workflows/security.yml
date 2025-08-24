@@ -23,19 +23,18 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
 
-      - name: Install security tools
-        run: |
-          gem install bundler-audit brakeman
+      - name: Install dependencies
+        run: bundle install
 
       - name: Update vulnerability database
-        run: bundle audit --update
+        run: bundle exec bundler-audit update
 
       - name: Run Bundler Audit
-        run: bundle audit --format json --output bundler-audit.json
+        run: bundle exec bundler-audit check --format json --output bundler-audit.json
         continue-on-error: true
 
       - name: Run Brakeman
-        run: brakeman --format json --output brakeman.json --no-pager
+        run: bundle exec brakeman --format json --output brakeman.json --no-pager
         continue-on-error: true
 
       - name: Upload security reports
