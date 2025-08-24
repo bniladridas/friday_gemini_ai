@@ -43,6 +43,10 @@ module GeminiAI
       # Prioritize passed API key, then environment variable
       @api_key = api_key || ENV['GEMINI_API_KEY']
       
+      # Rate limiting - track last request time
+      @last_request_time = nil
+      @min_request_interval = 1.0 # Minimum 1 second between requests
+      
       # Extensive logging for debugging
       self.class.logger.debug("Initializing Client")
       self.class.logger.debug("API Key present: #{!@api_key.nil?}")
@@ -141,7 +145,10 @@ module GeminiAI
       }
     end
 
-    def send_request(body, model: nil)
+    def send_request(body, model: nil, retry_count: 0)
+      # Rate limiting - ensure minimum interval between requests
+      rate_limit_delay
+      
       current_model = model ? MODELS.fetch(model) { MODELS[:pro] } : @model
       url = "#{BASE_URL}/#{current_model}:generateContent?key=#{@api_key}"
 
@@ -158,31 +165,56 @@ module GeminiAI
             'Content-Type' => 'application/json',
             'x-goog-api-client' => 'gemini_ai_ruby_gem/0.1.0'
           },
-          # Add timeout to prevent hanging
           timeout: 30
         )
 
         self.class.logger.debug("Response Code: #{response.code}")
         self.class.logger.debug("Response Body: #{response.body}")
 
-        parse_response(response)
+        parse_response(response, retry_count, body, model)
       rescue HTTParty::Error, Net::OpenTimeout => e
         self.class.logger.error("API request failed: #{e.message}")
         raise Error, "API request failed: #{e.message}"
       end
     end
 
-    def parse_response(response)
+    def parse_response(response, retry_count, body, model)
       case response.code
       when 200
         text = response.parsed_response
                .dig('candidates', 0, 'content', 'parts', 0, 'text')
         text || 'No response generated'
+      when 429
+        # Rate limit exceeded - implement exponential backoff
+        max_retries = 3
+        if retry_count < max_retries
+          wait_time = (2 ** retry_count) * 5 # 5, 10, 20 seconds
+          self.class.logger.warn("Rate limit hit (429). Retrying in #{wait_time}s (attempt #{retry_count + 1}/#{max_retries})")
+          sleep(wait_time)
+          return send_request(body, model: model, retry_count: retry_count + 1)
+        else
+          self.class.logger.error("Rate limit exceeded after #{max_retries} retries")
+          raise Error, "Rate limit exceeded. Please check your quota and billing details."
+        end
       else
         error_message = response.parsed_response['error']&.dig('message') || response.body
         self.class.logger.error("API Error: #{error_message}")
         raise Error, "API Error: #{error_message}"
       end
+    end
+
+    # Rate limiting to prevent hitting API limits
+    def rate_limit_delay
+      return unless @last_request_time
+      
+      time_since_last = Time.now - @last_request_time
+      if time_since_last < @min_request_interval
+        sleep_time = @min_request_interval - time_since_last
+        self.class.logger.debug("Rate limiting: sleeping #{sleep_time.round(2)}s")
+        sleep(sleep_time)
+      end
+      
+      @last_request_time = Time.now
     end
 
     # Mask API key for logging and error reporting
