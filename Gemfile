@@ -10,5 +10,5 @@ gem 'bundler', '>= 2.3.0'
 group :development, :test do
   gem 'mini_mime', '~> 1.1.5'
   gem 'multi_xml', '0.7.1'
-  gem 'bigdecimal', '~> 3.1.9'
+  gem 'bigdecimal', '~> 3.2.2'
 end
