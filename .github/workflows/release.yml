@@ -87,6 +87,18 @@ jobs:
         with:
           name: gem-release
 
+      - name: Check for RubyGems OTP
+        run: |
+          if [ -z "${{ secrets.RUBYGEMS_OTP }}" ]; then
+            echo "⚠️  RUBYGEMS_OTP secret is missing!"
+            echo "Since MFA is enabled, you need to add your OTP as a repository secret."
+            echo "Go to Settings > Secrets and variables > Actions"
+            echo "Add secret: RUBYGEMS_OTP = your current OTP code"
+            exit 1
+          else
+            echo "✅ RUBYGEMS_OTP found"
+          fi
+
       - name: Check if version exists on RubyGems
         id: check-rubygems
         run: |
@@ -105,16 +117,17 @@ jobs:
           printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
           
           # Check if OTP is required and provided
-          if [ -z "${{ secrets.RUBYGEMS_OTP }}" ]; then
+          if [ -z "$RUBYGEMS_OTP" ]; then
             echo "⚠️  Warning: No OTP provided. If MFA is enabled on your RubyGems account, this will fail."
             echo "Please add RUBYGEMS_OTP as a repository secret with your current OTP code."
             gem push *.gem
           else
             echo "Using OTP for MFA-enabled RubyGems account"
-            gem push *.gem --otp ${{ secrets.RUBYGEMS_OTP }}
+            gem push *.gem --otp $RUBYGEMS_OTP
           fi
         env:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+          RUBYGEMS_OTP: ${{ secrets.RUBYGEMS_OTP }}
 
   publish-github:
     name: Publish to GitHub Packages
