@@ -1,3 +1,5 @@
+# * @friday_gemini_ai
+
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|

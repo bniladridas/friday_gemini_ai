@@ -38,3 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Text generation capabilities
 - Chat functionality
 - Image-to-text generation
+
+---
+
+* @friday_gemini_ai

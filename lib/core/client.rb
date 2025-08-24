@@ -45,7 +45,8 @@ module GeminiAI
       
       # Rate limiting - track last request time
       @last_request_time = nil
-      @min_request_interval = 1.0 # Minimum 1 second between requests
+      # More conservative rate limiting in CI environments
+      @min_request_interval = (ENV['CI'] == 'true' || ENV['GITHUB_ACTIONS'] == 'true') ? 3.0 : 1.0
       
       # Extensive logging for debugging
       self.class.logger.debug("Initializing Client")
@@ -205,13 +206,15 @@ module GeminiAI
 
     # Rate limiting to prevent hitting API limits
     def rate_limit_delay
-      return unless @last_request_time
+      current_time = Time.now
       
-      time_since_last = Time.now - @last_request_time
-      if time_since_last < @min_request_interval
-        sleep_time = @min_request_interval - time_since_last
-        self.class.logger.debug("Rate limiting: sleeping #{sleep_time.round(2)}s")
-        sleep(sleep_time)
+      if @last_request_time
+        time_since_last = current_time - @last_request_time
+        if time_since_last < @min_request_interval
+          sleep_time = @min_request_interval - time_since_last
+          self.class.logger.debug("Rate limiting: sleeping #{sleep_time.round(2)}s")
+          sleep(sleep_time)
+        end
       end
       
       @last_request_time = Time.now
