@@ -1,0 +1,157 @@
+# GitHub Labels Configuration
+# This file can be used with github-label-sync or similar tools
+
+# Priority Labels
+- name: "priority: critical"
+  color: "d73a4a"
+  description: "Critical priority - needs immediate attention"
+
+- name: "priority: high"
+  color: "ff6b6b"
+  description: "High priority - should be addressed soon"
+
+- name: "priority: medium"
+  color: "ffa726"
+  description: "Medium priority - normal timeline"
+
+- name: "priority: low"
+  color: "4fc3f7"
+  description: "Low priority - can be addressed later"
+
+# Type Labels
+- name: "bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+- name: "security"
+  color: "b60205"
+  description: "Security-related issue or improvement"
+
+- name: "performance"
+  color: "ff9800"
+  description: "Performance-related issue or improvement"
+
+- name: "breaking-change"
+  color: "d73a4a"
+  description: "Changes that break backward compatibility"
+
+- name: "bug-fix"
+  color: "28a745"
+  description: "Fix for a bug"
+
+# Status Labels
+- name: "needs-triage"
+  color: "fbca04"
+  description: "Needs initial review and categorization"
+
+- name: "needs-reproduction"
+  color: "fef2c0"
+  description: "Bug report needs reproduction steps"
+
+- name: "needs-more-info"
+  color: "fef2c0"
+  description: "More information needed from reporter"
+
+- name: "ready-for-review"
+  color: "0e8a16"
+  description: "Ready for code review"
+
+- name: "work-in-progress"
+  color: "fbca04"
+  description: "Work in progress - not ready for review"
+
+- name: "blocked"
+  color: "d73a4a"
+  description: "Blocked by external dependency or issue"
+
+- name: "stale"
+  color: "ededed"
+  description: "No recent activity - may be closed"
+
+# Component Labels
+- name: "core"
+  color: "1d76db"
+  description: "Core library functionality"
+
+- name: "api"
+  color: "1d76db"
+  description: "API client or integration"
+
+- name: "cli"
+  color: "1d76db"
+  description: "Command line interface"
+
+- name: "testing"
+  color: "0e8a16"
+  description: "Testing-related changes"
+
+- name: "ci-cd"
+  color: "0e8a16"
+  description: "Continuous integration and deployment"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Dependency updates or issues"
+
+# Difficulty Labels
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "easy"
+  color: "c2e0c6"
+  description: "Easy difficulty level"
+
+- name: "medium"
+  color: "ffd33d"
+  description: "Medium difficulty level"
+
+- name: "hard"
+  color: "ff6b6b"
+  description: "Hard difficulty level"
+
+# Special Labels
+- name: "pinned"
+  color: "0e8a16"
+  description: "Pinned issue - won't be marked as stale"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+
+# Ruby/Gem Specific
+- name: "ruby"
+  color: "cc342d"
+  description: "Ruby language specific"
+
+- name: "gemini-api"
+  color: "4285f4"
+  description: "Google Gemini API related"
+
+- name: "compatibility"
+  color: "f9d71c"
+  description: "Compatibility with Ruby versions or frameworks"

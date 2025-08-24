@@ -1,0 +1,179 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Pre-release Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec ruby tests/runner.rb
+
+      - name: Run integration tests
+        run: bundle exec ruby tests/integration/api.rb
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      gem-version: ${{ steps.gem-info.outputs.version }}
+      gem-name: ${{ steps.gem-info.outputs.name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Build gem
+        run: gem build *.gemspec
+
+      - name: Get gem info
+        id: gem-info
+        run: |
+          GEM_FILE=$(ls *.gem)
+          GEM_NAME=$(basename "$GEM_FILE" .gem)
+          GEM_VERSION=$(echo "$GEM_NAME" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          echo "version=$GEM_VERSION" >> $GITHUB_OUTPUT
+          echo "name=$GEM_NAME" >> $GITHUB_OUTPUT
+          echo "file=$GEM_FILE" >> $GITHUB_OUTPUT
+
+      - name: Upload gem artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gem-release
+          path: "*.gem"
+
+  publish-rubygems:
+    name: Publish to RubyGems
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Download gem artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-release
+
+      - name: Check if version exists on RubyGems
+        id: check-rubygems
+        run: |
+          if gem list -r -e friday_gemini_ai | grep -q "${{ needs.build.outputs.gem-version }}"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to RubyGems
+        if: steps.check-rubygems.outputs.exists == 'false'
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
+          gem push *.gem
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+
+  publish-github:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Download gem artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-release
+
+      - name: Publish to GitHub Packages
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+          gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build, publish-rubygems, publish-github]
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download gem artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-release
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ -f "CHANGELOG.md" ]; then
+            # Extract changelog for this version
+            awk '/^## \[?v?${{ needs.build.outputs.gem-version }}\]?/{flag=1; next} /^## \[?v?[0-9]/{flag=0} flag' CHANGELOG.md > release_notes.md
+          else
+            echo "Release ${{ needs.build.outputs.gem-version }}" > release_notes.md
+            echo "" >> release_notes.md
+            echo "### Changes" >> release_notes.md
+            echo "- See commit history for detailed changes" >> release_notes.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ needs.build.outputs.gem-version }}
+          body_path: release_notes.md
+          files: "*.gem"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

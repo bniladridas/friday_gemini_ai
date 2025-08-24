@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in gemini_ai.gemspec
+# Specify your gem's dependencies in gemini.gemspec
 gemspec
 
 # Specify bundler version

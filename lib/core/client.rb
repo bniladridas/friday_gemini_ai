@@ -4,21 +4,31 @@ require 'base64'
 require 'logger'
 
 module GeminiAI
-  VERSION = '0.1.5'
-  class Error < StandardError; end
-
+  # Core client class for Gemini AI API communication
   class Client
     BASE_URL = 'https://generativelanguage.googleapis.com/v1/models'
     MODELS = {
-      pro: 'gemini-2.0-flash',
-      flash: 'gemini-2.0-flash',
-      flash_lite: 'gemini-2.0-flash-lite'
+      # Gemini 2.5 models (latest)
+      pro: 'gemini-2.5-pro',
+      flash: 'gemini-2.5-flash',
+      
+      # Gemini 2.0 models
+      flash_2_0: 'gemini-2.0-flash',
+      flash_lite: 'gemini-2.0-flash-lite',
+      
+      # Legacy aliases for backward compatibility
+      pro_2_0: 'gemini-2.0-flash',
+      
+      # Gemini 1.5 models (for specific use cases)
+      pro_1_5: 'gemini-1.5-pro',
+      flash_1_5: 'gemini-1.5-flash',
+      flash_8b: 'gemini-1.5-flash-8b'
     }
 
     # Configure logging
     def self.logger
       @logger ||= Logger.new(STDOUT).tap do |log|
-        log.level = Logger::DEBUG  # Changed to DEBUG for more information
+        log.level = Logger::DEBUG
         log.formatter = proc do |severity, datetime, progname, msg|
           # Mask any potential API key in logs
           masked_msg = msg.to_s.gsub(/AIza[a-zA-Z0-9_-]{35,}/, '[REDACTED]')

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Community Discussions
+    url: https://github.com/bniladridas/friday_gemini_ai/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Security Issues
+    url: https://github.com/bniladridas/friday_gemini_ai/security/advisories/new
+    about: Report security vulnerabilities privately

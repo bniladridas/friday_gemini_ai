@@ -1,0 +1,18 @@
+# Main entry point for the GeminiAI gem
+require_relative 'core/version'
+require_relative 'core/errors'
+require_relative 'core/client'
+require_relative 'utils/loader'
+require_relative 'utils/logger'
+
+module GeminiAI
+  # Convenience method to create a new client
+  def self.new(api_key = nil, **options)
+    Client.new(api_key, **options)
+  end
+  
+  # Load environment variables
+  def self.load_env(file_path = '.env')
+    Utils::Loader.load(file_path)
+  end
+end
