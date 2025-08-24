@@ -3,8 +3,8 @@ require_relative '../../lib/gemini'
 
 class TestClient < Minitest::Test
   def setup
-    # Use a mock API key for testing
-    @api_key = 'AIzaSyDummyTestKeyForUnitTests123456789'
+    # Use a properly formatted mock API key for testing (matches expected format)
+    @api_key = 'AIzaSyDummyTestKeyForUnitTests123456789012345'
     @client = GeminiAI::Client.new(@api_key)
   end
   
