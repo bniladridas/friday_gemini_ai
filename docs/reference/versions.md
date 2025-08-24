@@ -19,11 +19,10 @@ Friday Gemini AI version history, compatibility, and migration information.
 - Secure API key handling
 
 #### Supported Ruby Versions
-- **Ruby 2.6+** - Minimum supported version
-- **Ruby 2.7** - Fully supported
-- **Ruby 3.0** - Fully supported
+- **Ruby 3.1+** - Minimum supported version
 - **Ruby 3.1** - Fully supported
 - **Ruby 3.2** - Fully supported
+- **Ruby 3.3** - Fully supported
 - **Ruby 3.3** - Fully supported
 
 #### Supported Gemini Models
@@ -73,11 +72,12 @@ GeminiAI::NetworkError         # Network issues
 | Ruby Version | v1.0.0 | Notes |
 |--------------|--------|-------|
 | 2.5 | No | Not supported |
-| 2.6 | Yes | Minimum version |
-| 2.7 | Yes | Fully supported |
-| 3.0 | Yes | Fully supported |
-| 3.1 | Yes | Fully supported |
+| 2.6 | No | Not supported |
+| 2.7 | No | Not supported |
+| 3.0 | No | Not supported |
+| 3.1 | Yes | Minimum version |
 | 3.2 | Yes | Fully supported |
+| 3.3 | Yes | Fully supported |
 | 3.3 | Yes | Fully supported |
 
 ### Framework Compatibility

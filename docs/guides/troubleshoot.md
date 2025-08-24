@@ -361,14 +361,14 @@ chmod +x bin/gemini
 
 2. **Update Ruby** (using rbenv):
    ```bash
-   rbenv install 3.0.0
-   rbenv global 3.0.0
+   rbenv install 3.1.0
+   rbenv global 3.1.0
    ```
 
 3. **Update Ruby** (using RVM):
    ```bash
-   rvm install 3.0.0
-   rvm use 3.0.0 --default
+   rvm install 3.1.0
+   rvm use 3.1.0 --default
    ```
 
 ## Debugging

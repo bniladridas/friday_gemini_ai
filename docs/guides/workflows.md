@@ -9,7 +9,7 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 **Triggers**: Push/PR to main or develop branches  
 **Features**:
 - Tests on Ubuntu, macOS, Windows
-- Tests Ruby 3.0, 3.1, 3.2, 3.3
+- Tests Ruby 3.1, 3.2, 3.3
 - Runs linting (RuboCop)
 - Security scanning (Bundler Audit, Brakeman)
 - Builds gem artifact
