@@ -7,7 +7,9 @@ class TestAPI < Minitest::Test
     GeminiAI.load_env
     
     # Skip tests if no API key is available
-    skip "GEMINI_API_KEY not set" unless ENV['GEMINI_API_KEY']
+    unless ENV['GEMINI_API_KEY']
+      skip "GEMINI_API_KEY not set. Add it as a repository secret for CI or set it locally for development."
+    end
     
     @client = GeminiAI::Client.new
   end
