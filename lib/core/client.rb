@@ -2,6 +2,8 @@ require 'httparty'
 require 'json'
 require 'base64'
 require 'logger'
+require 'dotenv/load'
+require_relative 'errors'
 
 module GeminiAI
   # Core client class for Gemini AI API communication
