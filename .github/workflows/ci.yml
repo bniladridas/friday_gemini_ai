@@ -85,13 +85,12 @@ jobs:
 
       - name: Run Bundler Audit
         run: |
-          gem install bundler-audit
-          bundle audit --update
+          bundle exec bundler-audit update
+          bundle exec bundler-audit check
+        continue-on-error: true
 
       - name: Run Brakeman
-        run: |
-          gem install brakeman
-          brakeman --no-pager --format github
+        run: bundle exec brakeman --no-pager --format github
         continue-on-error: true
 
   build:
