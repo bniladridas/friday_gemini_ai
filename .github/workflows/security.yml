@@ -1,0 +1,75 @@
+name: Security
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+  push:
+    branches: [ main ]
+
+jobs:
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Install security tools
+        run: |
+          gem install bundler-audit brakeman
+
+      - name: Update vulnerability database
+        run: bundle audit --update
+
+      - name: Run Bundler Audit
+        run: bundle audit --format json --output bundler-audit.json
+        continue-on-error: true
+
+      - name: Run Brakeman
+        run: brakeman --format json --output brakeman.json --no-pager
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports-${{ github.sha }}
+          path: |
+            bundler-audit.json
+            brakeman.json
+          retention-days: 30
+
+      - name: Check for vulnerabilities
+        run: |
+          echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "bundler-audit.json" ]; then
+            VULN_COUNT=$(jq '.vulnerabilities | length' bundler-audit.json 2>/dev/null || echo "0")
+            echo "### Bundler Audit: $VULN_COUNT vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$VULN_COUNT" -gt "0" ]; then
+              echo "[ERROR] Vulnerabilities detected in dependencies" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            else
+              echo "[SUCCESS] No vulnerabilities found in dependencies" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [ -f "brakeman.json" ]; then
+            WARN_COUNT=$(jq '.warnings | length' brakeman.json 2>/dev/null || echo "0")
+            echo "### Brakeman: $WARN_COUNT security warnings found" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$WARN_COUNT" -gt "0" ]; then
+              echo "[WARNING] Security warnings detected in code" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "[SUCCESS] No security warnings found in code" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi

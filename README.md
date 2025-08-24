@@ -1,178 +1,133 @@
-# Friday Gemini AI Ruby Gem
+# Friday Gemini AI
 
 [![Gem Version](https://badge.fury.io/rb/friday_gemini_ai.svg)](https://badge.fury.io/rb/friday_gemini_ai)
+[![CI](https://github.com/bniladridas/friday_gemini_ai/workflows/CI/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
+[![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
+[![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
 
-A Ruby gem for interacting with Google's Gemini AI models. Simple, intuitive, and powerful.
-
-## Documentation
-
-Full documentation is available at [https://bniladridas.github.io/friday_gemini_ai/](https://bniladridas.github.io/friday_gemini_ai/)
-
-## Production Domain
-
-View at [https://friday-gemini-ai.netlify.app/](https://friday-gemini-ai.netlify.app/)
-
-## Table of Contents
-1. [Installation](#installation)
-2. [Configuration](#configuration)
-3. [Usage](#usage)
-   - [Text Generation](#text-generation)
-   - [Chat](#chat)
-   - [Error Handling](#error-handling)
-4. [Real-World Examples](#real-world-examples)
-5. [Logging](#logging)
-6. [Security](#security)
-7. [Testing](#testing)
-8. [Contributing](#contributing)
+Ruby gem for Google's Gemini AI models.
 
 ## Installation
 
-### From RubyGems
 ```bash
 gem install friday_gemini_ai
 ```
 
-### Using Bundler
-Add to your Gemfile:
-```ruby
-gem 'friday_gemini_ai'
+Create a `.env` file and add your API key:
 ```
-
-## Configuration
-
-Set your API key:
-```bash
-export GEMINI_API_KEY='your_api_key_here'
+GEMINI_API_KEY=your_api_key_here
 ```
 
 ## Usage
 
-### Text Generation
 ```ruby
-require 'gemini_ai'
+require_relative 'lib/gemini'
 
+GeminiAI.load_env
+
+# Use the latest Gemini 2.5 Pro (default)
 client = GeminiAI::Client.new
-response = client.generate_text('Tell me a joke')
+response = client.generate_text('Write a haiku about Ruby')
 puts response
+
+# Or choose a specific model
+flash_client = GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
+pro_client = GeminiAI::Client.new(model: :pro)      # Gemini 2.5 Pro
 ```
 
-### Chat
-```ruby
-messages = [
-  { role: 'user', content: 'Hello' },
-  { role: 'model', content: 'Hi there!' },
-  { role: 'user', content: 'How are you?' }
-]
-
-response = client.chat(messages)
-puts response
+```bash
+./bin/gemini test
+./bin/gemini generate "Your prompt here"
+./bin/gemini chat
 ```
 
-### Error Handling
-```ruby
-begin
-  client.generate_text('')
-rescue GeminiAI::Error => e
-  puts "Error: #{e.message}"
-end
-```
+## Supported Models
 
-## Real-World Examples
+| Model Key | Model ID | Description |
+|-----------|----------|-------------|
+| `:pro` | `gemini-2.5-pro` | Latest and most capable model |
+| `:flash` | `gemini-2.5-flash` | Fast and efficient latest model |
+| `:flash_2_0` | `gemini-2.0-flash` | Previous generation fast model |
+| `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight model |
+| `:pro_1_5` | `gemini-1.5-pro` | Gemini 1.5 Pro model |
+| `:flash_1_5` | `gemini-1.5-flash` | Gemini 1.5 Flash model |
+| `:flash_8b` | `gemini-1.5-flash-8b` | Compact 8B parameter model |
 
-Here are some examples of the gem in action with real responses from the Gemini AI models:
+**Model Selection Guide:**
+- Use `:pro` for complex reasoning and analysis
+- Use `:flash` for fast, general-purpose tasks  
+- Use `:flash_2_0` for compatibility with older workflows
+- Use `:flash_lite` for simple, lightweight tasks
 
-### Creative Writing
+## What You Can Do
 
-**Prompt:**
-```ruby
-client.generate_text('Write a haiku about Ruby programming')
-```
+**Text Generation**
+- Generate creative content, stories, and articles
+- Create explanations and educational content
+- Write code comments and documentation
 
-**Response:**
-```
-Gems sparkle bright red,
-Code flows with elegant ease,
-Joy in every line.
-```
+**Conversational AI**
+- Build multi-turn chat applications
+- Create interactive Q&A systems
+- Develop conversational interfaces
 
-### Technical Information
+**Image Analysis**
+- Analyze images with text prompts
+- Extract information from visual content
+- Generate descriptions of images
 
-**Prompt:**
-```ruby
-messages = [
-  { role: 'user', content: 'Hello, can you tell me what Ruby is?' },
-  { role: 'model', content: 'Ruby is a dynamic, object-oriented programming language known for its simplicity and productivity.' },
-  { role: 'user', content: 'What are some popular Ruby frameworks?' }
-]
+**Quick Tasks**
+- Test ideas and prompts via CLI
+- Prototype AI-powered features
+- Generate content with custom parameters
 
-client.chat(messages)
-```
+## Features
 
-**Response:**
-```
-Here are some popular Ruby frameworks, categorized for clarity:
+- Text generation and chat conversations
+- Support for Gemini 2.5, 2.0, and 1.5 model families
+- Configurable parameters (temperature, tokens, top-p, top-k)
+- Error handling and API key security
+- CLI interface and .env integration
 
-**Web Frameworks (The most common use of Ruby frameworks):**
+## Documentation
 
-*   **Ruby on Rails (Rails):**  By far the most popular and widely used.  It's a full-stack framework, meaning it provides tools and conventions for building everything from the front-end (views) to the back-end (database interactions, server logic).  It emphasizes convention over configuration, making it faster to develop applications.  Ideal for building web applications of all sizes, from simple blogs to complex e-commerce platforms.
+**Getting Started**
+- [Overview](docs/start/overview.md) - Features and capabilities
+- [Quickstart](docs/start/quickstart.md) - 5-minute setup
 
-*   **Sinatra:**  A lightweight and flexible framework.  It's considered a Domain Specific Language (DSL) for quickly creating web applications with minimal effort.  It's great for smaller projects, APIs, and prototyping.  It gives you more control over the structure of your application compared to Rails.
+**Reference**
+- [API Reference](docs/reference/api.md) - Method documentation
+- [Usage Guide](docs/reference/usage.md) - Examples and patterns
+- [Models](docs/reference/models.md) - Gemini 2.5 Pro, Flash, and more
+- [Capabilities](docs/reference/capabilities.md) - Text generation and chat
+- [Cookbook](docs/reference/cookbook.md) - Code recipes
+- [Versions](docs/reference/versions.md) - API compatibility
 
-... (abbreviated for brevity)
-```
+**Guides**
+- [Best Practices](docs/guides/practices.md) - Security and performance
+- [Troubleshooting](docs/guides/troubleshoot.md) - Common solutions
+- [Workflows](docs/guides/workflows.md) - CI/CD and automation
+- [Resources](docs/guides/resources.md) - Migration and extras
+- [Community](docs/guides/community.md) - Contributing and support
+- [Changelog](CHANGELOG.md) - Version history and changes
 
-### Customizing Parameters
+## Examples
 
-**Prompt:**
-```ruby
-client.generate_text('Explain what an API is in one sentence', temperature: 0.3, max_tokens: 50)
-```
-
-**Response:**
-```
-An API (Application Programming Interface) is a set of rules and specifications that allows different software applications to communicate and exchange data with each other.
-```
-
-## Logging
-
-### Configuration
-```ruby
-# Set logging level
-GeminiAI::Client.logger.level = Logger::INFO
-
-# Log to file
-GeminiAI::Client.logger = Logger.new('logfile.log')
-```
-
-### Log Levels
-- DEBUG: Detailed debug information
-- INFO: General operational messages
-- WARN: Warning conditions
-- ERROR: Error conditions
-
-## Security
-
-### API Key Protection
-- Never hardcode API keys
-- Use environment variables
-- Automatic key masking in logs
+- `examples/basic.rb` - Text generation and chat
+- `examples/advanced.rb` - Configuration and error handling
 
 ## Testing
 
-Run the test suite:
 ```bash
-bundle exec ruby test/gemini_ai_test.rb
-```
-
-For CI-friendly tests that don't require an API key:
-```bash
-bundle exec rake ci_test
+ruby tests/runner.rb
+ruby tests/unit/client.rb
+ruby tests/integration/api.rb
 ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+Fork, branch, commit, push, pull request.
+
+## License
+
+MIT - see [LICENSE](LICENSE)

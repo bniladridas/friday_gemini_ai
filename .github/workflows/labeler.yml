@@ -1,0 +1,161 @@
+name: Auto Label
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auto-label issues
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = issue.body ? issue.body.toLowerCase() : '';
+            const labels = [];
+
+            // Bug-related keywords
+            if (title.includes('bug') || title.includes('error') || title.includes('fail') || 
+                body.includes('error') || body.includes('exception') || body.includes('traceback')) {
+              labels.push('bug');
+            }
+
+            // Feature request keywords
+            if (title.includes('feature') || title.includes('enhancement') || title.includes('add') ||
+                body.includes('feature request') || body.includes('enhancement')) {
+              labels.push('enhancement');
+            }
+
+            // Documentation keywords
+            if (title.includes('doc') || title.includes('readme') || title.includes('guide') ||
+                body.includes('documentation') || body.includes('docs')) {
+              labels.push('documentation');
+            }
+
+            // Question keywords
+            if (title.includes('question') || title.includes('how to') || title.includes('help') ||
+                body.includes('question') || body.includes('how do i')) {
+              labels.push('question');
+            }
+
+            // Security keywords
+            if (title.includes('security') || title.includes('vulnerability') || title.includes('cve') ||
+                body.includes('security') || body.includes('vulnerability')) {
+              labels.push('security');
+            }
+
+            // Performance keywords
+            if (title.includes('performance') || title.includes('slow') || title.includes('speed') ||
+                body.includes('performance') || body.includes('optimization')) {
+              labels.push('performance');
+            }
+
+            // API-related keywords
+            if (title.includes('api') || title.includes('client') || title.includes('request') ||
+                body.includes('api key') || body.includes('gemini api')) {
+              labels.push('api');
+            }
+
+            // Testing keywords
+            if (title.includes('test') || body.includes('test') || body.includes('spec')) {
+              labels.push('testing');
+            }
+
+            // Add needs-triage to all new issues
+            labels.push('needs-triage');
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+            }
+
+      - name: Auto-label pull requests
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title.toLowerCase();
+            const body = pr.body ? pr.body.toLowerCase() : '';
+            const labels = [];
+
+            // Get changed files
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+
+            const changedFiles = files.data.map(file => file.filename);
+
+            // Documentation changes
+            if (changedFiles.some(file => file.startsWith('docs/') || file.includes('README') || file.includes('.md'))) {
+              labels.push('documentation');
+            }
+
+            // Test changes
+            if (changedFiles.some(file => file.startsWith('tests/') || file.includes('test') || file.includes('spec'))) {
+              labels.push('testing');
+            }
+
+            // Core library changes
+            if (changedFiles.some(file => file.startsWith('lib/core/'))) {
+              labels.push('core');
+            }
+
+            // CI/CD changes
+            if (changedFiles.some(file => file.startsWith('.github/workflows/'))) {
+              labels.push('ci-cd');
+            }
+
+            // Dependencies
+            if (changedFiles.some(file => file.includes('Gemfile') || file.includes('.gemspec'))) {
+              labels.push('dependencies');
+            }
+
+            // Security files
+            if (changedFiles.some(file => file.includes('SECURITY') || file.includes('security'))) {
+              labels.push('security');
+            }
+
+            // Breaking changes
+            if (title.includes('breaking') || body.includes('breaking change')) {
+              labels.push('breaking-change');
+            }
+
+            // Bug fixes
+            if (title.includes('fix') || title.includes('bug') || body.includes('fixes #')) {
+              labels.push('bug-fix');
+            }
+
+            // Features
+            if (title.includes('feat') || title.includes('add') || title.includes('feature')) {
+              labels.push('enhancement');
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: labels
+              });
+            }

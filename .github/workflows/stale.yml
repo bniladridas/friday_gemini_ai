@@ -1,0 +1,80 @@
+name: Mark stale issues and pull requests
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Run daily at 2 AM UTC
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Issues
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity. 
+            It will be closed in 7 days if no further activity occurs. 
+            
+            If you believe this issue is still relevant, please:
+            - Add a comment explaining why it should remain open
+            - Remove the 'stale' label
+            
+            Thank you for your contributions to Friday Gemini AI!
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity. 
+            
+            If you believe this issue is still relevant, please reopen it with:
+            - Updated information
+            - Current reproduction steps
+            - Explanation of why it's still needed
+            
+            Thank you for your understanding!
+          days-before-issue-stale: 60
+          days-before-issue-close: 7
+          
+          # Pull Requests
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            It will be closed in 7 days if no further activity occurs.
+            
+            If this PR is still relevant, please:
+            - Rebase on the latest main branch
+            - Address any review comments
+            - Add a comment explaining the current status
+            
+            Thank you for your contribution!
+          close-pr-message: |
+            This pull request has been automatically closed due to inactivity.
+            
+            If you'd like to continue with this PR, please:
+            - Reopen the PR
+            - Rebase on the latest main branch
+            - Address any outstanding review comments
+            
+            Thank you for your contribution!
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+          
+          # Labels
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,bug,enhancement,good first issue'
+          exempt-pr-labels: 'pinned,security,work-in-progress'
+          exempt-draft-pr: true
+          
+          # Assignees and milestones
+          exempt-all-assignees: true
+          exempt-all-milestones: true
+          
+          # Operations per run (to avoid rate limits)
+          operations-per-run: 30
+          
+          # Only process issues/PRs created after this date
+          start-date: '2024-01-01T00:00:00Z'
