@@ -4,8 +4,8 @@ source 'https://rubygems.org'
 gemspec
 
 # Additional dependencies
-gem 'bigdecimal', '~> 3.1'
+gem 'bigdecimal', '~> 3.2'
 
 # Security and development tools
 gem 'bundler-audit', '~> 0.9', require: false
-gem 'brakeman', '~> 6.0', require: false
+gem 'brakeman', '~> 7.1', require: false
