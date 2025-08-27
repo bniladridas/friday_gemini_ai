@@ -29,7 +29,7 @@ class TestAPI < Minitest::Test
     }
 
     # Stub the API request
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 200,
         body: @success_response.to_json,
@@ -48,7 +48,7 @@ class TestAPI < Minitest::Test
 
   def test_chat_functionality
     # Stub the API request with the expected response
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 200,
         body: {
