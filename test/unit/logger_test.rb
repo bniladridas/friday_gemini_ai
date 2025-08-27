@@ -48,6 +48,14 @@ class LoggerTest < Minitest::Test
     assert_includes $stdout.string, 'ERROR -- Test error message'
   end
 
+  def test_api_key_redaction
+    api_key = 'AIzaSyDummyTestKeyForUnitTests123456789'
+    GeminiAI::Utils::Logger.info("API key is #{api_key}")
+
+    refute_includes $stdout.string, api_key
+    assert_includes $stdout.string, 'INFO -- API key is [REDACTED]'
+  end
+
   def test_log_level_setting
     logger = GeminiAI::Utils::Logger.instance
     logger.level = ::Logger::WARN
@@ -64,13 +72,5 @@ class LoggerTest < Minitest::Test
     logger2 = GeminiAI::Utils::Logger.instance
 
     assert_same logger1, logger2
-  end
-
-  def test_api_key_redaction
-    api_key = 'AIzaTestKey123456789012345678901234567890'
-    GeminiAI::Utils::Logger.info("API key is #{api_key}")
-
-    assert_includes $stdout.string, 'INFO -- API key is [REDACTED]'
-    refute_includes $stdout.string, api_key
   end
 end
