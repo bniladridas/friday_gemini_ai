@@ -8,6 +8,8 @@ on:
 jobs:
   test:
     name: Pre-release Tests
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     
     steps:
