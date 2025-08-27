@@ -77,20 +77,16 @@ class TestAPI < Minitest::Test
   end
 
   def test_different_models
-    # Stub the request for each model with different responses
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
-      .with(body: hash_including({
-                                   contents: [{
-                                     parts: [{ text: 'What is the weather like?' }]
-                                   }]
-                                 }))
+    # Test with default model (pro)
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent")
+      .with(query: { key: @api_key })
       .to_return(
         status: 200,
         body: {
           candidates: [{
             content: {
               parts: [{
-                text: 'Test response from Gemini AI'
+                text: 'Test response from Gemini AI Pro'
               }]
             }
           }]
@@ -98,31 +94,65 @@ class TestAPI < Minitest::Test
         headers: { 'Content-Type': 'application/json' }
       )
 
-    # Test with default model (pro)
-    client = GeminiAI::Client.new(@api_key)
+    client = GeminiAI::Client.new(@api_key, model: :pro)
     response = client.generate_text('What is the weather like?')
 
-    refute_nil response
-    refute_empty response.strip
-    assert_equal 'Test response from Gemini AI', response
+    assert_equal 'Test response from Gemini AI Pro', response
+    
+    # Test with flash model
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent")
+      .with(query: { key: @api_key })
+      .to_return(
+        status: 200,
+        body: {
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'Test response from Gemini AI Flash'
+              }]
+            }
+          }]
+        }.to_json,
+        headers: { 'Content-Type': 'application/json' }
+      )
+
+    client = GeminiAI::Client.new(@api_key, model: :flash)
+    response = client.generate_text('What is the weather like?')
+    
+    assert_equal 'Test response from Gemini AI Flash', response
   end
 
   def test_system_instructions
-    # Stub the request
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
-      .with(body: hash_including({
-                                   contents: [{
-                                     role: 'user',
-                                     parts: [{
-                                       text: 'How are you?'
-                                     }]
-                                   }],
-                                   systemInstruction: {
-                                     parts: [{
-                                       text: 'You are a medieval knight. Speak in old English.'
-                                     }]
-                                   }
-                                 }))
+    expected_body = {
+      contents: [
+        { role: 'user', parts: [{ text: 'How are you?' }] }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+        topP: 0.9,
+        topK: 40
+      },
+      systemInstruction: {
+        parts: [
+          { text: 'You are a medieval knight. Speak in old English.' }
+        ]
+      }
+    }
+
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
+      .with(
+        body: ->(actual_body) {
+          actual = JSON.parse(actual_body, symbolize_names: true)
+          expected = expected_body
+          
+          # Compare the parts we care about
+          actual[:contents] == expected[:contents] &&
+          actual[:generationConfig] == expected[:generationConfig] &&
+          actual[:systemInstruction] == expected[:systemInstruction]
+        },
+        headers: { 'Content-Type': 'application/json' }
+      )
       .to_return(
         status: 200,
         body: {

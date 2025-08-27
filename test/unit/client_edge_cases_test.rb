@@ -29,7 +29,26 @@ class ClientEdgeCasesTest < Minitest::Test
   end
 
   def test_chat_with_system_instruction
-    stub_gemini_request(response: test_response, status: 200)
+    expected_system_instruction = 'You are a helpful assistant'
+    
+    stub_request(:post, /generativelanguage/)
+      .with(body: hash_including({
+        contents: [
+          { role: 'user', parts: [{ text: 'Hello' }] },
+          { role: 'assistant', parts: [{ text: 'Hi there!' }] },
+          { role: 'user', parts: [{ text: 'Tell me a joke' }] }
+        ],
+        systemInstruction: {
+          parts: [
+            { text: expected_system_instruction }
+          ]
+        }
+      }))
+      .to_return(
+        status: 200,
+        body: test_response,
+        headers: { 'Content-Type': 'application/json' }
+      )
 
     messages = [
       { role: 'user', content: 'Hello' },
@@ -37,12 +56,7 @@ class ClientEdgeCasesTest < Minitest::Test
       { role: 'user', content: 'Tell me a joke' }
     ]
 
-    @client.chat(messages, system_instruction: 'You are a helpful assistant')
-
-    assert_requested :post, /generativelanguage/ do |req|
-      body = JSON.parse(req.body)
-      body['systemInstruction']['parts'][0]['text'] == 'You are a helpful assistant'
-    end
+    @client.chat(messages, system_instruction: expected_system_instruction)
   end
 
   def test_rate_limiting
