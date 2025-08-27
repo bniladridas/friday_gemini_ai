@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'json'
 require 'simplecov'
 require 'simplecov-lcov'
 require 'webmock/minitest'
@@ -193,6 +194,20 @@ module Minitest
 
     # Helper method to compare hashes and show differences
     def compare_hashes(expected, actual, path)
+      # Parse strings as JSON if they look like JSON
+      expected = JSON.parse(expected) if expected.is_a?(String) && expected.start_with?('{')
+      actual = JSON.parse(actual) if actual.is_a?(String) && actual.start_with?('{')
+      
+      # If either is not a hash after parsing, do direct comparison
+      unless expected.is_a?(Hash) && actual.is_a?(Hash)
+        if expected != actual
+          debug_puts "❌ #{path}: Value mismatch"
+          debug_puts "    Expected: #{expected.inspect} (#{expected.class})"
+          debug_puts "    Actual:   #{actual.inspect} (#{actual.class})"
+        end
+        return expected == actual
+      end
+
       all_keys = (expected.keys + actual.keys).uniq
 
       debug_puts "\n=== Detailed Comparison ==="
@@ -211,6 +226,11 @@ module Minitest
             "#{expected[key].inspect} (type: #{expected[key].class})"
         elsif expected[key].is_a?(Hash) && actual[key].is_a?(Hash)
           debug_puts "🔍 #{current_path}: Comparing nested hashes..."
+          compare_hashes(expected[key], actual[key], current_path)
+        elsif expected[key].is_a?(String) && actual[key].is_a?(String) && 
+              ((expected[key].start_with?('{') && actual[key].start_with?('{')) ||
+               (expected[key].start_with?('[') && actual[key].start_with?('[')))
+          debug_puts "🔍 #{current_path}: Comparing JSON strings..."
           compare_hashes(expected[key], actual[key], current_path)
         elsif expected[key].class != actual[key].class
           debug_puts "❌ #{current_path}: Type mismatch - Expected #{expected[key].class} but got #{actual[key].class}"
