@@ -95,8 +95,8 @@ module Minitest
     end
 
     # Helper method to create a test client
-    def create_test_client(model: :pro, **)
-      GeminiAI::Client.new(test_api_key, model:, **)
+    def create_test_client(model: :pro, **options)
+      GeminiAI::Client.new(test_api_key, model: model, **options)
     end
   end
 end
@@ -105,4 +105,4 @@ end
 WebMock.disable_net_connect!(allow_localhost: true)
 
 # Use spec-style reporting
-Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
