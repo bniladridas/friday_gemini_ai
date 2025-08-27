@@ -1,0 +1,106 @@
+<internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37: warning: <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37: warning: loading in progress, circular require considered harmful - /Users/uploader/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/minitest-5.25.4/lib/minitest/test.rb
+	from test/integration/newmodels.rb:3:in  `<main>'
+	from test/integration/newmodels.rb:3:in  `require_relative'
+	from /Users/uploader/Documents/friday_gemini_ai/test/test_helper.rb:5:in  `<top (required)>'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+	from /Users/uploader/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/webmock-3.25.1/lib/webmock/minitest.rb:4:in  `<top (required)>'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+	from /Users/uploader/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/minitest-5.25.4/lib/minitest/test.rb:1:in  `<top (required)>'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+	from /Users/uploader/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/minitest-5.25.4/lib/minitest.rb:1235:in  `<top (required)>'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+	from <internal:/Users/uploader/.rbenv/versions/3.2.2/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb>:37:in  `require'
+
+
+=== Expected request body ===
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Test prompt"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0.7,
+    "maxOutputTokens": 1024,
+    "topP": 0.9,
+    "topK": 40
+  }
+}
+
+=== Setting up stub for model: gemini-2.5-pro ===
+URL: https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=[REDACTED]
+Expected status: 200
+Expected body: {
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Test prompt"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0.7,
+    "maxOutputTokens": 1024,
+    "topP": 0.9,
+    "topK": 40
+  }
+}
+
+=== Stubbed Response ===
+Status: 200
+Body: {"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}
+
+
+=== Actual Request ===
+Method: post
+URI: https://generativelanguage.googleapis.com:443/v1/models/gemini-2.5-pro:generateContent?key=AIzaSyDaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Headers: {"Content-Type"=>"application/json", "X-Goog-Api-Client"=>"gemini_ai_ruby_gem/0.1.0", "Accept-Encoding"=>"gzip;q=1.0,deflate;q=0.6,identity;q=0.3", "Accept"=>"*/*", "User-Agent"=>"Ruby"}
+Body: {
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Test prompt"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0.7,
+    "maxOutputTokens": 1024,
+    "topP": 0.9,
+    "topK": 40
+  }
+}
+
+=== Expected Request ===
+Body: {
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Test prompt"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0.7,
+    "maxOutputTokens": 1024,
+    "topP": 0.9,
+    "topK": 40
+  }
+}
+
+=== Body Match: true ===
+Line coverage (60.00%) is below the expected minimum coverage (85.00%).
+SimpleCov failed with exit 2 due to a coverage related error

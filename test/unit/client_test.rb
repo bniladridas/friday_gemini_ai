@@ -13,7 +13,35 @@ module Minitest
     end
 
     def hash_including(expected)
-      ->(actual) { expected.all? { |k, v| actual[k] == v } }
+      lambda { |actual| compare_hashes(expected, actual) }
+    end
+    
+    private
+    
+    def compare_hashes(expected, actual)
+      expected.all? { |k, v| compare_hash_values(k, v, actual) }
+    end
+    
+    def compare_hash_values(key, expected_value, actual_hash)
+      actual_value = actual_hash[key]
+      
+      if expected_value.is_a?(Hash) && actual_value.is_a?(Hash)
+        compare_hashes(expected_value, actual_value)
+      elsif expected_value.is_a?(Array) && actual_value.is_a?(Array)
+        compare_arrays(expected_value, actual_value)
+      else
+        actual_value == expected_value
+      end
+    end
+    
+    def compare_arrays(expected_array, actual_array)
+      expected_array.each_with_index.all? do |item, i|
+        if item.is_a?(Hash) && actual_array[i].is_a?(Hash)
+          compare_hashes(item, actual_array[i])
+        else
+          actual_array[i] == item
+        end
+      end
     end
   end
 end
@@ -34,10 +62,10 @@ class TestClient < Minitest::Test
 
     # Mock successful response
     @success_response = {
-      'candidates' => [{
-        'content' => {
-          'parts' => [{
-            'text' => 'Test response from Gemini AI'
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'Test response from Gemini AI'
           }]
         }
       }]
@@ -45,10 +73,10 @@ class TestClient < Minitest::Test
 
     # Mock error response
     @error_response = {
-      'error' => {
-        'message' => 'Test error',
-        'code' => 400,
-        'status' => 'INVALID_ARGUMENT'
+      error: {
+        message: 'Test error',
+        code: 400,
+        status: 'INVALID_ARGUMENT'
       }
     }
   end
@@ -77,7 +105,7 @@ class TestClient < Minitest::Test
     stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 200,
-        body: { 'candidates' => [{ 'content' => { 'parts' => [{ 'text' => 'Test response' }] } }] }.to_json,
+        body: { candidates: [{ content: { parts: [{ text: 'Test response' }] } }] }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
 
@@ -104,31 +132,31 @@ class TestClient < Minitest::Test
   def setup_rate_limiting_test
     # Stub for both v1 and v1beta API versions since the client might use either
     @stub_v1 = stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
-              .to_return(
-                status: 200, 
-                body: { 'candidates' => [{ 'content' => { 'parts' => [{ 'text' => 'Test response' }] } }] }.to_json, 
-                headers: { 'Content-Type' => 'application/json' }
-              )
-    
+               .to_return(
+                 status: 200,
+                 body: { candidates: [{ content: { parts: [{ text: 'Test response' }] } }] }.to_json,
+                 headers: { 'Content-Type' => 'application/json' }
+               )
+
     @stub_v1beta = stub_request(:post, "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
-                  .to_return(
-                    status: 200, 
-                    body: { 'candidates' => [{ 'content' => { 'parts' => [{ 'text' => 'Test response' }] } }] }.to_json, 
-                    headers: { 'Content-Type' => 'application/json' }
-                  )
+                   .to_return(
+                     status: 200,
+                     body: { candidates: [{ content: { parts: [{ text: 'Test response' }] } }] }.to_json,
+                     headers: { 'Content-Type' => 'application/json' }
+                   )
   end
 
   def test_rate_limiting_non_ci_environment
     setup_rate_limiting_test
-    
+
     # Clear CI environment variables
     ENV['CI'] = nil
     ENV['GITHUB_ACTIONS'] = nil
-    
+
     # Initialize the client and override the min_request_interval to 0 for testing
     client = GeminiAI::Client.new(@api_key)
     client.instance_variable_set(:@min_request_interval, 0)
-    
+
     # Mock Kernel.sleep to track calls
     sleep_calls = []
     Kernel.stub(:sleep, ->(seconds) { sleep_calls << seconds }) do
@@ -136,47 +164,51 @@ class TestClient < Minitest::Test
       start_time = Time.now
       3.times { client.generate_text('test') }
       elapsed = Time.now - start_time
-      
+
       # In non-CI with min_request_interval=0, requests should execute immediately
       assert_operator elapsed, :<, 0.1, 'Requests should execute immediately with min_request_interval=0'
       assert_empty sleep_calls, 'Should not sleep between requests with min_request_interval=0'
     end
-    
+
     # Verify the requests were made (checking v1 endpoint)
-    assert_requested(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}", times: 3)
+    assert_requested(
+      :post,
+      "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}",
+      times: 3
+    )
   end
-  
+
   def test_rate_limiting_ci_environment
     # Set up environment for CI
     ENV['CI'] = 'true'
     ENV['GITHUB_ACTIONS'] = 'true'
-    
+
     # Stub the HTTP request for generate_text with the correct endpoint
     stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
       .to_return(
-        status: 200, 
-        body: { 'candidates' => [{ 'content' => { 'parts' => [{ 'text' => 'Test response' }] } }] }.to_json, 
+        status: 200,
+        body: { candidates: [{ content: { parts: [{ text: 'Test response' }] } }] }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
-    
+
     client = GeminiAI::Client.new(@api_key)
-    
+
     # Mock sleep to track calls
     sleep_calls = []
     client.define_singleton_method(:sleep) do |seconds|
       sleep_calls << seconds
     end
-    
+
     # Make the test requests
     3.times { client.generate_text('test') }
-    
+
     # Verify sleep was called between requests
     assert_equal 2, sleep_calls.size, 'Should sleep between each request in CI'
     sleep_calls.each { |delay| assert_in_delta 3.0, delay, 0.1, 'Should sleep 3.0s between requests in CI' }
-    
+
     # Verify the requests were made
     assert_requested(
-      :post, 
+      :post,
       "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}",
       times: 3
     )
@@ -208,8 +240,9 @@ class TestClient < Minitest::Test
   def test_initialization_with_nil_key
     setup_invalid_api_key_tests
     ENV.delete('GEMINI_API_KEY')
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new(nil) }
+
     assert_match(/API key is required/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -217,8 +250,9 @@ class TestClient < Minitest::Test
 
   def test_initialization_with_empty_key
     setup_invalid_api_key_tests
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new('') }
+
     assert_match(/API key is required/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -226,8 +260,9 @@ class TestClient < Minitest::Test
 
   def test_initialization_with_invalid_format_key
     setup_invalid_api_key_tests
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new('invalid-key') }
+
     assert_match(/Invalid API key format/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -235,8 +270,9 @@ class TestClient < Minitest::Test
 
   def test_initialization_with_short_but_valid_prefix_key
     setup_invalid_api_key_tests
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new('AIza123') }
+
     assert_match(/Invalid API key format/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -245,8 +281,9 @@ class TestClient < Minitest::Test
   def test_initialization_with_nil_key_in_env
     setup_invalid_api_key_tests
     ENV.delete('GEMINI_API_KEY')
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new }
+
     assert_match(/API key is required/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -255,8 +292,9 @@ class TestClient < Minitest::Test
   def test_initialization_with_empty_key_in_env
     setup_invalid_api_key_tests
     ENV['GEMINI_API_KEY'] = ''
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new }
+
     assert_match(/API key is required/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -265,8 +303,9 @@ class TestClient < Minitest::Test
   def test_initialization_with_invalid_format_key_in_env
     setup_invalid_api_key_tests
     ENV['GEMINI_API_KEY'] = 'invalid-key'
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new }
+
     assert_match(/Invalid API key format/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -275,8 +314,9 @@ class TestClient < Minitest::Test
   def test_initialization_with_short_key_in_env
     setup_invalid_api_key_tests
     ENV['GEMINI_API_KEY'] = 'AIza123'
-    
+
     error = assert_raises(GeminiAI::Error) { GeminiAI::Client.new }
+
     assert_match(/Invalid API key format/, error.message)
   ensure
     teardown_invalid_api_key_tests
@@ -295,42 +335,80 @@ class TestClient < Minitest::Test
     assert_equal 'Test response from Gemini AI', response
   end
 
-  def test_generate_image_text
-    # Base64 encoded 1x1 transparent PNG
-    test_image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
-      .with(
-        body: hash_including({
-                               contents: [{
-                                 parts: [
-                                   { inline_data: { mime_type: 'image/jpeg', data: test_image } },
-                                   { text: 'Describe this image' }
-                                 ]
-                               }]
-                             })
-      )
-      .to_return(
-        status: 200,
-        body: { 'candidates' => [{ 'content' => { 'parts' => [{ 'text' => 'A test image description' }] } }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-
-    response = @client.generate_image_text(test_image, 'Describe this image')
-
-    assert_equal 'A test image description', response
-  end
-
   def test_generate_image_text_with_empty_image
     assert_raises(GeminiAI::Error) do
       @client.generate_image_text('', 'Describe this image')
     end
   end
 
-  def setup_generate_content_with_options_test
+  def test_generate_image_text
+    image_data = test_helper_image_data
+
+    # Set up the stub with the expected request body
+    stub = stub_image_text_request(image_data)
+
+    # Make the actual request
+    response = @client.generate_image_text(image_data, 'Describe this image')
+
+    # Assert the response
+    assert_requested stub
+    assert_equal 'A test image description', response
+  end
+
+  def test_helper_image_data
+    # Base64 encoded 1x1 transparent PNG
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+  end
+
+  def stub_image_text_request(image_data)
+    expected_body = expected_image_text_request_body(image_data)
+    puts "Setting up stub with expected body: #{expected_body.inspect}"
+
+    stub = stub_request(:post, /generativelanguage\.googleapis\.com/)
+           .with do |request|
+      request_body = JSON.parse(request.body)
+      puts "Received request with body: #{request_body.inspect}"
+      expected_body.matches?(request_body)
+    end
+           .to_return(image_text_response)
+
+    puts "Stub created: #{stub.inspect}"
+    stub
+  end
+
+  def test_expected_image_text_request_body
+    image_data = test_helper_image_data
+    {
+      contents: [{
+        parts: [
+          { inline_data: { mime_type: 'image/jpeg', data: image_data } },
+          { text: 'Describe this image' }
+        ]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+        topP: 0.9,
+        topK: 40
+      }
+    }
+  end
+
+  def test_image_text_response
+    {
+      status: 200,
+      body: { 'candidates' => [{ 'content' => { 'parts' => [{ 'text' => 'A test image description' }] } }] }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    }
+  end
+
+  def test_setup_generate_content_with_options
     @request_body = nil
     @stub = stub_request(:post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*})
-            .with { |request| @request_body = JSON.parse(request.body); true }
+            .with do |request|
+      @request_body = JSON.parse(request.body)
+      true
+    end
             .to_return(
               status: 200,
               body: @success_response.to_json,
@@ -339,48 +417,48 @@ class TestClient < Minitest::Test
   end
 
   def test_generate_content_with_temperature
-    setup_generate_content_with_options_test
-    
+    test_setup_generate_content_with_options
+
     response = @client.generate_text('Hello, Gemini!', temperature: 0.7)
-    
+
     assert_requested(@stub, times: 1)
-    assert_equal 0.7, @request_body.dig('generationConfig', 'temperature')
+    assert_in_delta(0.7, @request_body.dig('generationConfig', 'temperature'))
     assert_equal 'Test response from Gemini AI', response
   end
-  
+
   def test_generate_content_with_top_p
-    setup_generate_content_with_options_test
-    
+    test_setup_generate_content_with_options
+
     response = @client.generate_text('Hello, Gemini!', top_p: 0.9)
-    
+
     assert_requested(@stub, times: 1)
-    assert_equal 0.9, @request_body.dig('generationConfig', 'topP')
+    assert_in_delta(0.9, @request_body.dig('generationConfig', 'topP'))
     assert_equal 'Test response from Gemini AI', response
   end
-  
+
   def test_generate_content_with_top_k
-    setup_generate_content_with_options_test
-    
+    test_setup_generate_content_with_options
+
     response = @client.generate_text('Hello, Gemini!', top_k: 40)
-    
+
     assert_requested(@stub, times: 1)
     assert_equal 40, @request_body.dig('generationConfig', 'topK')
     assert_equal 'Test response from Gemini AI', response
   end
-  
+
   def test_generate_content_with_max_tokens
-    setup_generate_content_with_options_test
-    
+    test_setup_generate_content_with_options
+
     response = @client.generate_text('Hello, Gemini!', max_tokens: 2048)
-    
+
     assert_requested(@stub, times: 1)
     assert_equal 2048, @request_body.dig('generationConfig', 'maxOutputTokens')
     assert_equal 'Test response from Gemini AI', response
   end
-  
+
   def test_generate_content_with_multiple_options
-    setup_generate_content_with_options_test
-    
+    test_setup_generate_content_with_options
+
     response = @client.generate_text(
       'Hello, Gemini!',
       temperature: 0.7,
@@ -388,45 +466,102 @@ class TestClient < Minitest::Test
       top_k: 40,
       max_tokens: 2048
     )
-    
+
     assert_requested(@stub, times: 1)
     config = @request_body['generationConfig']
-    assert_equal 0.7, config['temperature']
-    assert_equal 0.9, config['topP']
+
+    assert_in_delta(0.7, config['temperature'])
+    assert_in_delta(0.9, config['topP'])
     assert_equal 40, config['topK']
     assert_equal 2048, config['maxOutputTokens']
     assert_equal 'Test response from Gemini AI', response
   end
 
   def test_generate_content_with_system_instruction
-    # Stub the request with the full URL including the API key
+    test_stub_system_instruction_request
+    response = test_make_chat_request
+
+    assert_equal 'Test response from Gemini AI', response
+  end
+
+  def test_stub_system_instruction_request
     stub_request(:post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*})
       .with(
+        body: hash_including({
+                               contents: [{
+                                 role: 'user',
+                                 parts: [{
+                                   text: 'Hello, Gemini!'
+                                 }]
+                               }],
+                               systemInstruction: {
+                                 parts: [{
+                                   text: 'You are a helpful assistant.'
+                                 }]
+                               },
+                               generationConfig: {
+                                 temperature: 0.7,
+                                 maxOutputTokens: 1024,
+                                 topP: 0.9,
+                                 topK: 40
+                               }
+                             })
+      )
+      .to_return(
+        status: 200,
         body: {
-          'contents' => [{
-            'role' => 'user',
-            'parts' => [{ 'text' => 'Hello, Gemini!' }]
-          }],
-          'generationConfig' => {
-            'temperature' => 0.7,
-            'maxOutputTokens' => 1024,
-            'topP' => 0.9,
-            'topK' => 40
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'Test response from Gemini AI'
+              }]
+            }
+          }]
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+  end
+
+  def test_make_chat_request
+    # Stub the request with the expected parameters
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
+      .with(
+        body: {
+          contents: [
+            { role: 'user', parts: [{ text: 'Hello, Gemini!' }] }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024,
+            topP: 0.9,
+            topK: 40
           },
-          'systemInstruction' => {
-            'parts' => [{
-              'text' => 'You are a helpful assistant.'
-            }]
+          systemInstruction: {
+            parts: [{ text: 'You are a helpful assistant.' }]
           }
+        }.to_json,
+        headers: {
+          'Content-Type' => 'application/json',
+          'Accept' => '*/*',
+          'User-Agent' => 'Ruby',
+          'X-Goog-Api-Client' => %r{gemini_ai_ruby_gem/\d+\.\d+\.\d+}
         }
       )
       .to_return(
         status: 200,
-        body: @success_response.to_json,
+        body: {
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'Hello! How can I assist you today?'
+              }]
+            }
+          }]
+        }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
 
-    # For system instruction, we need to use the chat method with system_instruction parameter
+    # Make the chat request
     response = @client.chat(
       [
         { role: 'user', content: 'Hello, Gemini!' }
@@ -434,82 +569,187 @@ class TestClient < Minitest::Test
       system_instruction: 'You are a helpful assistant.'
     )
 
-    assert_equal 'Test response from Gemini AI', response
+    # Verify the response
+    assert_equal 'Hello! How can I assist you today?', response
   end
 
   def test_generate_content_with_safety_settings
-    # Define safety settings with symbol keys as the client expects
-    safety_settings = [{
-      category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-      threshold: 'BLOCK_NONE'
-    }]
+    safety_settings = [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE'
+      },
+      {
+        category: 'HARM_CATEGORY_HARASSMENT',
+        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+      },
+      {
+        category: 'HARM_CATEGORY_HATE_SPEECH',
+        threshold: 'BLOCK_ONLY_HIGH'
+      },
+      {
+        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        threshold: 'BLOCK_LOW_AND_ABOVE'
+      }
+    ]
 
-    # Stub the request with flexible matching for the body
+    # Convert to JSON string for exact matching
+    expected_body = {
+      contents: [{
+        parts: [{
+          text: 'Test prompt'
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+        topP: 0.9,
+        topK: 40
+      },
+      safetySettings: safety_settings
+    }.to_json
+
     stub_request(:post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*})
-      .with do |request|
-        body = JSON.parse(request.body)
-
-        # Check the basic structure
-        body['contents'].is_a?(Array) &&
-          body['contents'].first['parts'].is_a?(Array) &&
-          body['contents'].first['parts'].first['text'] == 'Hello, Gemini!' &&
-
-          # Check safety settings
-          body['safetySettings'].is_a?(Array) &&
-          body['safetySettings'].first['category'] == 'HARM_CATEGORY_DANGEROUS_CONTENT' &&
-          body['safetySettings'].first['threshold'] == 'BLOCK_NONE' &&
-
-          # Check generation config
-          body['generationConfig'].is_a?(Hash) &&
-          body['generationConfig']['temperature'] == 0.7
-      end
+      .with(
+        body: expected_body,
+        headers: {
+          'Content-Type' => 'application/json',
+          'Accept' => '*/*',
+          'User-Agent' => 'Ruby',
+          'X-Goog-Api-Client' => %r{gemini_ai_ruby_gem/\d+\.\d+\.\d+}
+        }
+      )
       .to_return(
         status: 200,
-        body: @success_response.to_json,
+        body: {
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'Test response from Gemini AI'
+              }]
+            }
+          }]
+        }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
 
     response = @client.generate_text(
-      'Hello, Gemini!',
+      'Test prompt',
       safety_settings:
     )
 
-    assert_requested(:post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*},
-                     times: 1)
+    assert_requested :post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*},
+                     body: expected_body
+
     assert_equal 'Test response from Gemini AI', response
   end
 
-  def test_generate_text_with_safety_settings
-    safety_settings = [{
+  def test_default_safety_settings
+    [{
       category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
       threshold: 'BLOCK_NONE'
+    }, {
+      category: 'HARM_CATEGORY_HARASSMENT',
+      threshold: 'BLOCK_NONE'
+    }, {
+      category: 'HARM_CATEGORY_HATE_SPEECH',
+      threshold: 'BLOCK_NONE'
+    }, {
+      category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+      threshold: 'BLOCK_NONE'
     }]
+  end
 
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
-      .with do |request|
-        body = JSON.parse(request.body)
-        body['contents'].is_a?(Array) &&
-          body['contents'].first['parts'].is_a?(Array) &&
-          body['contents'].first['parts'].first['text'] == 'Hello, Gemini!' &&
-          body['safetySettings'].is_a?(Array) &&
-          body['safetySettings'].first['category'] == 'HARM_CATEGORY_DANGEROUS_CONTENT' &&
-          body['safetySettings'].first['threshold'] == 'BLOCK_NONE' &&
-          body['generationConfig'].is_a?(Hash) &&
-          body['generationConfig']['temperature'] == 0.7
-      end
+  def test_stub_safety_settings_request(safety_settings)
+    stub_request(:post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*})
+      .with { |request| test_valid_safety_settings_request?(request, safety_settings) }
       .to_return(
         status: 200,
         body: @success_response.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
+  end
 
-    response = @client.generate_text(
-      'Hello, Gemini!',
-      safety_settings:
+  def valid_safety_settings_request?(request, safety_settings)
+    body = JSON.parse(request.body)
+
+    valid_contents?(body) &&
+      valid_safety_settings?(body, safety_settings) &&
+      valid_generation_config?(body)
+  end
+
+  def valid_contents?(body)
+    body['contents'].is_a?(Array) &&
+      body['contents'].first['parts'].is_a?(Array) &&
+      body['contents'].first['parts'].first['text'] == 'Hello, Gemini!'
+  end
+
+  def valid_safety_settings?(body, safety_settings)
+    body['safetySettings'].is_a?(Array) &&
+      body['safetySettings'].first['category'] == safety_settings.first[:category] &&
+      body['safetySettings'].first['threshold'] == safety_settings.first[:threshold]
+  end
+
+  def valid_generation_config?(body)
+    body['generationConfig'].is_a?(Hash) &&
+      body['generationConfig'].key?('temperature') &&
+      (body['generationConfig']['temperature'] - 0.7).abs < Float::EPSILON
+  end
+
+  def assert_safety_settings_request_made
+    assert_requested(
+      :post,
+      %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*},
+      times: 1
     )
+  end
 
-    assert_requested(:post, /generativelanguage\.googleapis\.com/, times: 1)
+  def test_generate_text_with_safety_settings
+    safety_settings = default_safety_settings
+    stub_text_safety_settings_request(safety_settings)
+
+    response = @client.generate_text('Hello, Gemini!', safety_settings:)
+
+    assert_text_safety_settings_request_made
     assert_equal 'Test response from Gemini AI', response
+  end
+
+  def stub_text_safety_settings_request(safety_settings)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
+      .with(
+        headers: {
+          'Content-Type' => 'application/json',
+          'X-Goog-Api-Key' => @api_key
+        },
+        body: ->(body) { valid_text_safety_request?(body, safety_settings) }
+      )
+      .to_return(
+        status: 200,
+        body: @success_response.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+  end
+
+  def valid_text_safety_request?(request, safety_settings)
+    body = JSON.parse(request.body)
+
+    valid_text_contents?(body) &&
+      valid_safety_settings?(body, safety_settings) &&
+      valid_generation_config?(body)
+  end
+
+  def valid_text_contents?(body)
+    body['contents'].is_a?(Array) &&
+      body['contents'].first['parts'].is_a?(Array) &&
+      body['contents'].first['parts'].first['text'] == 'Hello, Gemini!'
+  end
+
+  def assert_text_safety_settings_request_made
+    assert_requested(
+      :post,
+      /generativelanguage\.googleapis\.com/,
+      times: 1
+    )
   end
 
   def test_mask_api_key
@@ -600,84 +840,6 @@ class TestClient < Minitest::Test
   def test_logger
     assert_respond_to GeminiAI::Client, :logger
     assert_kind_of Logger, GeminiAI::Client.logger
-  end
-
-  def test_generate_image_text
-    # Mock image data
-    image_data = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-
-    # Stub the API request with the correct endpoint and parameters for pro_1_5 model
-    model_name = GeminiAI::Client::MODELS[:pro_1_5]
-    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/#{model_name}:generateContent?key=#{@api_key}")
-      .with(
-        body: {
-          'contents' => [
-            {
-              'parts' => [
-                {
-                  'inline_data' => {
-                    'mime_type' => 'image/jpeg',
-                    'data' => image_data
-                  }
-                },
-                { 'text' => 'Describe this image' }
-              ]
-            }
-          ],
-          'generationConfig' => {
-            'temperature' => 0.7,
-            'maxOutputTokens' => 1024,
-            'topP' => 0.9,
-            'topK' => 40
-          }
-        }
-      )
-      .to_return(
-        status: 200,
-        body: {
-          'candidates' => [{
-            'content' => {
-              'parts' => [{
-                'text' => 'This is a test image description.'
-              }]
-            }
-          }]
-        }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-
-    # Call the method with image data
-    response = @client.generate_image_text(
-      image_data,
-      'Describe this image'
-    )
-
-    # Verify the request was made with the correct model
-    model_name = GeminiAI::Client::MODELS[:pro_1_5]
-
-    assert_requested :post, "https://generativelanguage.googleapis.com/v1/models/#{model_name}:generateContent?key=#{@api_key}",
-                     times: 1
-
-    # Check the request body separately
-    assert_requested(:post,
-                     "https://generativelanguage.googleapis.com/v1/models/#{model_name}:generateContent?key=#{@api_key}", times: 1) do |req|
-      body = JSON.parse(req.body)
-      contents = body['contents']
-      parts = contents.first['parts']
-
-      # Check that the parts array contains both the image and text
-      has_image = parts.any? do |part|
-        part['inline_data'] &&
-          part['inline_data']['mime_type'] == 'image/jpeg' &&
-          part['inline_data']['data'] == image_data
-      end
-
-      has_text = parts.any? { |part| part['text'] == 'Describe this image' }
-
-      has_image && has_text
-    end
-
-    assert_equal 'This is a test image description.', response
   end
 
   def test_redacts_api_key_in_logs

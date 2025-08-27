@@ -19,10 +19,10 @@ class TestAPI < Minitest::Test
 
     # Mock successful response
     @success_response = {
-      'candidates' => [{
-        'content' => {
-          'parts' => [{
-            'text' => 'Test response from Gemini AI'
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'Test response from Gemini AI'
           }]
         }
       }]
@@ -33,7 +33,7 @@ class TestAPI < Minitest::Test
       .to_return(
         status: 200,
         body: @success_response.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       )
   end
 
@@ -52,15 +52,15 @@ class TestAPI < Minitest::Test
       .to_return(
         status: 200,
         body: {
-          'candidates' => [{
-            'content' => {
-              'parts' => [{
-                'text' => 'Test response from Gemini AI'
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'Test response from Gemini AI'
               }]
             }
           }]
         }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       )
 
     client = GeminiAI::Client.new(@api_key)
@@ -80,22 +80,22 @@ class TestAPI < Minitest::Test
     # Stub the request for each model with different responses
     stub_request(:post, /generativelanguage\.googleapis\.com/)
       .with(body: hash_including({
-                                   'contents' => [{
-                                     'parts' => [{ 'text' => 'What is the weather like?' }]
+                                   contents: [{
+                                     parts: [{ text: 'What is the weather like?' }]
                                    }]
                                  }))
       .to_return(
         status: 200,
         body: {
-          'candidates' => [{
-            'content' => {
-              'parts' => [{
-                'text' => 'Test response from Gemini AI'
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'Test response from Gemini AI'
               }]
             }
           }]
         }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       )
 
     # Test with default model (pro)
@@ -111,30 +111,30 @@ class TestAPI < Minitest::Test
     # Stub the request
     stub_request(:post, /generativelanguage\.googleapis\.com/)
       .with(body: hash_including({
-                                   'contents' => [{
-                                     'role' => 'user',
-                                     'parts' => [{
-                                       'text' => 'How are you?'
+                                   contents: [{
+                                     role: 'user',
+                                     parts: [{
+                                       text: 'How are you?'
                                      }]
                                    }],
-                                   'systemInstruction' => {
-                                     'parts' => [{
-                                       'text' => 'You are a medieval knight. Speak in old English.'
+                                   systemInstruction: {
+                                     parts: [{
+                                       text: 'You are a medieval knight. Speak in old English.'
                                      }]
                                    }
                                  }))
       .to_return(
         status: 200,
         body: {
-          'candidates' => [{
-            'content' => {
-              'parts' => [{
-                'text' => 'Test response from Gemini AI'
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'Test response from Gemini AI'
               }]
             }
           }]
         }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       )
 
     client = GeminiAI::Client.new(@api_key)
@@ -169,15 +169,15 @@ class TestAPI < Minitest::Test
       .to_return(
         status: 200,
         body: {
-          'candidates' => [{
-            'content' => {
-              'parts' => [{
-                'text' => 'This is a test image description.'
+          candidates: [{
+            content: {
+              parts: [{
+                text: 'This is a test image description.'
               }]
             }
           }]
         }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       )
 
     response = @client.generate_image_text(
@@ -203,13 +203,13 @@ class TestAPI < Minitest::Test
       .to_return(
         status: 400,
         body: {
-          'error' => {
-            'code' => 400,
-            'message' => 'API key not valid',
-            'status' => 'INVALID_ARGUMENT'
+          error: {
+            code: 400,
+            message: 'API key not valid',
+            status: 'INVALID_ARGUMENT'
           }
         }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       )
 
     # Test API error with invalid key
