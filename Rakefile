@@ -1,22 +1,123 @@
-# * @friday_gemini_ai
+# frozen_string_literal: true
 
+require 'bundler/gem_tasks'
 require 'rake/testtask'
+require 'rubocop/rake_task'
+require 'simplecov'
+require 'pathname'
 
-Rake::TestTask.new(:test) do |t|
-  t.libs << 'test'
-  t.libs << 'lib'
-  t.test_files = FileList['test/**/*_test.rb', '*_test.rb']
-  t.warning = false
+# Configure SimpleCov before requiring test files
+require 'simplecov-lcov'
+
+# Load Yard tasks
+Dir[File.join(__dir__, 'tasks', '*.rake')].each { |ext| load ext }
+
+# Configure SimpleCov for Rake tasks
+SimpleCov::Formatter::LcovFormatter.config do |c|
+  c.report_with_single_file = true
+  c.single_report_path = 'coverage/lcov.info'
 end
 
-task default: :test
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
+  SimpleCov::Formatter::HTMLFormatter,
+  SimpleCov::Formatter::LcovFormatter
+])
 
+# Common test configuration
+def configure_test_task(task, with_coverage: true)
+  task.libs << 'test'
+  task.libs << 'lib'
+  
+  # Find all test files
+  test_files = FileList[
+    'test/unit/**/*.rb',
+    'test/integration/**/*.rb'
+  ].exclude('test/unit/test_helper.rb', 'test/integration/test_helper.rb')
+  
+  task.test_files = test_files
+  task.warning = true
+  task.verbose = true
+  
+  # Set up environment
+  if with_coverage
+    ENV['COVERAGE'] = 'true'
+    helper_path = File.expand_path('test/test_helper.rb', __dir__)
+  else
+    ENV['COVERAGE'] = 'false'
+    helper_path = File.expand_path('test/test_helper_no_coverage.rb', __dir__)
+  end
+  
+  task.libs << 'test'
+  task.libs << 'lib'
+  task.test_files = test_files
+  task.ruby_opts = [
+    "-r", helper_path,
+    "-I", File.expand_path('lib', __dir__)
+  ]
+end
+
+# Test task with coverage
+Rake::TestTask.new(:test) do |t|
+  configure_test_task(t, with_coverage: true)
+  t.description = 'Run all tests with coverage'
+end
+
+# Test task without coverage (faster for CI)
+Rake::TestTask.new(:test_no_coverage) do |t|
+  configure_test_task(t, with_coverage: false)
+  t.description = 'Run tests without coverage (faster)'
+end
+
+# Coverage task
+desc 'Generate test coverage report'
+task :coverage do
+  ENV['COVERAGE'] = 'true'
+  Rake::Task['test'].invoke
+end
+
+# Default task
+task default: %i[test rubocop]
+
+# RuboCop configuration
+RuboCop::RakeTask.new do |task|
+  task.options = ['--display-cop-names', '--extra-details', '--parallel']
+  task.fail_on_error = true
+end
+
+# CI task
+desc 'Run all tests and code quality checks'
+task ci: %i[test rubocop] do
+  puts 'CI checks completed successfully!'
+end
+
+# Quick test task
 desc 'Run a simple test to verify the gem is working'
 task :quick_test do
   ruby 'quick_test.rb'
 end
 
+# CI-friendly test task (no API keys required)
 desc 'Run a CI-friendly test that does not require API keys'
 task :ci_test do
-  ruby 'ci_test.rb'
+  ENV['CI'] = 'true'
+  ENV['COVERAGE'] = 'false'
+  Rake::Task['test_no_coverage'].invoke
+end
+
+# Documentation task
+desc 'Generate API documentation'
+task :docs do
+  sh 'yard doc'
+end
+
+# Release task
+desc 'Release a new version'
+task :release => %i[test rubocop] do
+  version = File.read(File.join('lib', 'gemini', 'version.rb'))
+    .match(/VERSION = '([^']+)'/)[1]
+  
+  puts "Releasing version #{version}..."
+  sh 'git tag', "v#{version}"
+  sh 'git push', '--tags'
+  sh 'gem push', "pkg/gemini-ai-#{version}.gem"
 end

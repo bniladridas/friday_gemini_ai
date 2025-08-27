@@ -1,0 +1,12 @@
+--markup markdown
+--markup-provider redcarpet
+--title "Friday Gemini AI - Ruby Client for Google's Gemini AI"
+--output-dir doc
+--files README.md,LICENSE
+--no-private
+--embed-mixins
+--embed-mixins
+--embed-mixins-depth 2
+--hide-void-return
+--exclude \.(txt|md|rdoc|ru|gemspec|gem|rb\.in)$
+--charset utf-8

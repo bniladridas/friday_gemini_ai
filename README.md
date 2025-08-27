@@ -124,9 +124,34 @@ ruby tests/unit/client.rb
 ruby tests/integration/api.rb
 ```
 
+## Development
+
+### Code Quality
+
+Check for style and linting issues:
+
+```bash
+bundle exec rubocop
+```
+
+Run the full test suite:
+
+```bash
+bundle exec rake test
+```
+
+> [!TIP]
+> Many lint issues can be automatically fixed with:
+> ```bash
+> bundle exec rubocop -a
+> ```
+
+> [!IMPORTANT]
+> Always run the test suite before committing to ensure all tests pass with your changes.
+
 ## Contributing
 
-Fork, branch, commit, push, pull request.
+Fork, branch, commit, push, and open a pull request.
 
 ## License
 

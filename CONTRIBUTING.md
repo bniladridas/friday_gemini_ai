@@ -9,19 +9,21 @@ Thank you for your interest in contributing! We welcome contributions from every
 3. **Create** a feature branch
 4. **Make** your changes
 5. **Test** your changes
-6. **Submit** a pull request
+6. **Run code quality checks**
+7. **Update documentation**
+8. **Submit** a pull request
 
 ## Development Setup
 
 ### Prerequisites
-- Ruby 3.0+ (we test on 3.0, 3.1, 3.2, 3.3)
-- Bundler
-- Git
+- Ruby 3.1+ (we test on 3.1, 3.2, 3.3)
+- Bundler 2.0+
+- Git 2.25+
 
 ### Setup
 ```bash
 # Clone your fork
-git clone https://github.com/bniladridas/friday_gemini_ai.git
+git clone https://github.com/your-username/friday_gemini_ai.git
 cd friday_gemini_ai
 
 # Install dependencies
@@ -31,23 +33,61 @@ bundle install
 cp .env.example .env
 # Add your GEMINI_API_KEY to .env
 
-# Run tests
-bundle exec ruby tests/runner.rb
+# Install Git hooks for pre-commit checks
+bundle exec overcommit --install
 ```
 
-## Testing
+## Development Workflow
 
 ### Running Tests
 ```bash
-# All tests
-ruby tests/runner.rb
+# Run all tests with coverage
+bundle exec rake test
 
-# Unit tests only
-ruby tests/unit/client.rb
+# Run specific test file
+bundle exec ruby -Ilib:test path/to/test_file.rb
 
-# Integration tests (requires API key)
-ruby tests/integration/api.rb
+# Run tests with coverage report
+COVERAGE=true bundle exec rake test
 ```
+
+### Code Quality
+```bash
+# Run RuboCop
+bundle exec rake rubocop
+
+# Auto-correct RuboCop offenses
+bundle exec rubocop -a
+
+# Run security audit
+bundle exec bundle-audit
+```
+
+### Documentation
+```bash
+# Generate documentation
+bundle exec rake docs
+
+# Preview documentation locally
+bundle exec rake docs:preview  # View at http://localhost:8808
+```
+
+## Pull Request Guidelines
+
+1. **Branch Naming**: Use descriptive branch names like `feature/add-new-model` or `fix/issue-123`
+2. **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/)
+3. **Testing**: Ensure all tests pass and add new tests for your changes
+4. **Documentation**: Update relevant documentation
+5. **Code Style**: Follow the project's RuboCop configuration
+6. **Keep PRs Focused**: Each PR should address a single issue or feature
+
+## Code Review Process
+
+1. Create a draft PR early for feedback
+2. Request reviews from maintainers
+3. Address all review comments
+4. Ensure CI passes before marking as ready for review
+5. A maintainer will merge your PR once approved
 
 ### Test Requirements
 - **Unit tests**: Should not require API keys
