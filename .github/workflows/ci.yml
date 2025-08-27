@@ -1,0 +1,151 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test Ruby ${{ matrix.ruby }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: ['3.1', '3.2', '3.3']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run tests with coverage
+        run: bundle exec rake test
+        env:
+          COVERAGE: 'true'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-key-for-ci' }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  lint:
+    name: Lint and Style Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run RuboCop
+        run: bundle exec rake rubocop
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run Bundler Audit
+        run: |
+          bundle exec bundler-audit update
+          bundle exec bundler-audit check
+        continue-on-error: true
+
+      - name: Run Brakeman
+        run: bundle exec brakeman --no-pager --format github
+        continue-on-error: true
+
+  release:
+    name: Release
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Build gem
+        run: |
+          mkdir -p pkg
+          gem build -o pkg/gemini-ai.gem *.gemspec
+
+      - name: Publish to RubyGems
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf ":rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
+          gem push pkg/*.gem --verbose
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+
+  build:
+    name: Build Gem
+    runs-on: ubuntu-latest
+    needs: [test, lint, security]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Build gem package
+        run: |
+          mkdir -p pkg
+          gem build -o pkg/gemini-ai.gem *.gemspec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: gem-package
+          path: pkg/*.gem
+          retention-days: 17
