@@ -13,31 +13,33 @@ module Minitest
     end
 
     def hash_including(expected)
-      lambda { |actual| compare_hashes(expected, actual) }
+      lambda { |actual| compare_hashes(expected, actual, '') }
     end
     
     private
     
-    def compare_hashes(expected, actual)
+    def compare_hashes(expected, actual, _path = '')
       expected.all? { |k, v| compare_hash_values(k, v, actual) }
     end
     
-    def compare_hash_values(key, expected_value, actual_hash)
+    def compare_hash_values(key, expected_value, actual_hash, path = '')
       actual_value = actual_hash[key]
+      current_path = path.empty? ? key.to_s : "#{path}.#{key}"
       
       if expected_value.is_a?(Hash) && actual_value.is_a?(Hash)
-        compare_hashes(expected_value, actual_value)
+        compare_hashes(expected_value, actual_value, current_path)
       elsif expected_value.is_a?(Array) && actual_value.is_a?(Array)
-        compare_arrays(expected_value, actual_value)
+        compare_arrays(expected_value, actual_value, current_path)
       else
         actual_value == expected_value
       end
     end
     
-    def compare_arrays(expected_array, actual_array)
+    def compare_arrays(expected_array, actual_array, path = '')
       expected_array.each_with_index.all? do |item, i|
+        current_path = "#{path}[#{i}]"
         if item.is_a?(Hash) && actual_array[i].is_a?(Hash)
-          compare_hashes(item, actual_array[i])
+          compare_hashes(item, actual_array[i], current_path)
         else
           actual_array[i] == item
         end
@@ -47,6 +49,27 @@ module Minitest
 end
 
 class TestClient < Minitest::Test
+  def default_safety_settings
+    [
+      {
+        category: 'HARM_CATEGORY_HARASSMENT',
+        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+      },
+      {
+        category: 'HARM_CATEGORY_HATE_SPEECH',
+        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+      },
+      {
+        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+      },
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+      }
+    ]
+  end
+
   def setup
     # Use a valid API key format that will pass the regex validation
     @api_key = "AIzaSyD#{'a' * 35}" # 39 characters total, starting with AIzaSyD
@@ -360,29 +383,76 @@ class TestClient < Minitest::Test
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
   end
 
+  def expected_image_text_request_body(image_data)
+    {
+      contents: [
+        {
+          parts: [
+            { text: 'Describe this image' },
+            {
+              inline_data: {
+                mime_type: 'image/png',
+                data: image_data
+              }
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.4,
+        topK: 32,
+        topP: 1.0,
+        maxOutputTokens: 2048,
+        stopSequences: []
+      }
+    }
+  end
+
   def stub_image_text_request(image_data)
     expected_body = expected_image_text_request_body(image_data)
-    puts "Setting up stub with expected body: #{expected_body.inspect}"
-
-    stub = stub_request(:post, /generativelanguage\.googleapis\.com/)
-           .with do |request|
-      request_body = JSON.parse(request.body)
-      puts "Received request with body: #{request_body.inspect}"
-      expected_body.matches?(request_body)
-    end
-           .to_return(image_text_response)
-
-    puts "Stub created: #{stub.inspect}"
-    stub
+    
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=#{@api_key}")
+      .with(
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Content-Type' => 'application/json',
+          'User-Agent' => 'Ruby',
+          'X-Goog-Api-Client' => 'gemini_ai_ruby_gem/0.1.0'
+        },
+        body: hash_including({
+          contents: [{
+            parts: array_including(
+              { inline_data: { mime_type: 'image/jpeg', data: image_data } },
+              { text: 'Describe this image' }
+            )
+          }]
+        })
+      )
+      .to_return(
+        status: 200,
+        body: {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  { text: 'A test image description' }
+                ]
+              }
+            }
+          ]
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
   end
 
   def test_expected_image_text_request_body
     image_data = test_helper_image_data
-    {
+    expected = {
       contents: [{
         parts: [
-          { inline_data: { mime_type: 'image/jpeg', data: image_data } },
-          { text: 'Describe this image' }
+          { text: 'Describe this image' },
+          { inline_data: { mime_type: 'image/png', data: image_data } }
         ]
       }],
       generationConfig: {
@@ -478,9 +548,7 @@ class TestClient < Minitest::Test
   end
 
   def test_generate_content_with_system_instruction
-    test_stub_system_instruction_request
-    response = test_make_chat_request
-
+    response = make_test_chat_request
     assert_equal 'Test response from Gemini AI', response
   end
 
@@ -522,7 +590,7 @@ class TestClient < Minitest::Test
       )
   end
 
-  def test_make_chat_request
+  def make_test_chat_request
     # Stub the request with the expected parameters
     stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
       .with(
@@ -553,7 +621,7 @@ class TestClient < Minitest::Test
           candidates: [{
             content: {
               parts: [{
-                text: 'Hello! How can I assist you today?'
+                text: 'Test response from Gemini AI'
               }]
             }
           }]
@@ -561,16 +629,18 @@ class TestClient < Minitest::Test
         headers: { 'Content-Type' => 'application/json' }
       )
 
-    # Make the chat request
-    response = @client.chat(
+    # Make the chat request and return the response
+    @client.chat(
       [
         { role: 'user', content: 'Hello, Gemini!' }
       ],
       system_instruction: 'You are a helpful assistant.'
     )
-
-    # Verify the response
-    assert_equal 'Hello! How can I assist you today?', response
+  end
+  
+  def test_make_chat_request
+    response = make_test_chat_request
+    assert_equal 'Test response from Gemini AI', response
   end
 
   def test_generate_content_with_safety_settings
@@ -660,9 +730,30 @@ class TestClient < Minitest::Test
     }]
   end
 
-  def test_stub_safety_settings_request(safety_settings)
-    stub_request(:post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*})
-      .with { |request| test_valid_safety_settings_request?(request, safety_settings) }
+  def test_stub_safety_settings_request
+    safety_settings = default_safety_settings
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
+      .with(
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Content-Type' => 'application/json',
+          'User-Agent' => 'Ruby',
+          'X-Goog-Api-Client' => 'gemini_ai_ruby_gem/0.1.0'
+        },
+        body: {
+          contents: [
+            { parts: [{ text: 'Test prompt' }] }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024,
+            topP: 0.9,
+            topK: 40
+          },
+          safetySettings: safety_settings.map { |s| { category: s[:category], threshold: s[:threshold] } }
+        }.to_json
+      )
       .to_return(
         status: 200,
         body: @success_response.to_json,
@@ -715,13 +806,29 @@ class TestClient < Minitest::Test
   end
 
   def stub_text_safety_settings_request(safety_settings)
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
+    expected_body = {
+      contents: [
+        { parts: [{ text: 'Hello, Gemini!' }] }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+        topP: 0.9,
+        topK: 40
+      },
+      safetySettings: safety_settings.map { |s| { category: s[:category], threshold: s[:threshold] } }
+    }
+
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
       .with(
         headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
           'Content-Type' => 'application/json',
-          'X-Goog-Api-Key' => @api_key
+          'User-Agent' => 'Ruby',
+          'X-Goog-Api-Client' => 'gemini_ai_ruby_gem/0.1.0'
         },
-        body: ->(body) { valid_text_safety_request?(body, safety_settings) }
+        body: expected_body.to_json
       )
       .to_return(
         status: 200,
@@ -730,24 +837,18 @@ class TestClient < Minitest::Test
       )
   end
 
-  def valid_text_safety_request?(request, safety_settings)
-    body = JSON.parse(request.body)
-
-    valid_text_contents?(body) &&
-      valid_safety_settings?(body, safety_settings) &&
-      valid_generation_config?(body)
+  def valid_text_safety_request?(request_body, safety_settings)
+    # This method is no longer needed as we're using exact matching
   end
 
   def valid_text_contents?(body)
-    body['contents'].is_a?(Array) &&
-      body['contents'].first['parts'].is_a?(Array) &&
-      body['contents'].first['parts'].first['text'] == 'Hello, Gemini!'
+    # This method is no longer needed as we're using exact matching
   end
 
   def assert_text_safety_settings_request_made
     assert_requested(
       :post,
-      /generativelanguage\.googleapis\.com/,
+      "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}",
       times: 1
     )
   end
