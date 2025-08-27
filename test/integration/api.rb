@@ -109,7 +109,7 @@ class TestAPI < Minitest::Test
 
   def test_system_instructions
     # Stub the request
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .with(body: hash_including({
                                    'contents' => [{
                                      'role' => 'user',
@@ -157,7 +157,7 @@ class TestAPI < Minitest::Test
     base64_image = 'base64_encoded_image_here'
 
     # Stub the API request for image analysis
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .with(body: hash_including({
                                    contents: [{
                                      parts: [
@@ -199,7 +199,7 @@ class TestAPI < Minitest::Test
     end
 
     # Stub API error response
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 400,
         body: {
