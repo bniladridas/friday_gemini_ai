@@ -9,6 +9,9 @@ on:
 jobs:
   update-dependencies:
     name: Update Dependencies
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     
     steps:
