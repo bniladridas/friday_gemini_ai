@@ -53,19 +53,23 @@ class TestLoader < Minitest::Test
     File.open(@env_file, 'w') do |f|
       f.puts 'MALFORMED_LINE'
       f.puts 'GOOD_KEY=good_value'
+      f.puts 'ANOTHER_KEY=another_value'
     end
 
     # This should not raise an error
     GeminiAI::Utils::Loader.load(@env_file)
 
-    # The well-formed line should still be processed
+    # The well-formed lines should still be processed
     assert_equal 'good_value', ENV.fetch('GOOD_KEY', nil)
+    assert_equal 'another_value', ENV.fetch('ANOTHER_KEY', nil)
     assert_nil ENV.fetch('MALFORMED_LINE', nil)
   end
 
   def test_load_with_complex_values
-    # Test with values containing special characters
+    # Test with values containing special characters and complex values
     File.open(@env_file, 'w') do |f|
+      f.puts 'URL=https://example.com?param=value&another=param'
+      f.puts 'JSON_DATA={"key": "value", "nested": {"a": 1}}'
       f.puts 'SPECIAL_CHARS=!@#$%^&*()_+{}|:"<>?[];\',.`~'
       f.puts 'WITH_EQUALS=key=value'
       f.puts 'WITH_HASH=value#not_a_comment'
@@ -73,6 +77,9 @@ class TestLoader < Minitest::Test
 
     GeminiAI::Utils::Loader.load(@env_file)
 
+    # Check that the environment variables were set correctly
+    assert_equal 'https://example.com?param=value&another=param', ENV.fetch('URL', nil)
+    assert_equal '{"key": "value", "nested": {"a": 1}}', ENV.fetch('JSON_DATA', nil)
     assert_equal '!@#$%^&*()_+{}|:"<>?[];\',.`~', ENV.fetch('SPECIAL_CHARS', nil)
     assert_equal 'key=value', ENV.fetch('WITH_EQUALS', nil)
     assert_equal 'value#not_a_comment', ENV.fetch('WITH_HASH', nil)
