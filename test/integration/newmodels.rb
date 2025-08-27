@@ -176,7 +176,7 @@ class TestNewModels < Minitest::Test
       # Create a unique response for each model
       response_text = "Response from model: #{model}"
 
-      stub_request(:post, /generativelanguage.googleapis.com/)
+      stub_request(:post, /generativelanguage\.googleapis\.com/)
         .to_return(
           status: 200,
           body: {
