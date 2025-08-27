@@ -13,7 +13,20 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "httparty", "~> 0.21.0"
+  # Testing
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "dotenv", "~> 2.8"
+  spec.add_development_dependency "simplecov", "~> 0.22.0"
+  spec.add_development_dependency "simplecov-lcov", "~> 0.8.0"
+  
+  # Documentation
+  spec.add_development_dependency "yard", "~> 0.9.34"
+  spec.add_development_dependency "redcarpet", "~> 3.6"  # For markdown in YARD
+  spec.add_development_dependency "github-markup", "~> 4.0"
+  
+  # Code quality
+  spec.add_development_dependency "rubocop", "~> 1.56.0"
+  spec.add_development_dependency "rubocop-minitest", "~> 0.31.0"
+  spec.add_development_dependency "rubocop-rake", "~> 0.6.0"
 end

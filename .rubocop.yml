@@ -1,0 +1,54 @@
+inherit_from: .rubocop_todo.yml
+
+require:
+  - rubocop-minitest
+  - rubocop-rake
+
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+  TargetRubyVersion: 3.2.2
+  Exclude:
+    - 'Gemfile'
+    - 'Rakefile'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'bin/*'
+    - '*.gemspec'
+
+# Increase some limits
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/MethodLength:
+  Max: 30
+
+Metrics/AbcSize:
+  Max: 30
+
+# Allow model names with numbers
+Naming/VariableNumber:
+  Enabled: false
+
+# Allow both string styles
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+# Allow both hash styles
+Style/HashSyntax:
+  EnforcedStyle: ruby19
+
+# Documentation
+Documentation:
+  Enabled: false
+
+# Test files
+Minitest/AssertInDelta:
+  Enabled: true
+
+Minitest/GlobalExpectations:
+  Enabled: true
+
+# Rake tasks
+Rake/Desc:
+  Enabled: true

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'httparty'
 require 'json'
 require 'base64'
@@ -13,25 +15,25 @@ module GeminiAI
       # Gemini 2.5 models (latest)
       pro: 'gemini-2.5-pro',
       flash: 'gemini-2.5-flash',
-      
+
       # Gemini 2.0 models
       flash_2_0: 'gemini-2.0-flash',
       flash_lite: 'gemini-2.0-flash-lite',
-      
+
       # Legacy aliases for backward compatibility
       pro_2_0: 'gemini-2.0-flash',
-      
+
       # Gemini 1.5 models (for specific use cases)
       pro_1_5: 'gemini-1.5-pro',
       flash_1_5: 'gemini-1.5-flash',
       flash_8b: 'gemini-1.5-flash-8b'
-    }
+    }.freeze
 
     # Configure logging
     def self.logger
-      @logger ||= Logger.new(STDOUT).tap do |log|
+      @logger ||= Logger.new($stdout).tap do |log|
         log.level = Logger::DEBUG
-        log.formatter = proc do |severity, datetime, progname, msg|
+        log.formatter = proc do |severity, datetime, _progname, msg|
           # Mask any potential API key in logs
           masked_msg = msg.to_s.gsub(/AIza[a-zA-Z0-9_-]{35,}/, '[REDACTED]')
           "#{datetime}: #{severity} -- #{masked_msg}\n"
@@ -40,27 +42,29 @@ module GeminiAI
     end
 
     def initialize(api_key = nil, model: :pro)
+      puts "Initializing client with api_key: #{api_key.inspect}, model: #{model}"
       # Prioritize passed API key, then environment variable
-      @api_key = api_key || ENV['GEMINI_API_KEY']
-      
+      @api_key = api_key || ENV.fetch('GEMINI_API_KEY', nil)
+
       # Rate limiting - track last request time
       @last_request_time = nil
       # More conservative rate limiting in CI environments
-      @min_request_interval = (ENV['CI'] == 'true' || ENV['GITHUB_ACTIONS'] == 'true') ? 3.0 : 1.0
-      
+      @min_request_interval = ENV['CI'] == 'true' || ENV['GITHUB_ACTIONS'] == 'true' ? 3.0 : 1.0
+
       # Extensive logging for debugging
-      self.class.logger.debug("Initializing Client")
+      self.class.logger.debug('Initializing Client')
       self.class.logger.debug("API Key present: #{!@api_key.nil?}")
       self.class.logger.debug("API Key length: #{@api_key&.length}")
-      
-      # Validate API key
+
+      # Validate API key before proceeding
+      puts "About to validate API key: #{@api_key.inspect}"
       validate_api_key!
-      
-      @model = MODELS.fetch(model) { 
+
+      @model = MODELS.fetch(model) do
         self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
-        MODELS[:pro] 
-      }
-      
+        MODELS[:pro]
+      end
+
       self.class.logger.debug("Selected model: #{@model}")
     end
 
@@ -72,23 +76,34 @@ module GeminiAI
         generationConfig: build_generation_config(options)
       }
 
+      # Add safety settings if provided
+      if options[:safety_settings]
+        request_body[:safetySettings] = options[:safety_settings].map do |setting|
+          {
+            category: setting[:category],
+            threshold: setting[:threshold]
+          }
+        end
+      end
+
       send_request(request_body)
     end
 
     def generate_image_text(image_base64, prompt, options = {})
-      raise Error, "Image is required" if image_base64.nil? || image_base64.empty?
-      
+      raise Error, 'Image is required' if image_base64.nil? || image_base64.empty?
+
       request_body = {
         contents: [
           { parts: [
             { inline_data: { mime_type: 'image/jpeg', data: image_base64 } },
             { text: prompt }
-          ]}
+          ] }
         ],
         generationConfig: build_generation_config(options)
       }
 
-      send_request(request_body, model: :pro_vision)
+      # Use the pro_1_5 model for image-to-text tasks
+      send_request(request_body, model: :pro_1_5)
     end
 
     def chat(messages, options = {})
@@ -97,27 +112,40 @@ module GeminiAI
         generationConfig: build_generation_config(options)
       }
 
+      # Add system instruction if provided
+      if options[:system_instruction]
+        request_body[:systemInstruction] = {
+          parts: [
+            { text: options[:system_instruction] }
+          ]
+        }
+      end
+
       send_request(request_body)
     end
 
     private
 
     def validate_api_key!
-      if @api_key.nil? || @api_key.strip.empty?
-        self.class.logger.error("API key is missing")
-        raise Error, "API key is required. Set GEMINI_API_KEY environment variable or pass key directly."
+      puts "Validating API key: #{@api_key.inspect}"
+      if @api_key.nil? || @api_key.to_s.strip.empty?
+        puts 'API key is nil or empty'
+        self.class.logger.error('API key is missing')
+        raise Error, 'API key is required. Set GEMINI_API_KEY environment variable or pass key directly.'
       end
 
       # Optional: Add basic API key format validation
       unless valid_api_key_format?(@api_key)
-        self.class.logger.error("Invalid API key format")
-        raise Error, "Invalid API key format. Please check your key."
+        puts 'API key format is invalid'
+        self.class.logger.error('Invalid API key format')
+        raise Error, 'Invalid API key format. Please check your key.'
       end
 
       # Optional: Check key length and complexity
-      if @api_key.length < 40
-        self.class.logger.warn("Potentially weak API key detected")
-      end
+      return unless @api_key.length < 40
+
+      puts 'API key is too short'
+      self.class.logger.warn('Potentially weak API key detected')
     end
 
     def valid_api_key_format?(key)
@@ -127,14 +155,14 @@ module GeminiAI
 
     def validate_prompt!(prompt)
       if prompt.nil? || prompt.strip.empty?
-        self.class.logger.error("Empty prompt provided")
-        raise Error, "Prompt cannot be empty"
+        self.class.logger.error('Empty prompt provided')
+        raise Error, 'Prompt cannot be empty'
       end
 
-      if prompt.length > 8192
-        self.class.logger.error("Prompt exceeds maximum length")
-        raise Error, "Prompt too long (max 8192 tokens)"
-      end
+      return unless prompt.length > 8192
+
+      self.class.logger.error('Prompt exceeds maximum length')
+      raise Error, 'Prompt too long (max 8192 tokens)'
     end
 
     def build_generation_config(options)
@@ -149,7 +177,7 @@ module GeminiAI
     def send_request(body, model: nil, retry_count: 0)
       # Rate limiting - ensure minimum interval between requests
       rate_limit_delay
-      
+
       current_model = model ? MODELS.fetch(model) { MODELS[:pro] } : @model
       url = "#{BASE_URL}/#{current_model}:generateContent?key=#{@api_key}"
 
@@ -160,9 +188,9 @@ module GeminiAI
 
       begin
         response = HTTParty.post(
-          url, 
+          url,
           body: body.to_json,
-          headers: { 
+          headers: {
             'Content-Type' => 'application/json',
             'x-goog-api-client' => 'gemini_ai_ruby_gem/0.1.0'
           },
@@ -183,19 +211,19 @@ module GeminiAI
       case response.code
       when 200
         text = response.parsed_response
-               .dig('candidates', 0, 'content', 'parts', 0, 'text')
+                       .dig('candidates', 0, 'content', 'parts', 0, 'text')
         text || 'No response generated'
       when 429
         # Rate limit exceeded - implement exponential backoff
         max_retries = 3
         if retry_count < max_retries
-          wait_time = (2 ** retry_count) * 5 # 5, 10, 20 seconds
+          wait_time = (2**retry_count) * 5 # 5, 10, 20 seconds
           self.class.logger.warn("Rate limit hit (429). Retrying in #{wait_time}s (attempt #{retry_count + 1}/#{max_retries})")
           sleep(wait_time)
-          return send_request(body, model: model, retry_count: retry_count + 1)
+          send_request(body, model:, retry_count: retry_count + 1)
         else
           self.class.logger.error("Rate limit exceeded after #{max_retries} retries")
-          raise Error, "Rate limit exceeded. Please check your quota and billing details."
+          raise Error, 'Rate limit exceeded. Please check your quota and billing details.'
         end
       else
         error_message = response.parsed_response['error']&.dig('message') || response.body
@@ -207,7 +235,7 @@ module GeminiAI
     # Rate limiting to prevent hitting API limits
     def rate_limit_delay
       current_time = Time.now
-      
+
       if @last_request_time
         time_since_last = current_time - @last_request_time
         if time_since_last < @min_request_interval
@@ -216,18 +244,18 @@ module GeminiAI
           sleep(sleep_time)
         end
       end
-      
+
       @last_request_time = Time.now
     end
 
     # Mask API key for logging and error reporting
     def mask_api_key(key)
       return '[REDACTED]' if key.nil?
-      
+
       # Keep first 4 and last 4 characters, replace middle with asterisks
       return key if key.length <= 8
-      
-      "#{key[0,4]}#{'*' * (key.length - 8)}#{key[-4,4]}"
+
+      "#{key[0, 4]}#{'*' * (key.length - 8)}#{key[-4, 4]}"
     end
   end
 end
