@@ -696,7 +696,7 @@ class TestClient < Minitest::Test
     GeminiAI::Client.stubs(:logger).returns(logger)
 
     # Setup the API response
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 200,
         body: @success_response.to_json,
