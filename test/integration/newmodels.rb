@@ -19,19 +19,20 @@ module ModelTestHelper
 
   def test_model_comparison(models, prompt: 'What is 2+2? Answer in one word.')
     responses = {}
-    
+
     models.each do |model_name|
       client = GeminiAI::Client.new(test_api_key, model: model_name, debug: true)
       stub_model_comparison_request(model_name)
       responses[model_name] = client.generate_text(prompt)
+
       assert_equal model_name, client.instance_variable_get(:@model).to_sym
     end
 
     verify_responses(responses, models)
   end
-  
+
   private
-  
+
   def build_expected_request_body
     {
       contents: [{
@@ -45,7 +46,7 @@ module ModelTestHelper
       }
     }
   end
-  
+
   def stub_model_request(model_id, expected_body)
     stub_gemini_request(
       model: model_id,
@@ -61,13 +62,13 @@ module ModelTestHelper
       }
     )
   end
-  
+
   def make_model_request(model_name)
     client = create_test_client(model: model_name)
     response = client.generate_text('Test prompt')
     [client, response]
   end
-  
+
   def verify_model_response(response, model_id, client)
     refute_nil response
     refute_empty response.strip
@@ -75,7 +76,7 @@ module ModelTestHelper
     assert_equal 'Test response from Gemini AI', response
     assert_equal model_id, client.instance_variable_get(:@model)
   end
-  
+
   def stub_model_comparison_request(model_name)
     stub_request(:post, /generativelanguage.googleapis.com/)
       .to_return(
@@ -92,11 +93,11 @@ module ModelTestHelper
         headers: { 'Content-Type' => 'application/json' }
       )
   end
-  
+
   def verify_responses(responses, models)
     assert_equal models.size, responses.size
     assert_equal models.size, responses.values.uniq.size
-    
+
     models.each do |model|
       assert_includes responses[model], "Response from #{model}"
     end

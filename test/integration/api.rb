@@ -78,7 +78,7 @@ class TestAPI < Minitest::Test
 
   def test_different_models
     # Test with default model (pro)
-    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent")
+    stub_request(:post, 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent')
       .with(query: { key: @api_key })
       .to_return(
         status: 200,
@@ -98,9 +98,9 @@ class TestAPI < Minitest::Test
     response = client.generate_text('What is the weather like?')
 
     assert_equal 'Test response from Gemini AI Pro', response
-    
+
     # Test with flash model
-    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent")
+    stub_request(:post, 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent')
       .with(query: { key: @api_key })
       .to_return(
         status: 200,
@@ -118,7 +118,7 @@ class TestAPI < Minitest::Test
 
     client = GeminiAI::Client.new(@api_key, model: :flash)
     response = client.generate_text('What is the weather like?')
-    
+
     assert_equal 'Test response from Gemini AI Flash', response
   end
 
@@ -142,10 +142,10 @@ class TestAPI < Minitest::Test
 
     stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@api_key}")
       .with(
-        body: ->(actual_body) {
+        body: lambda { |actual_body|
           actual = JSON.parse(actual_body, symbolize_names: true)
           expected = expected_body
-          
+
           # Compare the parts we care about
           actual[:contents] == expected[:contents] &&
           actual[:generationConfig] == expected[:generationConfig] &&

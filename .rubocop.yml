@@ -16,15 +16,27 @@ AllCops:
     - 'bin/*'
     - '*.gemspec'
 
-# Increase some limits
+# Increase some limits for main code
 Metrics/ClassLength:
   Max: 200
+  Exclude:
+    - 'test/**/*_test.rb'
+    - 'spec/**/*_spec.rb'
 
 Metrics/MethodLength:
   Max: 30
+  Exclude:
+    - 'test/**/*_test.rb'
+    - 'spec/**/*_spec.rb'
+    - 'test/test_helper.rb'
+    - 'test/integration/**/*.rb'
 
 Metrics/AbcSize:
   Max: 30
+  Exclude:
+    - 'test/**/*_test.rb'
+    - 'spec/**/*_spec.rb'
+    - 'test/test_helper.rb'
 
 # Allow model names with numbers
 Naming/VariableNumber:
