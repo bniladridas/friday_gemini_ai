@@ -9,8 +9,8 @@ require_relative 'utils/logger'
 
 module GeminiAI
   # Convenience method to create a new client
-  def self.new(api_key = nil, **kwargs)
-    Client.new(api_key, **kwargs)
+  def self.new(api_key = nil, **)
+    Client.new(api_key, **)
   end
 
   # Load environment variables

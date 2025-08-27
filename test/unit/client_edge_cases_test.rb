@@ -30,20 +30,20 @@ class ClientEdgeCasesTest < Minitest::Test
 
   def test_chat_with_system_instruction
     expected_system_instruction = 'You are a helpful assistant'
-    
+
     stub_request(:post, /generativelanguage/)
       .with(body: hash_including({
-        contents: [
-          { role: 'user', parts: [{ text: 'Hello' }] },
-          { role: 'assistant', parts: [{ text: 'Hi there!' }] },
-          { role: 'user', parts: [{ text: 'Tell me a joke' }] }
-        ],
-        systemInstruction: {
-          parts: [
-            { text: expected_system_instruction }
-          ]
-        }
-      }))
+                                   contents: [
+                                     { role: 'user', parts: [{ text: 'Hello' }] },
+                                     { role: 'assistant', parts: [{ text: 'Hi there!' }] },
+                                     { role: 'user', parts: [{ text: 'Tell me a joke' }] }
+                                   ],
+                                   systemInstruction: {
+                                     parts: [
+                                       { text: expected_system_instruction }
+                                     ]
+                                   }
+                                 }))
       .to_return(
         status: 200,
         body: test_response,

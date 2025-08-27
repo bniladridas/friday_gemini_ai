@@ -12,9 +12,9 @@ SimpleCov::Formatter::LcovFormatter.config do |c|
 end
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
-  SimpleCov::Formatter::HTMLFormatter,
-  SimpleCov::Formatter::LcovFormatter
-])
+                                                                 SimpleCov::Formatter::HTMLFormatter,
+                                                                 SimpleCov::Formatter::LcovFormatter
+                                                               ])
 
 # Configure SimpleCov coverage settings
 def configure_simplecov
@@ -108,32 +108,32 @@ module Minitest
     def stub_gemini_request(model: 'gemini-2.5-pro', response: test_response, status: 200, with_body: nil)
       url = build_gemini_url(model)
       expected_body = normalize_expected_body(with_body)
-      
+
       log_stub_setup(model, url, status, expected_body)
-      
+
       stub = setup_request_stub(url)
       stub = add_body_matcher(stub, expected_body) if expected_body
-      
+
       setup_response_stub(stub, response, status)
     end
-    
+
     private
-    
+
     def build_gemini_url(model)
       "https://generativelanguage.googleapis.com/v1/models/#{model}:generateContent?key=#{test_api_key}"
     end
-    
+
     def normalize_expected_body(with_body)
       with_body.is_a?(Hash) ? with_body : with_body&.transform_keys(&:to_sym)
     end
-    
+
     def log_stub_setup(model, url, status, expected_body)
       debug_puts "\n=== Setting up stub for model: #{model} ==="
       debug_puts "URL: #{url.gsub(test_api_key, '[REDACTED]')}"
       debug_puts "Expected status: #{status}"
       debug_puts "Expected body: #{JSON.pretty_generate(expected_body)}" if expected_body
     end
-    
+
     def setup_request_stub(url)
       stub_request(:post, url).with(
         headers: {
@@ -144,45 +144,45 @@ module Minitest
         }
       )
     end
-    
+
     def add_body_matcher(stub, expected_body)
       stub.with do |request|
         request_body = JSON.parse(request.body, symbolize_names: true)
         log_request_details(request, request_body, expected_body)
-        
+
         match = request_body == expected_body
         log_mismatch(expected_body, request_body) unless match
-        
+
         match
       end
     end
-    
+
     def log_request_details(request, request_body, expected_body)
       debug_puts "\n=== Actual Request ==="
       debug_puts "Method: #{request.method}"
       debug_puts "URI: #{request.uri}"
       debug_puts "Headers: #{request.headers}"
       debug_puts "Body: #{JSON.pretty_generate(request_body)}"
-      
+
       debug_puts "\n=== Expected Request ==="
       debug_puts "Body: #{JSON.pretty_generate(expected_body)}"
     end
-    
+
     def log_mismatch(expected, actual)
       debug_puts "\n=== Body Match: false ==="
       debug_puts "\n=== Differences ==="
-      compare_hashes(expected, actual, "")
+      compare_hashes(expected, actual, '')
     end
-    
+
     def setup_response_stub(stub, response, status)
       response_body = response.respond_to?(:to_json) ? response.to_json : response
-      
+
       debug_puts "\n=== Stubbed Response ==="
       debug_puts "Status: #{status}"
       debug_puts "Body: #{response_body}\n\n"
-      
+
       stub.to_return(
-        status: status,
+        status:,
         body: response_body,
         headers: { 'Content-Type' => 'application/json' }
       )
@@ -194,56 +194,105 @@ module Minitest
 
     # Helper method to compare hashes and show differences
     def compare_hashes(expected, actual, path)
-      # Parse strings as JSON if they look like JSON
-      expected = JSON.parse(expected) if expected.is_a?(String) && expected.start_with?('{')
-      actual = JSON.parse(actual) if actual.is_a?(String) && actual.start_with?('{')
-      
-      # If either is not a hash after parsing, do direct comparison
-      unless expected.is_a?(Hash) && actual.is_a?(Hash)
-        if expected != actual
-          debug_puts "❌ #{path}: Value mismatch"
-          debug_puts "    Expected: #{expected.inspect} (#{expected.class})"
-          debug_puts "    Actual:   #{actual.inspect} (#{actual.class})"
-        end
-        return expected == actual
-      end
+      expected = parse_json_if_needed(expected)
+      actual = parse_json_if_needed(actual)
+
+      return compare_values(expected, actual, path) unless expected.is_a?(Hash) && actual.is_a?(Hash)
 
       all_keys = (expected.keys + actual.keys).uniq
+      log_comparison_start(expected, actual, path)
 
+      all_keys.all? { |key| compare_key(key, expected, actual, path) }
+    end
+
+    def parse_json_if_needed(value)
+      return value unless value.is_a?(String)
+      return value unless value.start_with?('{', '[')
+
+      begin
+        JSON.parse(value)
+      rescue JSON::ParserError
+        value
+      end
+    end
+
+    def compare_values(expected, actual, path)
+      return true if expected == actual
+
+      debug_puts "❌ #{path}: Value mismatch"
+      debug_puts "    Expected: #{expected.inspect} (#{expected.class})"
+      debug_puts "    Actual:   #{actual.inspect} (#{actual.class})"
+      false
+    end
+
+    def log_comparison_start(expected, actual, path)
       debug_puts "\n=== Detailed Comparison ==="
       debug_puts "Expected type: #{expected.class}"
       debug_puts "Actual type:   #{actual.class}"
-      debug_puts "Path: #{path.empty? ? 'root' : path}\n"
+      debug_puts "Path: #{path}"
+    end
 
-      all_keys.each do |key|
-        current_path = path.empty? ? key.to_s : "#{path}.#{key}"
+    def compare_key(key, expected, actual, path)
+      current_path = path.empty? ? key.to_s : "#{path}.#{key}"
 
-        if !expected.key?(key)
-          debug_puts "❌ #{current_path}: Unexpected key in actual: #{key.inspect} = " \
-            "#{actual[key].inspect} (type: #{actual[key].class})"
-        elsif !actual.key?(key)
-          debug_puts "❌ #{current_path}: Missing expected key: #{key.inspect} = " \
-            "#{expected[key].inspect} (type: #{expected[key].class})"
-        elsif expected[key].is_a?(Hash) && actual[key].is_a?(Hash)
-          debug_puts "🔍 #{current_path}: Comparing nested hashes..."
-          compare_hashes(expected[key], actual[key], current_path)
-        elsif expected[key].is_a?(String) && actual[key].is_a?(String) && 
-              ((expected[key].start_with?('{') && actual[key].start_with?('{')) ||
-               (expected[key].start_with?('[') && actual[key].start_with?('[')))
-          debug_puts "🔍 #{current_path}: Comparing JSON strings..."
-          compare_hashes(expected[key], actual[key], current_path)
-        elsif expected[key].class != actual[key].class
-          debug_puts "❌ #{current_path}: Type mismatch - Expected #{expected[key].class} but got #{actual[key].class}"
-          debug_puts "    Expected: #{expected[key].inspect}"
-          debug_puts "    Actual:   #{actual[key].inspect}"
-        elsif expected[key] != actual[key]
-          debug_puts "❌ #{current_path}: Value mismatch"
-          debug_puts "    Expected: #{expected[key].inspect} (#{expected[key].class})"
-          debug_puts "    Actual:   #{actual[key].inspect} (#{actual[key].class})"
-        else
-          debug_puts "✅ #{current_path}: Values match: #{expected[key].inspect}"
-        end
+      if !expected.key?(key)
+        log_missing_expected_key(key, actual, current_path)
+      elsif !actual.key?(key)
+        log_unexpected_key(key, expected, current_path)
+      else
+        compare_values_for_key(key, expected, actual, current_path)
       end
+    end
+
+    def log_missing_expected_key(key, actual, current_path)
+      debug_puts "❌ #{current_path}: Unexpected key in actual: #{key}"
+      debug_puts "    Actual: #{actual[key].inspect} (type: #{actual[key].class})"
+      false
+    end
+
+    def log_unexpected_key(key, expected, current_path)
+      debug_puts "❌ #{current_path}: Missing expected key: #{key}"
+      debug_puts "    Expected: #{expected[key].inspect} (type: #{expected[key].class})"
+      false
+    end
+
+    def compare_values_for_key(key, expected, actual, current_path)
+      expected_val = expected[key]
+      actual_val = actual[key]
+
+      if expected_val.is_a?(Hash) && actual_val.is_a?(Hash)
+        debug_puts "🔍 #{current_path}: Comparing nested hashes..."
+        compare_hashes(expected_val, actual_val, current_path)
+      elsif both_json_strings?(expected_val, actual_val)
+        debug_puts "🔍 #{current_path}: Comparing JSON strings..."
+        compare_hashes(expected_val, actual_val, current_path)
+      elsif expected_val.class != actual_val.class
+        log_type_mismatch(current_path, expected_val, actual_val)
+      elsif expected_val != actual_val
+        log_value_mismatch(current_path, expected_val, actual_val)
+      else
+        true
+      end
+    end
+
+    def both_json_strings?(first_str, second_str)
+      first_str.is_a?(String) && second_str.is_a?(String) &&
+        ((first_str.start_with?('{') && second_str.start_with?('{')) ||
+         (first_str.start_with?('[') && second_str.start_with?('[')))
+    end
+
+    def log_type_mismatch(path, expected, actual)
+      debug_puts "❌ #{path}: Type mismatch - Expected #{expected.class} but got #{actual.class}"
+      debug_puts "    Expected: #{expected.inspect}"
+      debug_puts "    Actual:   #{actual.inspect}"
+      false
+    end
+
+    def log_value_mismatch(path, expected, actual)
+      debug_puts "❌ #{path}: Value mismatch"
+      debug_puts "    Expected: #{expected.inspect} (type: #{expected.class})"
+      debug_puts "    Actual:   #{actual.inspect} (type: #{actual.class})"
+      false
     end
 
     # Write debug output to both stderr and debug file
@@ -255,8 +304,8 @@ module Minitest
   end
 
   # Helper method to create a test client
-  def create_test_client(model: :pro, **kwargs)
-    GeminiAI::Client.new(test_api_key, model: model, **kwargs)
+  def create_test_client(model: :pro, **)
+    GeminiAI::Client.new('test_key', model:, **)
   end
 end
 
