@@ -528,7 +528,7 @@ class TestClient < Minitest::Test
   end
 
   def test_generate_content_api_error
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 400,
         body: @error_response.to_json,
@@ -543,7 +543,7 @@ class TestClient < Minitest::Test
   end
 
   def test_generate_content_network_error
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_raise(HTTParty::Error.new('Network error'))
 
     error = assert_raises(GeminiAI::Error) do
@@ -568,7 +568,7 @@ class TestClient < Minitest::Test
     end
 
     # Stub the API request
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 200,
         body: @success_response.to_json,
