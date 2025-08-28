@@ -31,32 +31,49 @@ class ClientEdgeCasesTest < Minitest::Test
   def test_chat_with_system_instruction
     expected_system_instruction = 'You are a helpful assistant'
 
-    stub_request(:post, /generativelanguage/)
-      .with(body: hash_including({
-                                   contents: [
-                                     { role: 'user', parts: [{ text: 'Hello' }] },
-                                     { role: 'assistant', parts: [{ text: 'Hi there!' }] },
-                                     { role: 'user', parts: [{ text: 'Tell me a joke' }] }
-                                   ],
-                                   systemInstruction: {
-                                     parts: [
-                                       { text: expected_system_instruction }
-                                     ]
-                                   }
-                                 }))
+    # Stub the request with the exact expected format
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{@client.instance_variable_get('@api_key')}")
+      .with(
+        body: {
+          contents: [
+            { role: 'user', parts: [{ text: 'Hello' }] },
+            { role: 'assistant', parts: [{ text: 'Hi there!' }] },
+            { role: 'user', parts: [{ text: 'Tell me a joke' }] }
+          ],
+          systemInstruction: {
+            parts: [{ text: expected_system_instruction }]
+          },
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024,
+            topP: 0.9,
+            topK: 40
+          }
+        },
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Content-Type' => 'application/json',
+          'User-Agent' => 'Ruby',
+          'X-Goog-Api-Client' => 'gemini_ai_ruby_gem/0.1.0'
+        }
+      )
       .to_return(
         status: 200,
         body: test_response,
         headers: { 'Content-Type': 'application/json' }
       )
 
+    # Call the method with the test data
     messages = [
       { role: 'user', content: 'Hello' },
       { role: 'assistant', content: 'Hi there!' },
       { role: 'user', content: 'Tell me a joke' }
     ]
 
-    @client.chat(messages, system_instruction: expected_system_instruction)
+    result = @client.chat(messages, system_instruction: expected_system_instruction)
+
+    assert_equal 'Test response from Gemini AI', result
   end
 
   def test_rate_limiting
@@ -96,7 +113,8 @@ class ClientEdgeCasesTest < Minitest::Test
   end
 
   def stub_gemini_request(response: test_response, status: 200)
-    stub_request(:post, /generativelanguage/)
+    api_key = @client.instance_variable_get('@api_key')
+    stub_request(:post, /generativelanguage.*key=#{api_key}/)
       .to_return(
         status:,
         body: response,
