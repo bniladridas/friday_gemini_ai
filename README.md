@@ -5,7 +5,9 @@
 [![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
 [![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
 
-Ruby gem for Google's Gemini AI models.
+Ruby gem for integrating with Google’s Gemini AI models.
+
+---
 
 ## Installation
 
@@ -13,146 +15,116 @@ Ruby gem for Google's Gemini AI models.
 gem install friday_gemini_ai
 ```
 
-Create a `.env` file and add your API key:
+Set your API key in `.env`:
+
 ```
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY=your_api_key
 ```
+
+---
 
 ## Usage
 
 ```ruby
 require_relative 'lib/gemini'
-
 GeminiAI.load_env
 
-# Use the latest Gemini 2.5 Pro (default)
+# Default: Gemini 2.5 Pro
 client = GeminiAI::Client.new
-response = client.generate_text('Write a haiku about Ruby')
-puts response
+puts client.generate_text('Write a haiku about Ruby')
 
-# Or choose a specific model
-flash_client = GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
-pro_client = GeminiAI::Client.new(model: :pro)      # Gemini 2.5 Pro
+# Specific models
+GeminiAI::Client.new(model: :flash) # Gemini 2.5 Flash
+GeminiAI::Client.new(model: :pro)   # Gemini 2.5 Pro
 ```
+
+CLI shortcuts:
 
 ```bash
 ./bin/gemini test
-./bin/gemini generate "Your prompt here"
+./bin/gemini generate "Your prompt"
 ./bin/gemini chat
 ```
 
-## Supported Models
+---
 
-| Model Key | Model ID | Description |
-|-----------|----------|-------------|
-| `:pro` | `gemini-2.5-pro` | Latest and most capable model |
-| `:flash` | `gemini-2.5-flash` | Fast and efficient latest model |
-| `:flash_2_0` | `gemini-2.0-flash` | Previous generation fast model |
-| `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight model |
-| `:pro_1_5` | `gemini-1.5-pro` | Gemini 1.5 Pro model |
-| `:flash_1_5` | `gemini-1.5-flash` | Gemini 1.5 Flash model |
-| `:flash_8b` | `gemini-1.5-flash-8b` | Compact 8B parameter model |
+## Models
 
-**Model Selection Guide:**
-- Use `:pro` for complex reasoning and analysis
-- Use `:flash` for fast, general-purpose tasks  
-- Use `:flash_2_0` for compatibility with older workflows
-- Use `:flash_lite` for simple, lightweight tasks
+| Key           | ID                      | Use case                        |
+| ------------- | ----------------------- | ------------------------------- |
+| `:pro`        | `gemini-2.5-pro`        | Most capable, complex reasoning |
+| `:flash`      | `gemini-2.5-flash`      | Fast, general-purpose           |
+| `:pro_1_5`    | `gemini-1.5-pro`        | Image-to-text                   |
+| `:flash_1_5`  | `gemini-1.5-flash`      | Lightweight tasks               |
+| `:flash_8b`   | `gemini-1.5-flash-8b`   | Compact, efficient              |
+| `:flash_2_0`  | `gemini-2.0-flash`      | Legacy support                  |
+| `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight legacy              |
 
-## What You Can Do
+---
 
-**Text Generation**
-- Generate creative content, stories, and articles
-- Create explanations and educational content
-- Write code comments and documentation
+## Capabilities
 
-**Conversational AI**
-- Build multi-turn chat applications
-- Create interactive Q&A systems
-- Develop conversational interfaces
+* **Text:** content generation, explanations, documentation
+* **Chat:** multi-turn conversations, Q\&A, assistants
+* **Image:** image-to-text analysis and descriptions
+* **CLI:** quick prototyping and automation
 
-**Image Analysis**
-- Analyze images with text prompts
-- Extract information from visual content
-- Generate descriptions of images
-
-**Quick Tasks**
-- Test ideas and prompts via CLI
-- Prototype AI-powered features
-- Generate content with custom parameters
+---
 
 ## Features
 
-- Text generation and chat conversations
-- Support for Gemini 2.5, 2.0, and 1.5 model families
-- Configurable parameters (temperature, tokens, top-p, top-k)
-- Error handling and API key security
-- CLI interface and .env integration
+* Gemini 2.5, 2.0, and 1.5 families
+* Image-to-text auto-selection (`pro_1_5`)
+* Configurable parameters (temperature, tokens, etc.)
+* Rate limiting (1s default, 3s in CI)
+* Secure API key + prompt validation
+* Robust error handling and CLI integration
+
+---
 
 ## Documentation
 
-**Getting Started**
-- [Overview](docs/start/overview.md) - Features and capabilities
-- [Quickstart](docs/start/quickstart.md) - 5-minute setup
+* [Overview](docs/start/overview.md)
+* [Quickstart](docs/start/quickstart.md)
+* [API Reference](docs/reference/api.md)
+* [Usage Guide](docs/reference/usage.md)
+* [Models](docs/reference/models.md)
+* [Cookbook](docs/reference/cookbook.md)
+* [Best Practices](docs/guides/practices.md)
+* [Troubleshooting](docs/guides/troubleshoot.md)
+* [Changelog](CHANGELOG.md)
 
-**Reference**
-- [API Reference](docs/reference/api.md) - Method documentation
-- [Usage Guide](docs/reference/usage.md) - Examples and patterns
-- [Models](docs/reference/models.md) - Gemini 2.5 Pro, Flash, and more
-- [Capabilities](docs/reference/capabilities.md) - Text generation and chat
-- [Cookbook](docs/reference/cookbook.md) - Code recipes
-- [Versions](docs/reference/versions.md) - API compatibility
-
-**Guides**
-- [Best Practices](docs/guides/practices.md) - Security and performance
-- [Troubleshooting](docs/guides/troubleshoot.md) - Common solutions
-- [Workflows](docs/guides/workflows.md) - CI/CD and automation
-- [Resources](docs/guides/resources.md) - Migration and extras
-- [Community](docs/guides/community.md) - Contributing and support
-- [Changelog](CHANGELOG.md) - Version history and changes
+---
 
 ## Examples
 
-- `examples/basic.rb` - Text generation and chat
-- `examples/advanced.rb` - Configuration and error handling
+* `examples/basic.rb` – text generation
+* `examples/advanced.rb` – advanced configs
+* `examples/modelsdemo.rb` – model comparison
 
-## Testing
-
-```bash
-ruby tests/runner.rb
-ruby tests/unit/client.rb
-ruby tests/integration/api.rb
-```
+---
 
 ## Development
 
-### Code Quality
-
-Check for style and linting issues:
-
-```bash
-bundle exec rubocop
-```
-
-Run the full test suite:
+Run tests:
 
 ```bash
 bundle exec rake test
 ```
 
-> [!TIP]
-> Many lint issues can be automatically fixed with:
-> ```bash
-> bundle exec rubocop -a
-> ```
+Lint & fix:
 
-> [!IMPORTANT]
-> Always run the test suite before committing to ensure all tests pass with your changes.
+```bash
+bundle exec rubocop
+bundle exec rubocop -a
+```
+
+---
 
 ## Contributing
 
-Fork, branch, commit, push, and open a pull request.
+Fork → branch → commit → PR.
 
 ## License
 
-MIT - see [LICENSE](LICENSE)
+MIT – see [LICENSE](LICENSE).
