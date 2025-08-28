@@ -1,31 +1,54 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes are tracked here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.1.4] - 2025-08-24
+## \[Unreleased]
 
 ### Added
-- Fixed RubyGems MFA authentication in release workflows
-- Added manual release workflow with OTP support
-- Added release helper script for easier publishing
+
+* Gemini 2.5 Pro & Flash support
+* Legacy alias: `pro_2_0` → `flash_2_0`
+* Auto image-to-text model (`pro_1_5`)
+* Rate limiting (1s default, 3s in CI)
+* API key validation & prompt length check
 
 ### Changed
-- Improved GitHub Actions workflows with proper permissions
-- Enhanced error handling for gem publishing
-- Updated release process to handle multi-factor authentication
 
-## [0.1.3] - 2025-04-21
+* More reliable test suite
+* Clearer error messages/logging
+* Smarter model selection on init
+* GitHub Actions hardened with proper permissions
 
-### Added
-- Initial release
-- Support for Gemini Pro, Flash, and Flash Lite models
-- Text generation capabilities
-- Chat functionality
-- Image-to-text generation
+### Fixed
+
+* Ruby 3.1 test helper compatibility
+* Syntax & parsing errors in tests/fixtures
+* Rate limiting test stability
 
 ---
 
-* @friday_gemini_ai
+## \[0.1.4] – 2025-08-24
+
+### Added
+
+* RubyGems MFA auth in release workflows
+* Manual release workflow with OTP
+* Release helper script
+
+### Changed
+
+* Hardened workflows with correct permissions
+* Safer gem publishing error handling
+* Updated release to support MFA
+
+---
+
+## \[0.1.3] – 2025-04-21
+
+### Added
+
+* First release
+* Gemini Pro, Flash, Flash Lite models
+* Text generation + chat
+* Image-to-text

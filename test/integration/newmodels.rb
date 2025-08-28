@@ -78,7 +78,7 @@ module ModelTestHelper
   end
 
   def stub_model_comparison_request(model_name)
-    stub_request(:post, /generativelanguage.googleapis.com/)
+    stub_request(:post, /generativelanguage\.googleapis\.com/)
       .to_return(
         status: 200,
         body: {
