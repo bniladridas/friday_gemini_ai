@@ -304,8 +304,8 @@ module Minitest
   end
 
   # Helper method to create a test client
-  def create_test_client(model: :pro, **)
-    GeminiAI::Client.new('test_key', model:, **)
+  def create_test_client(model: :pro, **options)
+    GeminiAI::Client.new('test_key', model: model, **options)
   end
 end
 
