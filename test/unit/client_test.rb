@@ -412,9 +412,8 @@ class TestClient < Minitest::Test
     # Use the same API key that's used in the test client
     api_key = @client.instance_variable_get('@api_key')
 
-    stub_request(:post, 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent')
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=#{api_key}")
       .with(
-        query: { key: api_key },
         headers: {
           'Accept' => '*/*',
           'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
