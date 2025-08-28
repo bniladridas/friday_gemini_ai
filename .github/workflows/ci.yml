@@ -146,7 +146,7 @@ jobs:
           gem build -o pkg/gemini-ai.gem *.gemspec
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: gem-package
           path: pkg/*.gem
