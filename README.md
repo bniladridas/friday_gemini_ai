@@ -4,6 +4,7 @@
 [![CI](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
 [![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
 [![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
+[![Gemini CLI Integration](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/gemini-cli.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/gemini-cli.yml)
 
 Ruby gem for integrating with Google’s Gemini AI models.
 
@@ -81,6 +82,38 @@ CLI shortcuts:
 * Robust error handling and CLI integration
 
 ---
+
+## Local Development
+
+For local development and testing, including running GitHub Actions workflows locally, see the [Development Guide](docs/guides/development.md).
+
+## Manual Triggers
+
+You can interact with the Gemini AI directly in your GitHub issues and pull requests using these commands:
+
+### Code Review
+```markdown
+@gemini-cli /review
+```
+Reviews the pull request and provides feedback on code quality and potential issues.
+
+### Issue Triage
+```markdown
+@gemini-cli /triage
+```
+Helps categorize and prioritize new issues.
+
+### Code Explanation
+```markdown
+@gemini-cli explain this code
+```
+Explains the code in the current context.
+
+### Test Generation
+```markdown
+@gemini-cli write tests for this
+```
+Generates test cases for the current code.
 
 ## Documentation
 
