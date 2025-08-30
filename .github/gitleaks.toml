@@ -1,0 +1,60 @@
+# Gitleaks configuration for Friday Gemini AI
+# This file defines rules for detecting sensitive information in the codebase
+
+[extend]
+useDefault = true
+
+# Ignore test and example files
+[[rules]]
+description = "Allow all files in test and example directories"
+regex = '''^test/|^spec/|^examples/'''
+
+# Custom rules for the project
+[[rules]]
+description = "Generic API Key"
+regex = '''(?i)(key|api|token|secret|password|pwd|passwd|pword|passphrase|auth|credential|signature|sig|sign|token|apikey|api_key|apisecret|api_secret|clientsecret|client_secret|privatekey|private_key|publickey|public_key|secretkey|secret_key|accesstoken|access_token|refreshtoken|refresh_token|bearer|jwt|jwt_token|jwt-token|jwt_secret|jwt-secret|jwtkey|jwt_key|jwtsecret|jwt-secret|jwtsigningkey|jwt_signing_key|jwtsigningkey|jwt-signing-key|jwtsigningsecret|jwt_signing_secret|jwtsigningsecret|jwt-signing-secret)(?:\s*[=:]\s*|"|'|`|\s)([a-zA-Z0-9_\-+=/.]{10,})(?:\s|'|"|`|$)'''
+
+[[rules]]
+description = "RSA private key"
+regex = '''-----BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY-----\n([A-Za-z0-9+/=]{64}\n)*[A-Za-z0-9+/=]{1,63}={0,2}\n?-----END (RSA|EC|DSA|OPENSSH) PRIVATE KEY-----'''
+
+[[rules]]
+description = "AWS Access Key ID"
+regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
+
+[[rules]]
+description = "GitHub Token"
+regex = '''(ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36}'''
+
+[[rules]]
+description = "Google API Key"
+regex = '''AIza[0-9A-Za-z\-_]{35}'''
+
+# Ignore specific test files or examples
+[[allowlist]]
+description = "Ignore test fixtures"
+files = [
+  "test/fixtures/*",
+  "spec/fixtures/*",
+  "**/*.test.js",
+  "**/*.spec.js",
+  "**/*.test.rb",
+  "**/*.spec.rb"
+]
+
+# Ignore specific strings or patterns
+[[allowlist]]
+regexes = [
+  "example_key",
+  "test_key",
+  "dummy_key",
+  "sample_key"
+]
+
+# Ignore specific file types
+[[allowlist]]
+extensions = [
+  ".md",
+  ".txt",
+  ".json"
+]
