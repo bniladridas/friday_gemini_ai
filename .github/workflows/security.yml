@@ -121,28 +121,32 @@ jobs:
       # Upload SARIF reports to GitHub Security tab if the file exists
       - name: Upload SARIF report
         if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f "gitleaks.sarif" ]; then
             echo "Uploading SARIF report"
-            # First, create a temporary file with the SARIF data
-            SARIF_DATA=$(jq -Rsa . gitleaks.sarif | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+            # Convert SARIF file to a JSON string and escape special characters
+            SARIF_DATA=$(jq -c . gitleaks.sarif | jq -Rs . | cut -c 2- | rev | cut -c 2- | rev)
             
-            # Create the JSON payload in a file
-            cat > payload.json << EOF
-            {
-              "commit_sha": "${{ github.sha }}",
-              "ref": "${{ github.ref }}",
-              "sarif": $SARIF_DATA
-            }
-            EOF
+            # Create the JSON payload
+            PAYLOAD=$(jq -n \
+              --arg sha "$GITHUB_SHA" \
+              --arg ref "$GITHUB_REF" \
+              --argjson sarif "$SARIF_DATA" \
+              '{
+                commit_sha: $sha,
+                ref: $ref,
+                sarif: $sarif
+              }')
             
-            # Upload using the file
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            # Upload using the GitHub API
+            curl -sS -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Content-Type: application/json" \
-              -d @payload.json \
-              "https://api.github.com/repos/${{ github.repository }}/code-scanning/sarifs"
+              -d "$PAYLOAD" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/code-scanning/sarifs"
           else
             echo "No SARIF file found to upload"
           fi
