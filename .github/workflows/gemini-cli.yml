@@ -1,0 +1,30 @@
+name: Gemini CLI Integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Cancel in-progress runs when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-gemini-cli:
+    name: Run Gemini CLI
+    runs-on: ubuntu-latest
+    container: node:20-slim
+    timeout-minutes: 15 # Fail fast on stalls
+    
+    steps:
+    - name: Install Gemini CLI
+      run: npm install -g @google/gemini-cli
+
+    - name: Verify installation
+      run: gemini --version
