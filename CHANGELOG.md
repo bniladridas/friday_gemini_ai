@@ -5,6 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## \[Unreleased]
 
+---
+
+## \[0.1.6] – 2025-08-31
+
 ### Added
 
 * Automated changelog generation in release workflow
@@ -17,7 +21,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ---
 
-## \[0.1.5] – 2025-08-31
+## \[0.1.5] – 2025-08-30
 
 ### Added
 
