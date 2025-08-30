@@ -2,51 +2,112 @@
 
 ## Supported Versions
 
-We actively support the following versions of Friday Gemini AI:
+We actively support the following versions of Friday Gemini AI with security updates:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
-| < 0.1   | :x:                |
+| Version | Supported          | Security Updates Until |
+| ------- | ------------------ | ---------------------- |
+| 0.2.x   | :white_check_mark: | TBD                    |
+| 0.1.x   | :warning:          | 2024-12-31             |
+| < 0.1   | :x:                | Unsupported            |
+
+> :warning: Version 0.1.x will reach end of security support on December 31, 2024.
 
 ## Reporting a Vulnerability
 
-We take security vulnerabilities seriously. If you discover a security vulnerability, please follow these steps:
+We take security vulnerabilities very seriously. If you discover a security issue in our codebase, we appreciate your help in disclosing it to us in a responsible manner.
 
-### Private Disclosure
+### Private Disclosure Process
 
-**DO NOT** create a public GitHub issue for security vulnerabilities.
+**IMPORTANT**: Do not report security issues through public GitHub issues, discussions, or other public channels.
 
-Instead, please report security issues privately by:
+Please report security issues by emailing our security team at [bniladridas@gmail.com](mailto:bniladridas@gmail.com).
 
-1. **Email**: Send details to [bniladridas@gmail.com](mailto:bniladridas@gmail.com)
-2. **Subject**: Include "SECURITY" in the subject line
-3. **Details**: Provide as much information as possible:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Suggested fix (if any)
+### What to Include in Your Report
 
-### What to Include
+To help us triage and fix the issue, please include the following information:
 
-Please include the following information:
-- **Vulnerability type** (e.g., injection, authentication bypass)
-- **Affected versions**
-- **Attack scenario** and potential impact
-- **Proof of concept** (if applicable)
-- **Suggested mitigation** (if you have ideas)
+1. **Project Information**
+   - Affected component/package
+   - Version number(s) affected
+   - Environment details (OS, Ruby version, etc.)
 
-### Response Timeline
+2. **Vulnerability Details**
+   - Type of vulnerability (XSS, CSRF, RCE, etc.)
+   - Step-by-step instructions to reproduce
+   - Impact of the vulnerability
+   - Any potential workarounds
 
-- **Initial response**: Within 48 hours
-- **Status update**: Within 7 days
-- **Fix timeline**: Depends on severity
-  - Critical: 1-3 days
-  - High: 1-2 weeks
-  - Medium: 2-4 weeks
-  - Low: Next release cycle
+3. **Additional Context**
+   - Proof of concept (if available)
+   - Suggested fixes or mitigation strategies
+   - Any related CVEs or references
+
+### Our Security Process
+
+1. **Initial Response**
+   - We will acknowledge receipt of your report within 48 hours
+   - We will assign a severity level based on CVSS scoring
+
+2. **Investigation**
+   - Our security team will investigate the report
+   - We may request additional information
+
+3. **Resolution**
+   - We will develop and test a fix
+   - The fix will be released according to our severity-based timeline
+
+### Response Timelines
+
+| Severity | Initial Response | Fix Release | Public Disclosure |
+|----------|------------------|-------------|-------------------|
+| Critical | 24 hours | 1-3 days | After patch available |
+| High     | 48 hours | 1-2 weeks | After patch available |
+| Medium   | 72 hours | Next release | Next release notes |
+| Low      | 5 days   | Next release | Next release notes |
+
+### Security Updates
+
+Security updates are typically released as patch versions (e.g., 1.2.3 → 1.2.4). We recommend always using the latest patch version of your chosen minor version.
+
+### Security Best Practices
+
+1. **Dependencies**
+   - Keep all dependencies up to date
+   - Use `bundle audit` to check for vulnerable dependencies
+   - Enable Dependabot for automated dependency updates
+
+2. **Configuration**
+   - Use environment variables for sensitive data
+   - Follow the principle of least privilege
+   - Enable all available security features
+
+3. **Development**
+   - Run security scanners as part of your CI/CD pipeline
+   - Perform regular security audits
+   - Follow secure coding practices
 
 ### Recognition
+
+We believe in giving credit where it's due. Security researchers who report valid vulnerabilities will be:
+- Thanked in our release notes (unless you prefer to remain anonymous)
+- Listed in our SECURITY.md file (if you wish)
+- Eligible for our Security Hall of Fame
+
+### Security Advisories
+
+For the latest security advisories, please check our [GitHub Security Advisories](https://github.com/bniladridas/friday_gemini_ai/security/advisories) page.
+
+---
+
+*Last Updated: 2025-08-31*
+
+---
+
+### Security Hall of Fame
+
+We would like to thank the following individuals for their responsible disclosure of security issues:
+
+- [Your name could be here!]
 
 We appreciate security researchers who help keep our users safe. With your permission, we'll:
 - Credit you in the security advisory
