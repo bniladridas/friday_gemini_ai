@@ -31,14 +31,22 @@ jobs:
     steps:
     - name: Install Gemini CLI
       run: |
+        # Install Node.js dependencies
         npm install -g @google/generative-ai
-        echo '#!/bin/sh
+        
+        # Create Gemini CLI wrapper
+        cat > /usr/local/bin/gemini << 'EOL'
+        #!/bin/sh
         node -e "import('@google/generative-ai').then(m => console.log(m.GOOGLE_GENERATIVE_AI_VERSION))"
-        ' > /usr/local/bin/gemini
+        EOL
+        
+        # Make the script executable
         chmod +x /usr/local/bin/gemini
 
     - name: Verify installation
-      run: gemini
+      run: |
+        # Test the installation
+        gemini
 
   pr-bot:
     name: PR Bot
@@ -55,10 +63,16 @@ jobs:
 
     - name: Install Dependencies
       run: |
+        # Install Node.js dependencies
         npm install -g @google/generative-ai
-        echo '#!/bin/sh
-        node -e "import(\'@google/generative-ai\').then(m => console.log(m.GOOGLE_GENERATIVE_AI_VERSION))"
-        ' > /usr/local/bin/gemini
+        
+        # Create Gemini CLI wrapper
+        cat > /usr/local/bin/gemini << 'EOL'
+        #!/bin/sh
+        node -e "import('@google/generative-ai').then(m => console.log(m.GOOGLE_GENERATIVE_AI_VERSION))"
+        EOL
+        
+        # Make the script executable
         chmod +x /usr/local/bin/gemini
         
         # Install Python dependencies
