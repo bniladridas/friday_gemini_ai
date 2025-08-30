@@ -19,15 +19,12 @@ jobs:
   run-gemini-cli:
     name: Run Gemini CLI
     runs-on: ubuntu-latest
-    container: node:20-bookworm
-    timeout-minutes: 15  # Fail fast on stalls
+    container: node:20-slim
+    timeout-minutes: 15 # Fail fast on stalls
     
     steps:
-    - name: Install dependencies
+    - name: Install Gemini CLI
       run: npm install -g @google/gemini-cli
 
     - name: Verify installation
-      run: gemini --version
-
-    - name: Run Gemini CLI
       run: gemini --version
