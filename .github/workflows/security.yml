@@ -119,6 +119,7 @@ jobs:
           retention-days: 90
 
       # Upload SARIF reports to GitHub Security tab if the file exists
+      # This is part of the security workflow improvements
       - name: Upload SARIF report
         run: |
           if [ -f "gitleaks.sarif" ]; then
