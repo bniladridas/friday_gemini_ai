@@ -92,48 +92,58 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: gem-release
+          path: ./
 
-      - name: Check for RubyGems OTP
+      - name: Get gem info
+        id: gem-info
         run: |
-          if [ -z "${{ secrets.RUBYGEMS_OTP }}" ]; then
-            echo "⚠️  RUBYGEMS_OTP secret is missing!"
-            echo "Since MFA is enabled, you need to add your OTP as a repository secret."
-            echo "Go to Settings > Secrets and variables > Actions"
-            echo "Add secret: RUBYGEMS_OTP = your current OTP code"
-            exit 1
-          else
-            echo "✅ RUBYGEMS_OTP found"
-          fi
+          GEM_FILE=$(ls *.gem)
+          GEM_NAME=$(basename "$GEM_FILE" .gem)
+          # Extract version using a more robust method
+          GEM_VERSION=$(echo "$GEM_NAME" | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?)\.gem$/\1/')
+          echo "version=$GEM_VERSION" >> $GITHUB_OUTPUT
+          echo "name=$GEM_NAME" >> $GITHUB_OUTPUT
+          echo "file=$GEM_FILE" >> $GITHUB_OUTPUT
 
       - name: Check if version exists on RubyGems
         id: check-rubygems
+        continue-on-error: true
         run: |
-          if gem list -r -e friday_gemini_ai | grep -q "${{ needs.build.outputs.gem-version }}"; then
+          if gem list -r -e friday_gemini_ai | grep -q "${{ steps.gem-info.outputs.version }}"; then
             echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::Version ${{ steps.gem-info.outputs.version }} already exists on RubyGems, skipping publish"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Publish to RubyGems
-        if: steps.check-rubygems.outputs.exists == 'false'
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
-          
-          # Check if OTP is required and provided
-          if [ -z "$RUBYGEMS_OTP" ]; then
-            echo "⚠️  Warning: No OTP provided. If MFA is enabled on your RubyGems account, this will fail."
-            echo "Please add RUBYGEMS_OTP as a repository secret with your current OTP code."
-            gem push *.gem
-          else
-            echo "Using OTP for MFA-enabled RubyGems account"
-            gem push *.gem --otp $RUBYGEMS_OTP
-          fi
+        if: steps.check-rubygems.outputs.exists != 'true'
         env:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
           RUBYGEMS_OTP: ${{ secrets.RUBYGEMS_OTP }}
+        run: |
+          # Set up gem credentials
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- ":rubygems_api_key: %s\n" "$RUBYGEMS_API_KEY" > $HOME/.gem/credentials
+          
+          # Build gem push command
+          PUSH_CMD="gem push *.gem"
+          
+          # Add OTP if provided
+          if [ -n "$RUBYGEMS_OTP" ]; then
+            PUSH_CMD="$PUSH_CMD --otp $RUBYGEMS_OTP"
+          fi
+          
+          # Execute the push command
+          echo "Publishing gem to RubyGems..."
+          if $PUSH_CMD; then
+            echo "::notice::Successfully published $GEM_FILE to RubyGems"
+          else
+            echo "::error::Failed to publish to RubyGems"
+            exit 1
+          fi
 
   publish-github:
     name: Publish to GitHub Packages
