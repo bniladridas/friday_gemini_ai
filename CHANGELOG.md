@@ -7,6 +7,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ### Added
 
+* Automated changelog generation in release workflow
+* Contributor recognition in release notes
+
+### Changed
+
+* Improved release notes formatting with emojis
+* Better organization of changes in release notes
+
+---
+
+## \[0.1.5] – 2025-08-31
+
+### Added
+
 * Gemini 2.5 Pro & Flash support
 * Legacy alias: `pro_2_0` → `flash_2_0`
 * Auto image-to-text model (`pro_1_5`)
@@ -19,6 +33,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 * Clearer error messages/logging
 * Smarter model selection on init
 * GitHub Actions hardened with proper permissions
+* Enhanced release workflow with automated changelog generation
 
 ### Fixed
 
