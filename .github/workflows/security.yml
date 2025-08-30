@@ -21,12 +21,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.3
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Required for git diff in Gitleaks
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@1fb1a234045c715a83611185ecfaf3f91ccddf9c # v1.160.0
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
           bundler-cache: true
@@ -120,14 +120,36 @@ jobs:
 
       # Upload SARIF reports to GitHub Security tab if the file exists
       - name: Upload SARIF report
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f "gitleaks.sarif" ]; then
             echo "Uploading SARIF report"
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            # Convert SARIF file to a JSON string and escape special characters
+            SARIF_DATA=$(jq -c . gitleaks.sarif | jq -Rs . | cut -c 2- | rev | cut -c 2- | rev)
+            
+            # Create the JSON payload
+            PAYLOAD=$(jq -n \
+              --arg sha "$GITHUB_SHA" \
+              --arg ref "$GITHUB_REF" \
+              --argjson sarif "$SARIF_DATA" \
+              '{
+                commit_sha: $sha,
+                ref: $ref,
+                sarif: $sarif
+              }')
+            
+            # Upload using the GitHub API
+            curl -sS -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
               -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/code-scanning/sarifs" \
-              -d '{"commit_sha":"${{ github.sha }}","ref":"${{ github.ref }}","sarif":"$(cat gitleaks.sarif | jq -Rsa . | sed 's/\\\"/\\"/g' | sed 's/\\\\n/\\n/g' | sed 's/\\\\t/\\t/g' | sed 's/\\\\r/\\r/g' | sed 's/\\\\b/\\b/g' | sed 's/\\\\f/\\f/g')"}'
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/code-scanning/sarifs"
+          else
+            echo "No SARIF file found to upload"
+          fi
 
       # Fail the job if critical vulnerabilities found
       - name: Check for critical vulnerabilities
