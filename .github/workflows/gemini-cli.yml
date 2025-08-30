@@ -52,8 +52,8 @@ jobs:
     name: PR Bot
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    container: node:20-slim
-    timeout-minutes: 15
+    container: python:3.11-slim
+    timeout-minutes: 10
     
     steps:
     - name: Checkout code
@@ -63,21 +63,33 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        # Install Node.js dependencies
+        # Install system dependencies
+        apt-get update && apt-get install -y --no-install-recommends \
+            nodejs \
+            npm \
+            python3-venv \
+            python3-pip \
+            python3-setuptools
+        
+        # Create and activate Python virtual environment
+        python -m venv /opt/venv
+        . /opt/venv/bin/activate
+        
+        # Upgrade pip and install Python packages
+        pip install --no-cache-dir --upgrade pip
+        pip install --no-cache-dir PyGithub python-dotenv
+        
+        # Install Google's Generative AI package
         npm install -g @google/generative-ai
         
         # Create Gemini CLI wrapper
         cat > /usr/local/bin/gemini << 'EOL'
-        #!/bin/sh
-        node -e "import('@google/generative-ai').then(m => console.log(m.GOOGLE_GENERATIVE_AI_VERSION))"
+        #!/usr/bin/env node
+        import('@google/generative-ai').then(m => console.log(m.GOOGLE_GENERATIVE_AI_VERSION))
         EOL
         
         # Make the script executable
         chmod +x /usr/local/bin/gemini
-        
-        # Install Python dependencies
-        apt-get update && apt-get install -y python3 python3-pip
-        pip3 install PyGithub python-dotenv
 
     - name: Run Gemini PR Bot
       env:
