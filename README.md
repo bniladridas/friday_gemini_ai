@@ -89,27 +89,80 @@ For local development and testing, including running GitHub Actions workflows lo
 
 ## Manual Triggers
 
-You can interact with the Gemini AI directly in your GitHub issues and pull requests using these commands:
+You can interact with the Gemini AI directly in your GitHub issues and pull requests using slash commands. Note that these commands require a workflow to be set up to listen to `issue_comment` events.
 
-### Code Review
+### Setting Up Slash Commands
+
+Add this workflow to your repository (e.g., `.github/workflows/slash-commands.yml`):
+
+```yaml
+name: Slash Command Handler
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  handle-command:
+    runs-on: ubuntu-latest
+    container: node:20-slim
+    if: startsWith(github.event.comment.body, '/review') || 
+        startsWith(github.event.comment.body, '/triage') ||
+        startsWith(github.event.comment.body, '@gemini-cli')
+    steps:
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli
+
+      - name: Process Command
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          if [[ "$COMMENT_BODY" == "/review"* ]]; then
+            gemini review
+          elif [[ "$COMMENT_BODY" == "/triage"* ]]; then
+            gemini triage
+          elif [[ "$COMMENT_BODY" == *"@gemini-cli"* ]]; then
+            # Handle @gemini-cli commands
+            if [[ "$COMMENT_BODY" == *"explain this code"* ]]; then
+              gemini explain
+            elif [[ "$COMMENT_BODY" == *"write tests"* ]]; then
+              gemini test
+            fi
+          fi
+```
+
+### Available Commands
+
+#### Code Review
 ```markdown
+/review
+# or
 @gemini-cli /review
 ```
 Reviews the pull request and provides feedback on code quality and potential issues.
 
-### Issue Triage
+#### Issue Triage
 ```markdown
+/triage
+# or
 @gemini-cli /triage
 ```
 Helps categorize and prioritize new issues.
 
-### Code Explanation
+#### Code Explanation
 ```markdown
 @gemini-cli explain this code
 ```
 Explains the code in the current context.
 
-### Test Generation
+#### Test Generation
 ```markdown
 @gemini-cli write tests for this
 ```
