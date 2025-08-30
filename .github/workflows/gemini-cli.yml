@@ -16,8 +16,10 @@ jobs:
     name: Run Gemini CLI
     runs-on: ubuntu-latest
     steps:
-    - name: Run Gemini CLI
-      uses: google-github-actions/run-gemini-cli@v0.1.12
-      with:
-        command: version
-        gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+    - name: Install Gemini CLI
+      run: npm install -g @google/gemini-cli@latest
+      
+    - name: Check Gemini CLI version
+      run: gemini --version
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
