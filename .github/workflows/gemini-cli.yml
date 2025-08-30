@@ -22,20 +22,21 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: https://github.com/actions/checkout@v3
+      uses: actions/checkout@v2
       with:
         fetch-depth: 0
 
     - name: Set up Ruby
-      uses: https://github.com/ruby/setup-ruby@v1
+      uses: actions/setup-ruby@v1
       with:
-        ruby-version: '3.3'
-        bundler-cache: true
+        ruby-version: '2.7'
 
     - name: Install dependencies
       run: |
         gem install bundler
-        bundle install
+        gem install net-http
+        gem install json
+        gem install uri
 
     - name: Run Gemini PR Review
       env:
