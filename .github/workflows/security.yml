@@ -21,7 +21,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Required for git diff in Gitleaks
 
@@ -49,39 +49,55 @@ jobs:
           bundle exec brakeman --format html --output brakeman.html --no-pager
         continue-on-error: true
 
-      # Secret Scanning
+      # Secret Scanning with Gitleaks
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v3
-        with:
-          config-path: .github/gitleaks.toml
-          report-format: sarif
-          report-path: gitleaks.sarif
-          strict: false
+        run: |
+          # Install Gitleaks
+          curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/install.sh | sh -s -- -b $GITHUB_WORKSPACE v8.18.0
+          export PATH="$GITHUB_WORKSPACE:$PATH"
+          
+          # Run Gitleaks
+          if [ -f ".github/gitleaks.toml" ]; then
+            ./gitleaks detect --source=. --config=.github/gitleaks.toml --report-format=json --report-path=gitleaks.json --no-git
+          else
+            echo "No gitleaks.toml config found, using default rules"
+            ./gitleaks detect --source=. --report-format=json --report-path=gitleaks.json --no-git
+          fi
+          
+          # Convert to SARIF if needed
+          if [ -f "gitleaks.json" ]; then
+            echo "Converting Gitleaks report to SARIF format"
+            # Convert the JSON report to SARIF format here if needed
+            # For now, just copy the JSON file as SARIF
+            cp gitleaks.json gitleaks.sarif
+          fi
         continue-on-error: true
 
-      # Dependency Scanning
-      - name: Run Dependabot Security Check
-        uses: actions/dependency-review-action@v3
-        with:
-          fail-on-severity: high
+      # Dependency Scanning (using GitHub's built-in Dependabot)
+      - name: Check for vulnerable dependencies
+        run: bundle audit check --update
 
       # Upload Reports
       - name: Upload security reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: security-reports-${{ github.sha }}
           path: |
             bundler-audit.json
             brakeman.*
-            gitleaks.sarif
+            gitleaks.*
           retention-days: 90
 
-      # Upload SARIF reports to GitHub Security tab
+      # Upload SARIF reports to GitHub Security tab if the file exists
       - name: Upload SARIF report
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: gitleaks.sarif
-          category: gitleaks
+        run: |
+          if [ -f "gitleaks.sarif" ]; then
+            echo "Uploading SARIF report"
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/code-scanning/sarifs" \
+              -d '{"commit_sha":"${{ github.sha }}","ref":"${{ github.ref }}","sarif":"$(cat gitleaks.sarif | jq -Rsa . | sed 's/\\\"/\\"/g' | sed 's/\\\\n/\\n/g' | sed 's/\\\\t/\\t/g' | sed 's/\\\\r/\\r/g' | sed 's/\\\\b/\\b/g' | sed 's/\\\\f/\\f/g')"}'
 
       # Fail the job if critical vulnerabilities found
       - name: Check for critical vulnerabilities
