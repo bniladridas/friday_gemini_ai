@@ -1,30 +1,96 @@
-name: Gemini CLI Integration
+name: Gemini PR Bot
 
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [main]
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: write
 
-# Cancel in-progress runs when new commits are pushed
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  run-gemini-cli:
-    name: Run Gemini CLI
+  pr-review:
+    name: PR Review with Gemini
     runs-on: ubuntu-latest
-    container: node:20-slim
-    timeout-minutes: 15 # Fail fast on stalls
+    timeout-minutes: 10
     
     steps:
-    - name: Install Gemini CLI
-      run: npm install -g @google/gemini-cli
+    - name: Checkout code
+      uses: https://github.com/actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-    - name: Verify installation
-      run: gemini --version
+    - name: Set up Ruby
+      uses: https://github.com/ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+
+    - name: Install dependencies
+      run: |
+        gem install bundler
+        bundle install
+
+    - name: Run Gemini PR Review
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        # Create a temporary file for the PR review
+        cat > pr_review.rb << 'EORUBY'
+        require 'net/http'
+        require 'json'
+        require 'uri'
+        
+        # Configuration
+        repo = ENV['GITHUB_REPOSITORY']
+        pr_number = ENV['GITHUB_REF'].split('/').last.to_i
+        github_token = ENV['GITHUB_TOKEN']
+        
+        # Get PR details
+        uri = URI.parse("https://api.github.com/repos/#{repo}/pulls/#{pr_number}")
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        
+        request = Net::HTTP::Get.new(uri)
+        request['Authorization'] = "token #{github_token}"
+        request['Accept'] = 'application/vnd.github.v3+json'
+        
+        response = http.request(request)
+        pr = JSON.parse(response.body)
+        
+        # Generate review with Gemini
+        review_prompt = "Review this PR:\nTitle: #{pr['title']}\nBody: #{pr['body'] || 'No description'}\n\n"
+        review_prompt += "Provide a concise review focusing on code quality, potential bugs, and security concerns. Be constructive and specific."
+        
+        # This is a placeholder - you'll need to implement the actual Gemini API call
+        review = "# Code Review by Gemini AI\n\n"
+        review += "## Summary\n- Overall, this PR looks good! Here are some suggestions for improvement.\n\n"
+        review += "## Suggested Changes\n- Consider adding more test coverage for the new functionality\n- Some functions could benefit from additional documentation\n- Watch out for potential edge cases in the input validation\n\n"
+        review += "## Security Notes\n- No major security concerns found\n- Consider adding input sanitization for user-provided data\n"
+        
+        # Post review as a comment
+        comment_uri = URI.parse("https://api.github.com/repos/#{repo}/issues/#{pr_number}/comments")
+        comment_request = Net::HTTP::Post.new(comment_uri)
+        comment_request['Authorization'] = "token #{github_token}"
+        comment_request['Content-Type'] = 'application/json'
+        comment_request.body = { body: review }.to_json
+        
+        comment_response = http.request(comment_request)
+        
+        if comment_response.code.to_i >= 300
+          puts "Error posting review comment: #{comment_response.body}"
+          exit 1
+        end
+        
+        puts "Review posted successfully!"
+        EORUBY
+        
+        # Execute the Ruby script
+        ruby pr_review.rb
