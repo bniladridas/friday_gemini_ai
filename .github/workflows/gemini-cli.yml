@@ -11,15 +11,26 @@ permissions:
   contents: read
   id-token: write
 
+# Cancel in-progress runs when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   run-gemini-cli:
     name: Run Gemini CLI
     runs-on: ubuntu-latest
+    container: node:20-bookworm
+    timeout-minutes: 15  # Fail fast on stalls
+    
     steps:
-    - name: Install Gemini CLI
-      run: npm install -g @google/gemini-cli@latest
-      
-    - name: Check Gemini CLI version
+    - name: Install dependencies
+      run: npm install -g @google/gemini-cli
+
+    - name: Verify installation
+      run: gemini --version
+
+    - name: Run Gemini CLI
       run: gemini --version
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
