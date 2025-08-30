@@ -21,12 +21,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.3
         with:
           fetch-depth: 0  # Required for git diff in Gitleaks
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@1fb1a234045c715a83611185ecfaf3f91ccddf9c # v1.160.0
         with:
           ruby-version: '3.3'
           bundler-cache: true
@@ -95,13 +95,21 @@ jobs:
       # Dependency Scanning (using GitHub's built-in Dependabot)
       - name: Check for vulnerable dependencies
         run: |
+          # Temporarily unfreeze bundle for updates
+          bundle config set --local frozen false
+          
           # Update to latest version of thor to fix vulnerability
           bundle update thor
+          
+          # Run security audit without failing the build
           bundle audit check --update || true
+          
+          # Re-enable frozen mode
+          bundle config set --local frozen true
 
       # Upload Reports
       - name: Upload security reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.3
         with:
           name: security-reports-${{ github.sha }}
           path: |
