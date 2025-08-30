@@ -17,7 +17,5 @@ jobs:
     - name: Run Gemini CLI
       uses: google-github-actions/run-gemini-cli@v0.1.12
       with:
-        # Add your Gemini CLI command here
         command: version
-        # Uncomment and set your API key if needed
-        # api_key: ${{ secrets.GEMINI_API_KEY }}
+        gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
