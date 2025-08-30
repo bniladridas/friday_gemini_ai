@@ -1,11 +1,14 @@
-name: Gemini PR Bot
+name: Gemini Tools
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main]
+  push:
+    branches: [main]
 
-# Required permissions for the GitHub Token
+# Required permissions
 permissions:
   contents: read
   pull-requests: write
@@ -18,12 +21,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  code-review:
-    name: Gemini Code Review
+  gemini-cli:
+    name: Gemini CLI
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     container: node:20-slim
     timeout-minutes: 15
+    
+    steps:
+    - name: Install Gemini CLI
+      run: npm install -g @google/gemini-cli
 
+    - name: Verify installation
+      run: gemini --version
+
+  pr-bot:
+    name: PR Bot
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container: node:20-slim
+    timeout-minutes: 15
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -49,7 +67,6 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         cat > pr_bot.py << 'EOF'
-        # PR Bot implementation will go here
         import os
         import sys
         from github import Github
@@ -80,13 +97,23 @@ jobs:
                 changes.append("-" * 50)
             
             # Generate review using Gemini CLI
-            # This is a placeholder - you'll need to implement the actual Gemini API call
             review = "## 🤖 Gemini PR Review\n\n"
             review += "### PR Summary\n"
             review += f"**Title:** {title}\n\n"
             review += f"**Description:**\n{body[:500]}{'...' if len(body) > 500 else ''}\n\n"
+            
+            # Add Gemini CLI version info
+            review += "### Gemini CLI Info\n"
+            try:
+                import subprocess
+                version = subprocess.check_output(["gemini", "--version"]).decode().strip()
+                review += f"Gemini CLI Version: {version}\n\n"
+            except Exception as e:
+                review += "Gemini CLI version check failed\n\n"
+            
+            # Add changes summary
             review += "### Changes Summary\n"
-            review += "\n".join(changes[:20])  # Limit changes to avoid hitting size limits
+            review += "\n".join(changes[:20])
             
             if len(changes) > 20:
                 review += "\n... and more changes (truncated for brevity)"
