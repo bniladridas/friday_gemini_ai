@@ -38,7 +38,8 @@ jobs:
         cat > /usr/local/bin/gemini << 'EOL'
         #!/bin/sh
         NODE_PATH=$(npm root -g) node -e "
-        import(path.resolve(process.env.NODE_PATH, '@google/generative-ai')).then(m => 
+        const modulePath = require.resolve('@google/generative-ai');
+        import(modulePath).then(m => 
           console.log(m.GOOGLE_GENERATIVE_AI_VERSION)
         ).catch(e => {
           console.error('Error loading @google/generative-ai:', e);
@@ -82,8 +83,7 @@ jobs:
         # Create Gemini CLI wrapper with proper module resolution
         cat > /usr/local/bin/gemini << 'EOL'
         #!/usr/bin/env node
-        const path = require('path');
-        const modulePath = path.resolve(process.env.NODE_PATH || '', '@google/generative-ai');
+        const modulePath = require.resolve('@google/generative-ai');
         import(modulePath).then(m => 
           console.log(m.GOOGLE_GENERATIVE_AI_VERSION)
         ).catch(e => {
