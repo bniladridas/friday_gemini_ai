@@ -74,36 +74,56 @@ def analyze_with_gemini(pr_details):
             {pr_details['diff'][:4000]}
             ```
             
-            Please provide a detailed analysis with the following sections:
+            Please provide a detailed analysis following this exact format:
             
             ## 🔍 Summary
-            A brief overview of the changes and their purpose.
+            [Brief overview of changes and purpose]
             
-            ## 🛠️ Code Quality
-            - Code structure and organization
-            - Adherence to best practices
-            - Style consistency
-            - Documentation quality
+            ### ✅ Strengths
+            - [List key strengths with emojis]
+            - [Focus on what's working well]
             
-            ## ⚠️ Potential Issues
-            - Bugs or logical errors
-            - Edge cases not handled
-            - Performance considerations
-            - Potential race conditions
+            ### 🚧 Areas Needing Attention
+            - [List potential issues with emojis]
+            - [Be specific and constructive]
             
-            ## 🔒 Security
-            - Input validation
-            - Authentication/Authorization
-            - Data protection
-            - Dependency vulnerabilities
+            ### 🛠️ Code Quality
+            #### 🏗️ Structure & Organization
+            - [Comments on code structure]
             
-            ## 💡 Suggestions for Improvement
-            - Code optimizations
-            - Refactoring opportunities
-            - Test coverage improvements
-            - Documentation enhancements
+            #### 📝 Style & Readability
+            - [Comments on code style and readability]
             
-            Please format your response in clear markdown with appropriate headers and emojis for better readability.
+            ### ⚠️ Potential Issues
+            #### 🐛 Bugs & Edge Cases
+            - [List any potential bugs]
+            
+            #### 🚀 Performance
+            - [Performance considerations]
+            
+            ### 🔒 Security
+            #### 🔐 Authentication & Data
+            - [Security considerations]
+            
+            #### 📦 Dependencies
+            - [Dependency analysis]
+            
+            ### 💡 Recommendations
+            #### 🛠️ Code Improvements
+            - [Specific improvement suggestions]
+            
+            #### 📚 Documentation
+            - [Documentation suggestions]
+            
+            ### 🔄 Next Steps
+            - [Actionable next steps with emojis]
+            
+            Format your response with:
+            - Clear section headers with emojis
+            - Bullet points for lists
+            - Code blocks with syntax highlighting
+            - Bold text for important points
+            - Keep lines under 100 characters
             """]
         }
         
@@ -181,12 +201,31 @@ def analyze_with_gemini(pr_details):
         """
         return f"Error generating analysis: {str(e)}\n{error_details}"
 
+def format_comment(analysis):
+    """Format the analysis with proper markdown and emojis."""
+    return f"""## 🤖 PR Analysis by Gemini AI
+
+{analysis}
+
+---
+*This is an automated analysis. Please review the suggestions carefully.*"""
+
 def post_comment(github_token, repo_name, pr_number, comment):
-    """Post a comment on the PR."""
-    g = Github(github_token)
-    repo = g.get_repo(repo_name)
-    pr = repo.get_pull(pr_number)
-    pr.create_issue_comment(comment)
+    """Post a comment on the PR with proper formatting."""
+    try:
+        g = Github(github_token)
+        repo = g.get_repo(repo_name)
+        pr = repo.get_pull(pr_number)
+        
+        # Format the comment with consistent styling
+        formatted_comment = format_comment(comment)
+        
+        # Post the comment
+        pr.create_issue_comment(formatted_comment)
+        
+    except Exception as e:
+        print(f"Error posting comment: {str(e)}")
+        raise
 
 def main():
     """Main function to run the PR bot."""
@@ -204,20 +243,10 @@ def main():
     print("Analyzing PR with Gemini...")
     analysis = analyze_with_gemini(pr_details)
     
-    # Format the comment
-    comment = f"""
-    ## 🤖 PR Analysis by Gemini AI
-    
-    {analysis}
-    
-    ---
-    *This is an automated analysis. Please review the suggestions carefully.*
-    """
-    
-    # Post the comment
+    # Post the comment with formatted analysis
     print("Posting analysis to PR...")
-    post_comment(github_token, args.repo, args.pr, comment)
-    print("Analysis complete!")
+    post_comment(github_token, args.repo, args.pr, analysis)
+    print("✅ Analysis complete!")
 
 if __name__ == "__main__":
     main()
