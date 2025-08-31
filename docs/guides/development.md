@@ -1,129 +1,135 @@
 # Development Guide
 
-This guide covers the setup and development of the Gemini AI integration for GitHub Actions.
+This guide covers the setup and development of the Friday Gemini AI Ruby gem.
 
 ## Local Development Setup
 
 ### Prerequisites
-1. [Docker](https://www.docker.com/products/docker-desktop)
-2. [act](https://github.com/nektos/act) - For running GitHub Actions locally
-3. Python 3.11+ (for PR bot development)
-4. Node.js 20+ (for Gemini CLI)
-5. [GitHub CLI](https://cli.github.com/) (recommended for PR management)
+1. Ruby 3.0+ (check `.ruby-version` for exact version)
+2. Bundler (`gem install bundler`)
+3. Git
+4. [GitHub CLI](https://cli.github.com/) (recommended for PR management)
 
-### Local Testing with act
+### Setup
 
-1. Install act:
+1. Clone the repository:
    ```bash
-   # macOS (using Homebrew)
-   brew install act
-   
-   # Linux
-   curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+   git clone https://github.com/bniladridas/friday_gemini_ai.git
+   cd friday_gemini_ai
    ```
 
-2. Test the PR Bot locally:
+2. Install dependencies:
    ```bash
-   # Run PR bot job
-   act -j pr-bot --container-architecture linux/amd64 \
-       -s GEMINI_API_KEY=your_api_key \
-       -s GITHUB_TOKEN=your_github_token
+   bundle install
    ```
 
-3. Test Gemini CLI installation:
+3. Set up your environment:
    ```bash
-   # Run Gemini CLI job
-   act -j gemini-cli --container-architecture linux/amd64
+   cp .env.example .env
+   # Edit .env and add your GEMINI_API_KEY
    ```
+
+## Running Tests
+
+Run the full test suite:
+```bash
+bundle exec rake test
+```
+
+Run a specific test file:
+```bash
+bundle exec ruby -Ilib:test test/unit/client_test.rb
+```
+
+## Linting and Code Style
+
+Check code style:
+```bash
+bundle exec rubocop
+```
+
+Auto-correct style issues:
+```bash
+bundle exec rubocop -a
+```
+
+## Development Workflow
+
+1. Create a new branch:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. Make your changes and write tests
+
+3. Run tests and linters:
+   ```bash
+   bundle exec rake test
+   bundle exec rubocop
+   ```
+
+4. Commit your changes with a descriptive message
+
+5. Push your branch and create a pull request
 
 ## GitHub Actions Integration
 
-### Setup
-1. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
-2. Add it as a GitHub Secret named `GEMINI_API_KEY`
+The project uses GitHub Actions for CI/CD. Key workflows:
 
-### Required Permissions
+1. **CI Workflow** (`.github/workflows/ci.yml`):
+   - Runs on push and pull requests
+   - Tests on multiple Ruby versions
+   - Runs linters and security checks
 
-The workflow requires the following permissions:
+2. **Release Workflow** (`.github/workflows/release.yml`):
+   - Publishes the gem to RubyGems on version tag push
 
-```yaml
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-  statuses: write
-```
-
-## Workflow Components
-
-The Gemini integration consists of two main components:
-
-### 1. Gemini CLI Job
-- Installs and verifies Gemini CLI
-- Available for manual execution
-- Runs on workflow_dispatch or push to main
-
-### 2. PR Bot Job
-- Automated PR analysis using Gemini AI
-- Runs on pull request events
-- Posts review comments with AI feedback
-- Supports both Node.js and Python environments
+3. **Security Workflow** (`.github/workflows/security.yml`):
+   - Runs security scans and dependency checks
 
 ## Security Considerations
 
-1. **Secrets Management**:
-   - Store sensitive data in GitHub Secrets
-   - Use minimal required permissions
-   - Never hardcode API keys
+1. **API Key Security**:
+   - Never commit API keys to version control
+   - Use environment variables for configuration
+   - The gem automatically masks API keys in logs
 
 2. **Dependencies**:
-   - Always pin versions in workflows
-   - Regularly update dependencies
-   - Use Dependabot for security updates
+   - All dependencies are pinned in the Gemfile.lock
+   - Regular security updates via Dependabot
 
 3. **Code Review**:
-   - All PRs require review
-   - Run security scans on PRs
-   - Use branch protection rules
+   - All PRs require at least one review
+   - Automated tests must pass before merging
+   - Code style must follow RuboCop guidelines
 
-### 1. Gemini CLI
-- Installs the `@google/generative-ai` package
-- Provides a command-line interface for Gemini AI
-- Runs on workflow dispatch or push to main
+## Debugging
 
-### 2. PR Bot
-- Python-based bot for automated code reviews
-- Analyzes pull requests and provides feedback
-- Runs automatically on pull request events
+Enable debug logging:
+```ruby
+GeminiAI::Client.logger.level = Logger::DEBUG
+```
 
-## Development
+## Building the Gem
 
-### Testing the PR Bot Locally
+Build the gem locally:
+```bash
+gem build friday_gemini_ai.gemspec
+```
 
-1. Install Python dependencies:
+Install the built gem:
+```bash
+gem install friday_gemini_ai-*.gem
+```
+
+## Release Process
+
+1. Update the version in `lib/gemini/version.rb`
+2. Update `CHANGELOG.md`
+3. Commit changes with message "Bump version to x.y.z"
+4. Create a git tag:
    ```bash
-   pip install PyGithub python-dotenv
+   git tag -a vx.y.z -m "Version x.y.z"
+   git push origin vx.y.z
    ```
-
-2. Create a `.env` file with your credentials:
-   ```
-   GITHUB_TOKEN=your_github_token
-   GEMINI_API_KEY=your_gemini_api_key
-   ```
-
-3. Run the bot locally:
-   ```bash
-   # Set required environment variables
-   export GITHUB_REPOSITORY="your_username/your_repo"
-   export GITHUB_REF="refs/pull/1/head"  # PR number
-   
-   # Run the bot
-   python3 .github/workflows/pr_bot.py
-   ```
-
-## Security Considerations
-
-- Never expose your `GEMINI_API_KEY` in your code or logs
-- Use GitHub Secrets for sensitive information
-- Review all third-party actions and dependencies
-- Follow the principle of least privilege for GitHub tokens
+5. The release workflow will automatically publish to RubyGems
