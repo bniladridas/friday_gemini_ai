@@ -113,7 +113,7 @@ jobs:
           
           # Upload results as artifact
           if [ -f "./gitleaks-results.sarif" ]; then
-            echo "GITLEAKS_RESULTS=$(cat ./gitleaks-results.sarif | jq -c '.' | base64 -w 0)" >> $GITHUB_ENV
+            echo "GITLEAKS_RESULTS=$(cat ./gitleaks-results.sarif | jq -c '.' | base64 -w 0 | tr -d '\n')" >> $GITHUB_ENV
             echo "Gitleaks scan completed. Results saved to gitleaks-results.sarif"
           else
             echo "No Gitleaks results file was generated."
