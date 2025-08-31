@@ -23,7 +23,7 @@ Thank you for your interest in contributing! We welcome contributions from every
 ### Setup
 ```bash
 # Clone your fork
-git clone https://github.com/your-username/friday_gemini_ai.git
+git clone https://github.com/bniladridas/friday_gemini_ai.git
 cd friday_gemini_ai
 
 # Install dependencies
