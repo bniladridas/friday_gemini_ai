@@ -28,13 +28,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ### Added
 
+* GitHub Actions workflow for automated PR reviews with Gemini AI
+* PR Bot script for automated code review feedback
+* Documentation updates for new workflow and bot
 * Automated changelog generation in release workflow
 * Contributor recognition in release notes
 
 ### Changed
 
+* Updated README with new CodeBot badge and workflow documentation
+* Improved Git configuration in CI/CD pipeline
+* Enhanced repository checkout process in workflows
 * Improved release notes formatting with emojis
 * Better organization of changes in release notes
+
+### Fixed
+
+* Resolved Git ownership issues in GitHub Actions
+* Fixed workflow file syntax and configuration
 
 ---
 
