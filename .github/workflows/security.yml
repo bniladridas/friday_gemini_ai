@@ -29,10 +29,19 @@ jobs:
       image: ruby:3.2-slim
     
     steps:
-      - name: Checkout code
+      - name: Install Git and checkout code
         run: |
-          git clone https://github.com/${{ github.repository }} .
-          git checkout ${{ github.sha }}
+          # Install Git first
+          apt-get update && apt-get install -y --no-install-recommends git
+          
+          # Configure Git
+          git config --global --add safe.directory /github/workspace
+          
+          # Checkout code
+          git init -q
+          git remote add origin https://github.com/${{ github.repository }}.git
+          git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/${{ github.ref_name || 'main' }}
+          git checkout --progress --force -B ${{ github.ref_name || 'main' }} ${{ github.sha }}
           git fetch --unshallow  # Ensure we have full history for Gitleaks
 
       - name: Set up Ruby environment
