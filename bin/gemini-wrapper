@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+
+const { execSync } = require('child_process');
+const path = require('path');
+
+// Get the version from environment variable or fall back to package.json
+function getGeminiVersion() {
+  // First try environment variable
+  if (process.env.GOOGLE_GENERATIVE_AI_VERSION) {
+    return process.env.GOOGLE_GENERATIVE_AI_VERSION;
+  }
+  
+  // Fall back to package.json
+  try {
+    const pkg = require('@google/generative-ai/package.json');
+    if (pkg && pkg.version) {
+      return pkg.version;
+    }
+  } catch (error) {
+    console.warn('Warning: Could not determine @google/generative-ai version from package.json');
+  }
+  
+  // Default fallback version
+  return '0.1.0';
+}
+
+// Set the version in the environment
+process.env.GOOGLE_GENERATIVE_AI_VERSION = getGeminiVersion();
+
+// Pass all arguments to the original gemini command
+try {
+  const result = execSync(`npx gemini ${process.argv.slice(2).join(' ')}`, { stdio: 'inherit' });
+  process.exit(0);
+} catch (error) {
+  process.exit(error.status || 1);
+}
