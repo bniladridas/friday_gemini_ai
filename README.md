@@ -137,7 +137,7 @@ This repository includes a GitHub Actions workflow for automated code reviews an
 
 - **Automated PR Reviews**: Automatically analyzes pull requests and provides feedback
 - **Gemini CLI**: Includes a command-line interface for Gemini AI
-- **Customizable Analysis**: Configure the analysis parameters as needed
+- **Concurrent Run Handling**: Automatically cancels in-progress runs when new commits are pushed
 
 ### Setup
 
@@ -145,21 +145,26 @@ This repository includes a GitHub Actions workflow for automated code reviews an
    - `GEMINI_API_KEY`: Your Google Gemini API key
    - `GITHUB_TOKEN` (automatically provided by GitHub)
 
-2. The workflow is already configured in `.github/workflows/gemini-cli.yml` and will run automatically on pull requests.
+2. The workflow is configured in `.github/workflows/codebot.yml` and runs automatically on pull requests and pushes to main.
 
-### Manual Trigger
+### Workflow Triggers
 
-You can also manually trigger the workflow from the Actions tab in your GitHub repository:
-1. Go to Actions
-2. Select "Gemini Tools" workflow
-3. Click "Run workflow"
+- **Pull Requests**: On `opened`, `synchronize`, and `reopened` events
+- **Manual Dispatch**: Trigger manually from the Actions tab
+- **Push to Main**: Runs the Gemini CLI job on direct pushes to main
 
-### Customization
+### Jobs
 
-You can customize the behavior by modifying the workflow file (`.github/workflows/gemini-cli.yml`). The workflow includes:
+1. **Gemini CLI**
+   - Runs on workflow dispatch or push to main
+   - Installs and verifies Gemini CLI
+   - Uses Node.js 20 container
 
-- **Gemini CLI**: For direct interaction with Google's Generative AI
-- **PR Bot**: For automated code reviews on pull requests
+2. **PR Bot**
+   - Runs on pull request events
+   - Uses Python 3.11 container
+   - Installs required dependencies
+   - Runs the PR bot script
 
 ### Required Permissions
 
@@ -169,7 +174,16 @@ The workflow requires the following permissions:
 - `issues: write`
 - `statuses: write`
 
-These are already configured in the workflow file.
+### Concurrency Control
+
+The workflow includes concurrency control to optimize CI resources:
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+```
+
+This ensures that only the most recent workflow run will complete when multiple runs are triggered in quick succession.
 
 ## Documentation
 
