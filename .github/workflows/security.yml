@@ -31,22 +31,20 @@ jobs:
     steps:
       - name: Install Git and checkout code
         run: |
-          # Install Git first
+          # Install Git
           apt-get update && apt-get install -y --no-install-recommends git
           
           # Configure Git
-          git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
           git config --global --add safe.directory /github/workspace
           
-          # Checkout code using GitHub's built-in action
-          git clone --depth=1 https://github.com/${{ github.repository }} .
+          # Clone with full history
+          git clone --no-checkout https://github.com/${{ github.repository }} .
           
-          # Only fetch full history if this is a shallow clone
-          if [ -f $(git rev-parse --git-dir)/shallow ]; then
-            git fetch --unshallow  # Ensure we have full history for Gitleaks
-          fi
+          # Fetch the specific commit
+          git fetch origin ${{ github.event.pull_request.head.sha || github.sha }}:refs/remotes/origin/commit-to-checkout
           
-          git checkout ${{ github.event.pull_request.head.sha || github.sha }}
+          # Checkout the specific commit
+          git checkout ${{ github.event.pull_request.head.sha || github.sha }} || git checkout -b temp-branch FETCH_HEAD
 
       - name: Set up Ruby environment
         run: |
