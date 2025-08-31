@@ -70,6 +70,14 @@ jobs:
           bundle config set --local path 'vendor/bundle'
           bundle install --jobs 4 --retry 3
 
+      - name: Set up environment
+        run: |
+          # Set environment variables
+          echo "GEM_HOME=$HOME/.gem" >> $GITHUB_ENV
+          echo "GEM_PATH=$HOME/.gem" >> $GITHUB_ENV
+          echo "PATH=$HOME/.gem/bin:$PATH" >> $GITHUB_ENV
+          echo "GITLEAKS_VERSION=8.28.0" >> $GITHUB_ENV
+
       - name: Install and run Gitleaks
         run: |
           # Install Gitleaks
@@ -78,12 +86,11 @@ jobs:
           
           # Download Gitleaks and checksums
           echo "Downloading Gitleaks v$GITLEAKS_VERSION..."
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz -o gitleaks.tar.gz || \
-            curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/gitleaks_${GITLEAKS_VERSION}_linux_amd64.tar.gz -o gitleaks.tar.gz
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz -o gitleaks.tar.gz
           curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/checksums.txt -o gitleaks_checksums.txt
           
-          # Get the expected checksum from the checksums file (trying both filename formats)
-          EXPECTED_CHECKSUM=$(grep -E "gitleaks_${GITLEAKS_VERSION}_linux_(x64|amd64)\.tar\.gz" gitleaks_checksums.txt | awk '{print $1}')
+          # Get the expected checksum from the checksums file
+          EXPECTED_CHECKSUM=$(grep "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" gitleaks_checksums.txt | awk '{print $1}')
           
           # Verify checksum
           echo "Verifying checksum..."
