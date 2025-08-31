@@ -80,9 +80,11 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - name: Install git
+    - name: Install and configure git
       run: |
         apt-get update && apt-get install -y git
+        # Configure git to trust the workspace directory
+        git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
 
     - name: Clone repository (PR Bot)
       run: |
