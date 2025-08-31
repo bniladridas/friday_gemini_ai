@@ -34,8 +34,10 @@ jobs:
           # Install Git
           apt-get update && apt-get install -y --no-install-recommends git
           
-          # Configure Git
+          # Configure Git with all necessary safe directories
+          git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
           git config --global --add safe.directory /github/workspace
+          git config --global --add safe.directory /__w/friday_gemini_ai
           
           # Clone with full history
           git clone --no-checkout https://github.com/${{ github.repository }} .
