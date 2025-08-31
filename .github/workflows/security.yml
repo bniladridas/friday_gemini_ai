@@ -21,15 +21,16 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.3
         with:
           fetch-depth: 0  # Required for git diff in Gitleaks
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@1fb1a234045c715a83611185ecfaf3f91ccddf9c # v1.160.0
         with:
           ruby-version: '3.3'
           bundler-cache: true
+          cache-version: 2
 
       # Dependency Security
       - name: Install dependencies
