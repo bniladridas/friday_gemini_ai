@@ -7,8 +7,9 @@ This guide covers the setup and development of the Gemini AI integration for Git
 ### Prerequisites
 1. [Docker](https://www.docker.com/products/docker-desktop)
 2. [act](https://github.com/nektos/act) - For running GitHub Actions locally
-3. Python 3.11+ (for local PR bot development)
+3. Python 3.11+ (for PR bot development)
 4. Node.js 20+ (for Gemini CLI)
+5. [GitHub CLI](https://cli.github.com/) (recommended for PR management)
 
 ### Local Testing with act
 
@@ -21,9 +22,18 @@ This guide covers the setup and development of the Gemini AI integration for Git
    curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
    ```
 
-2. Test the workflow locally:
+2. Test the PR Bot locally:
    ```bash
-   act -j pr-bot --container-architecture linux/amd64 --secret GEMINI_API_KEY=your_api_key
+   # Run PR bot job
+   act -j pr-bot --container-architecture linux/amd64 \
+       -s GEMINI_API_KEY=your_api_key \
+       -s GITHUB_TOKEN=your_github_token
+   ```
+
+3. Test Gemini CLI installation:
+   ```bash
+   # Run Gemini CLI job
+   act -j gemini-cli --container-architecture linux/amd64
    ```
 
 ## GitHub Actions Integration
@@ -47,6 +57,34 @@ permissions:
 ## Workflow Components
 
 The Gemini integration consists of two main components:
+
+### 1. Gemini CLI Job
+- Installs and verifies Gemini CLI
+- Available for manual execution
+- Runs on workflow_dispatch or push to main
+
+### 2. PR Bot Job
+- Automated PR analysis using Gemini AI
+- Runs on pull request events
+- Posts review comments with AI feedback
+- Supports both Node.js and Python environments
+
+## Security Considerations
+
+1. **Secrets Management**:
+   - Store sensitive data in GitHub Secrets
+   - Use minimal required permissions
+   - Never hardcode API keys
+
+2. **Dependencies**:
+   - Always pin versions in workflows
+   - Regularly update dependencies
+   - Use Dependabot for security updates
+
+3. **Code Review**:
+   - All PRs require review
+   - Run security scans on PRs
+   - Use branch protection rules
 
 ### 1. Gemini CLI
 - Installs the `@google/generative-ai` package

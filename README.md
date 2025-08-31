@@ -89,18 +89,22 @@ For local development and testing, including running GitHub Actions workflows lo
 
 ## GitHub Actions Integration
 
-This repository includes a GitHub Actions workflow for automated code reviews and Gemini CLI integration. The workflow is triggered on pull requests and provides automated feedback.
+### Gemini CLI Workflow
 
-### Features
+The Gemini Tools workflow provides two main jobs:
 
-- **Automated PR Reviews**: Automatically analyzes pull requests and provides feedback
-- **Gemini CLI**: Includes a command-line interface for Gemini AI
-- **Customizable Analysis**: Configure the analysis parameters as needed
+1. **Gemini CLI**
+   - Triggered on workflow_dispatch or push to main
+   - Installs and verifies the Gemini CLI
+   - Available for manual execution of AI tasks
 
-### Setup
+2. **PR Bot**
+   - Automatically runs on PR events (open, sync, reopen)
+   - Analyzes PR changes using Gemini AI
+   - Posts review comments with AI-generated feedback
+   - Supports both Node.js and Python environments
 
-1. Add the following secrets to your repository:
-   - `GEMINI_API_KEY`: Your Google Gemini API key
+### Required Secrets
    - `GITHUB_TOKEN` (automatically provided by GitHub)
 
 2. The workflow is already configured in `.github/workflows/gemini-cli.yml` and will run automatically on pull requests.
