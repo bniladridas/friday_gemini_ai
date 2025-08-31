@@ -55,33 +55,55 @@ def get_pr_details(github_token, repo_name, pr_number):
 def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
     try:
-        # Initialize the model with the latest stable version
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        # Initialize with a stable model version
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         # Prepare the prompt with clear instructions
         prompt = {
             'role': 'user',
             'parts': [f"""
-            Please review the following pull request and provide structured feedback:
+            📝 **Pull Request Review Requested**
             
-            Title: {pr_details['title']}
-            Description: {pr_details['body']}
+            **Title**: {pr_details['title']}
+            **Description**: {pr_details['body'] or 'No description provided'}
             
-            Files changed: {', '.join(pr_details['files_changed'])}
+            📂 **Files Changed** ({len(pr_details['files_changed'])}):
+            {', '.join(pr_details['files_changed'])}
             
-            Diff:
             ```diff
             {pr_details['diff'][:4000]}
             ```
             
             Please provide a detailed analysis with the following sections:
-            1. **Summary**: Brief overview of the changes
-            2. **Code Quality**: Assessment of code structure, style, and best practices
-            3. **Potential Issues**: Any bugs, edge cases, or potential problems
-            4. **Security**: Security considerations and vulnerabilities
-            5. **Suggestions**: Specific recommendations for improvement
             
-            Format your response in clear markdown with appropriate headers.
+            ## 🔍 Summary
+            A brief overview of the changes and their purpose.
+            
+            ## 🛠️ Code Quality
+            - Code structure and organization
+            - Adherence to best practices
+            - Style consistency
+            - Documentation quality
+            
+            ## ⚠️ Potential Issues
+            - Bugs or logical errors
+            - Edge cases not handled
+            - Performance considerations
+            - Potential race conditions
+            
+            ## 🔒 Security
+            - Input validation
+            - Authentication/Authorization
+            - Data protection
+            - Dependency vulnerabilities
+            
+            ## 💡 Suggestions for Improvement
+            - Code optimizations
+            - Refactoring opportunities
+            - Test coverage improvements
+            - Documentation enhancements
+            
+            Please format your response in clear markdown with appropriate headers and emojis for better readability.
             """]
         }
         
@@ -114,17 +136,40 @@ def analyze_with_gemini(pr_details):
             ]
         )
         
-        # Handle the response based on the model version
-        if hasattr(response, 'text'):
-            return response.text
-        elif hasattr(response, 'candidates') and response.candidates:
-            # For newer API versions that return candidates
-            candidate = response.candidates[0]
-            if hasattr(candidate, 'content') and candidate.content.parts:
-                return '\n'.join(part.text for part in candidate.content.parts if hasattr(part, 'text'))
-        
-        # If we get here, we couldn't extract the response text
-        raise ValueError("Could not extract text from the model's response")
+        # Handle different response formats
+        try:
+            # Try the standard text accessor first
+            if hasattr(response, 'text'):
+                return response.text
+                
+            # Try to get text from parts
+            if hasattr(response, 'parts'):
+                parts = [part.text for part in response.parts if hasattr(part, 'text')]
+                if parts:
+                    return '\n'.join(parts)
+                    
+            # Try candidates structure
+            if hasattr(response, 'candidates') and response.candidates:
+                for candidate in response.candidates:
+                    if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                        parts = [part.text for part in candidate.content.parts if hasattr(part, 'text')]
+                        if parts:
+                            return '\n'.join(parts)
+                            
+            # Try direct access to the first part's text
+            if hasattr(response, 'parts') and len(response.parts) > 0:
+                part = response.parts[0]
+                if hasattr(part, 'text'):
+                    return part.text
+                    
+            # If we get here, try to stringify the response
+            return str(response)
+            
+        except Exception as e:
+            # If all else fails, return a detailed error
+            return f"Error processing response: {str(e)}\n\nResponse structure: {dir(response)}\n" + \
+                   f"Response type: {type(response)}\n" + \
+                   f"Response content: {response}"
         
     except Exception as e:
         import traceback
