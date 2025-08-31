@@ -20,7 +20,7 @@ We take security vulnerabilities very seriously. If you discover a security issu
 
 **IMPORTANT**: Do not report security issues through public GitHub issues, discussions, or other public channels.
 
-Please report security issues by emailing our security team at [bniladridas@gmail.com](mailto:bniladridas@gmail.com).
+Please report security issues by creating a new security advisory in our GitHub repository. This ensures proper tracking and handling of security reports.
 
 ### What to Include in Your Report
 
@@ -167,8 +167,8 @@ We follow responsible disclosure practices:
 
 ## Contact
 
-For security-related questions or concerns:
-- **Email**: [bniladridas@gmail.com](mailto:bniladridas@gmail.com)
-- **GitHub**: [@bniladridas](https://github.com/bniladridas)
+For all security-related concerns, please use GitHub's security advisory feature:
+- Open a new security advisory at: https://github.com/bniladridas/friday_gemini_ai/security/advisories/new
+- Or contact the maintainers through GitHub
 
 Thank you for helping keep Friday Gemini AI secure!
