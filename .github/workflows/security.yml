@@ -29,24 +29,22 @@ jobs:
       image: ruby:3.2-slim
     
     steps:
-      - name: Install Git and checkout code
+      - name: Install Git
         run: |
           # Install Git
           apt-get update && apt-get install -y --no-install-recommends git
-          
-          # Configure Git with all necessary safe directories
-          git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
-          git config --global --add safe.directory /github/workspace
-          git config --global --add safe.directory /__w/friday_gemini_ai
-          
-          # Clone with full history
-          git clone --no-checkout https://github.com/${{ github.repository }} .
-          
-          # Fetch the specific commit
-          git fetch origin ${{ github.event.pull_request.head.sha || github.sha }}:refs/remotes/origin/commit-to-checkout
-          
-          # Checkout the specific commit
-          git checkout ${{ github.event.pull_request.head.sha || github.sha }} || git checkout -b temp-branch FETCH_HEAD
+
+      - name: Configure Git and checkout code
+        run: |
+          # Configure Git safe directories
+          for dir in /__w/friday_gemini_ai /__w/friday_gemini_ai/friday_gemini_ai /github/workspace; do
+            git config --global --add safe.directory "$dir" || true
+          done
+        
+          # Clone and checkout
+          git clone --no-checkout "https://github.com/${{ github.repository }}" .
+          git fetch origin "${{ github.event.pull_request.head.sha || github.sha }}"
+          git checkout "${{ github.event.pull_request.head.sha || github.sha }}"
 
       - name: Set up Ruby environment
         run: |
