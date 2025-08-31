@@ -76,13 +76,13 @@ jobs:
     name: PR Bot
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    container: node:20-slim
+    container: python:3.11-slim
     timeout-minutes: 10
 
     steps:
     - name: Install system dependencies
       run: |
-        apt-get update && apt-get install -y git python3-pip
+        apt-get update && apt-get install -y --no-install-recommends git
         
     - name: Clone repository (PR Bot)
       run: |
@@ -91,32 +91,40 @@ jobs:
         # Fetch all history for git diff to work
         git fetch --unshallow
 
-    - name: Install dependencies
+    - name: Install Node.js and dependencies
       run: |
-        # Verify Node.js is available
-        node --version
-        npm --version
+        # Install Node.js and npm
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - 
+        apt-get install -y --no-install-recommends nodejs
         
         # Install Node.js dependencies
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
         
-        # Install Python and dependencies
-        apt-get update && apt-get install -y python3-pip
-        python3 -m pip install --no-cache-dir PyGithub python-dotenv
+        # Install Python dependencies
+        pip install --no-cache-dir PyGithub python-dotenv
         
-        # Verify Python installation
-        python3 --version
-        pip3 --version
+        # Verify installations
+        node --version
+        npm --version
+        python --version
+        pip --version
 
     - name: Run Gemini PR Bot
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        # Verify Node.js and npm are available
-        node --version
-        npm --version
-        gemini --version
+        # Verify installations
+        echo "Node.js: $(node --version)"
+        echo "npm: $(npm --version)"
+        echo "Python: $(python --version)"
+        echo "pip: $(pip --version)"
         
-        # Run the PR bot script
-        python .github/scripts/pr_bot.py
+        # Install Python dependencies
+        pip install --no-cache-dir PyGithub python-dotenv google-generativeai
+        
+        # Run the PR bot script with repository and PR number
+        python .github/scripts/pr_bot.py \
+          --repo ${{ github.repository }} \
+          --pr ${{ github.event.pull_request.number }}
+        
