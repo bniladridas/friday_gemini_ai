@@ -82,7 +82,12 @@ jobs:
     steps:
     - name: Install system dependencies
       run: |
-        apt-get update && apt-get install -y --no-install-recommends git
+        apt-get update && apt-get install -y --no-install-recommends git curl
+        
+    - name: Install Node.js and npm
+      run: |
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+        apt-get install -y --no-install-recommends nodejs npm
         
     - name: Configure Git
       run: |
@@ -97,12 +102,8 @@ jobs:
         git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/pr
         git checkout --progress --force refs/remotes/origin/pr
 
-    - name: Install Node.js and dependencies
+    - name: Install dependencies
       run: |
-        # Install Node.js and npm
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - 
-        apt-get install -y --no-install-recommends nodejs
-        
         # Install Node.js dependencies
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
         
