@@ -8,6 +8,11 @@ on:
   push:
     branches: [main]
 
+# Package versions
+env:
+  GENERATIVE_AI_VERSION: 0.24.1
+  GEMINI_CLI_VERSION: 0.2.2
+
 # Required permissions
 permissions:
   contents: read
@@ -36,8 +41,8 @@ jobs:
 
     - name: Install Gemini CLI
       run: |
-        # Install Node.js dependencies
-        npm install -g @google/generative-ai @google/gemini-cli
+        # Install Node.js dependencies with pinned versions from environment
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
         
         # Create Gemini CLI wrapper with proper module resolution
         cat > /usr/local/bin/gemini-wrapper << 'EOL'
@@ -83,8 +88,8 @@ jobs:
         apt-get update && apt-get install -y --no-install-recommends nodejs npm
         echo "NODE_PATH=$(npm root -g)" >> $GITHUB_ENV
         
-        # Install Google's Generative AI package and CLI
-        npm install -g @google/generative-ai @google/gemini-cli
+        # Install Google's Generative AI package and CLI with pinned versions from environment
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
 
     - name: Run Gemini PR Bot
       env:
