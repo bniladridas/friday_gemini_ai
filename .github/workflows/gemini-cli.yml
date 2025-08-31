@@ -117,34 +117,46 @@ jobs:
         def get_gemini_analysis(pr_title, pr_body, changes):
             """Generate analysis using Gemini API"""
             try:
-                # Simple analysis - can be enhanced with actual Gemini API calls
                 analysis = []
-                analysis.append("## 🤖 AI-Powered PR Analysis")
-                analysis.append("### Key Changes Detected")
+                analysis.append("## PR Analysis")
                 
-                # Add basic analysis
-                total_changes = sum(1 for line in changes if line.startswith("File:"))
-                analysis.append(f"- Total files changed: {total_changes}")
+                # PR Summary Section
+                analysis.append("### Summary")
+                analysis.append("| Metric | Value |")
+                analysis.append("|--------|-------|")
+                analysis.append(f"| **Title** | {pr_title} |")
+                analysis.append(f"| **Description** | {pr_body[:300]}{'...' if len(pr_body) > 300 else ''} |")
                 
-                # Add PR details
-                analysis.append("\n### PR Summary")
-                analysis.append(f"**Title:** {pr_title}")
-                analysis.append(f"**Description:** {pr_body[:300]}{'...' if len(pr_body) > 300 else ''}")
+                # File Changes Section
+                file_changes = [line for line in changes if line.startswith("File:")][:10]  # First 10 files
+                total_changes = len(file_changes)
                 
-                # Add file changes summary
                 analysis.append("\n### Changed Files")
-                for i, change in enumerate(changes[:10]):  # Limit to first 10 files
-                    if change.startswith("File:"):
-                        analysis.append(f"- {change[6:]}")
+                analysis.append("| File | Changes | Status |")
+                analysis.append("|------|---------|--------|")
+                
+                for i in range(0, len(changes)-2, 3):
+                    if changes[i].startswith("File:"):
+                        file_name = changes[i][6:]
+                        change_type = changes[i+1].split(":")[1].strip()
+                        change_details = changes[i+2].split(":")[1].strip()
+                        analysis.append(f"| `{file_name}` | {change_type} | {change_details} |")
                 
                 if total_changes > 10:
-                    analysis.append(f"- ... and {total_changes - 10} more files")
+                    analysis.append(f"\n*Note: Showing 10 of {total_changes} changed files*")
+                    
+                # Add code quality section
+                analysis.append("\n### Code Quality Checks")
+                analysis.append("| Check | Status | Details |")
+                analysis.append("|-------|--------|---------|")
+                analysis.append("| File Changes | Review Required | Please review the changes above |")
+                analysis.append("| Dependencies | Not Checked | Run security scan for dependency analysis |")
                 
                 return "\n".join(analysis)
                 
             except Exception as e:
                 print(f"Error generating analysis: {str(e)}")
-                return "## ⚠️ Error generating AI analysis"
+                return "## Error generating analysis"
         
         def main():
             try:
@@ -172,9 +184,11 @@ jobs:
                 # Generate AI analysis
                 review = get_gemini_analysis(title, body, changes)
                 
-                # Add footer
-                review += "\n\n---\n"
-                review += "*This is an automated review. Please verify all changes before merging.*"
+                # Add footer with timestamp
+                from datetime import datetime
+                timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+                review += "\n---\n"
+                review += f"*Automated review generated on {timestamp}. Please verify all changes before merging.*"
                 
                 # Post review as a comment
                 pr.create_issue_comment(review)
