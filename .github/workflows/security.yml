@@ -49,6 +49,7 @@ jobs:
         run: |
           # Install Ruby system dependencies
           apt-get update && apt-get install -y --no-install-recommends \
+            build-essential \
             ca-certificates \
             curl \
             git \
@@ -61,7 +62,8 @@ jobs:
             libcurl4-openssl-dev \
             libffi-dev \
             ruby-dev \
-            ruby-bundler
+            ruby-bundler \
+            pkg-config
           
           # Install Ruby gems
           gem install bundler
