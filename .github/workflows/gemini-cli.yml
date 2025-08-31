@@ -17,7 +17,7 @@ permissions:
 
 # Cancel in-progress runs when new commits are pushed
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -32,10 +32,10 @@ jobs:
     - name: Install Gemini CLI
       run: |
         # Install Node.js dependencies
-        npm install -g @google/generative-ai
+        npm install -g @google/generative-ai @google/gemini-cli
         
         # Create Gemini CLI wrapper with proper module resolution
-        cat > /usr/local/bin/gemini << 'EOL'
+        cat > /usr/local/bin/gemini-wrapper << 'EOL'
         #!/bin/sh
         NODE_PATH=$(npm root -g) node -e "
         const modulePath = require.resolve('@google/generative-ai');
@@ -48,12 +48,13 @@ jobs:
         EOL
         
         # Make the script executable
-        chmod +x /usr/local/bin/gemini
+        chmod +x /usr/local/bin/gemini-wrapper
 
     - name: Verify installation
       run: |
         # Test the installation
-        gemini
+        gemini --version
+        gemini-wrapper
 
   pr-bot:
     name: PR Bot
@@ -77,23 +78,8 @@ jobs:
         apt-get update && apt-get install -y --no-install-recommends nodejs npm
         echo "NODE_PATH=$(npm root -g)" >> $GITHUB_ENV
         
-        # Install Google's Generative AI package
-        npm install -g @google/generative-ai
-        
-        # Create Gemini CLI wrapper with proper module resolution
-        cat > /usr/local/bin/gemini << 'EOL'
-        #!/usr/bin/env node
-        const modulePath = require.resolve('@google/generative-ai');
-        import(modulePath).then(m => 
-          console.log(m.GOOGLE_GENERATIVE_AI_VERSION)
-        ).catch(e => {
-          console.error('Error loading @google/generative-ai:', e);
-          process.exit(1);
-        });
-        EOL
-        
-        # Make the script executable
-        chmod +x /usr/local/bin/gemini
+        # Install Google's Generative AI package and CLI
+        npm install -g @google/generative-ai @google/gemini-cli
 
     - name: Run Gemini PR Bot
       env:
@@ -103,6 +89,7 @@ jobs:
         # Verify Node.js and npm are available
         node --version
         npm --version
+        gemini --version
         
         # Verify Python and pip are available
         python --version
@@ -112,7 +99,6 @@ jobs:
         cat > pr_bot.py << 'EOF'
         import os
         import sys
-        import subprocess
         from github import Github
         from dotenv import load_dotenv
         
