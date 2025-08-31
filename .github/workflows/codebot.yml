@@ -34,8 +34,11 @@ jobs:
     timeout-minutes: 15
     
     steps:
-    - name: Clone repository (Gemini CLI)
+    - name: Install Git and clone repository
       run: |
+        # Install Git
+        apt-get update && apt-get install -y git
+        
         # Clone the repository with the current branch
         git clone --depth=1 --branch=${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
         # Fetch all history for git diff to work
