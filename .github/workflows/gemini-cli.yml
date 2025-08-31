@@ -17,7 +17,7 @@ permissions:
 
 # Cancel in-progress runs when new commits are pushed
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -29,6 +29,11 @@ jobs:
     timeout-minutes: 15
     
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for git diff
+
     - name: Install Gemini CLI
       run: |
         # Install Node.js dependencies
