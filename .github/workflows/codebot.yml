@@ -80,15 +80,15 @@ jobs:
     timeout-minutes: 10
 
     steps:
+    - name: Install system dependencies
+      run: |
+        apt-get update && apt-get install -y --no-install-recommends git
+        
     - name: Configure Git
       run: |
         git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-        
-    - name: Install system dependencies
-      run: |
-        apt-get update && apt-get install -y --no-install-recommends git
         
     - name: Checkout code
       run: |
