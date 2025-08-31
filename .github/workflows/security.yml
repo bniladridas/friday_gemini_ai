@@ -21,16 +21,13 @@ jobs:
     
     steps:
       - name: Checkout code
-        run: |
-          git clone https://github.com/actions/checkout .
-          git checkout v3
-        working-directory: /tmp/checkout
-        
+        uses: https://github.com/actions/checkout@v3
+
       - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full
-          ruby --version
+        uses: https://github.com/ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'  # Match the version used in CI
+          bundler-cache: true  # Cache gems
         
       - name: Set up Gitleaks
         run: |
