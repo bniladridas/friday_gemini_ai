@@ -1,14 +1,17 @@
 # Development Guide
 
-This guide covers the essential setup for using the Gemini CLI with GitHub Actions.
+This guide covers the setup and development of the Gemini AI integration for GitHub Actions.
 
-## Local Testing with act
+## Local Development Setup
 
 ### Prerequisites
 1. [Docker](https://www.docker.com/products/docker-desktop)
-2. [act](https://github.com/nektos/act) - A tool to run GitHub Actions locally
+2. [act](https://github.com/nektos/act) - For running GitHub Actions locally
+3. Python 3.11+ (for local PR bot development)
+4. Node.js 20+ (for Gemini CLI)
 
-### Setup
+### Local Testing with act
+
 1. Install act:
    ```bash
    # macOS (using Homebrew)
@@ -18,9 +21,9 @@ This guide covers the essential setup for using the Gemini CLI with GitHub Actio
    curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
    ```
 
-2. Test the workflow:
+2. Test the workflow locally:
    ```bash
-   act -j run-gemini-cli --container-architecture linux/amd64 --secret GEMINI_API_KEY=your_api_key
+   act -j pr-bot --container-architecture linux/amd64 --secret GEMINI_API_KEY=your_api_key
    ```
 
 ## GitHub Actions Integration
@@ -31,86 +34,58 @@ This guide covers the essential setup for using the Gemini CLI with GitHub Actio
 
 ### Required Permissions
 
-When setting up GitHub Actions workflows that interact with pull requests or issues, use the minimal required permissions:
+The workflow requires the following permissions:
 
 ```yaml
 permissions:
   contents: read
   pull-requests: write
   issues: write
+  statuses: write
 ```
 
-> **Important Security Note**: Workflows triggered by `pull_request` from forks run with a read-only token by default. While you can use `pull_request_target` to obtain write permissions, this must be done with extreme care due to potential security implications. Always review the security considerations in the [GitHub Docs](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target) before using `pull_request_target`.
+## Workflow Components
 
-### Example Workflow
+The Gemini integration consists of two main components:
 
-```yaml
-name: Gemini PR Review
+### 1. Gemini CLI
+- Installs the `@google/generative-ai` package
+- Provides a command-line interface for Gemini AI
+- Runs on workflow dispatch or push to main
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+### 2. PR Bot
+- Python-based bot for automated code reviews
+- Analyzes pull requests and provides feedback
+- Runs automatically on pull request events
 
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
+## Development
 
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    container: node:20-slim
-    steps:
-      - name: Install Gemini CLI
-        run: npm install -g @google/gemini-cli
+### Testing the PR Bot Locally
 
-      - name: Run PR Review
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: gemini review
-```
+1. Install Python dependencies:
+   ```bash
+   pip install PyGithub python-dotenv
+   ```
 
-### Manual Triggers
+2. Create a `.env` file with your credentials:
+   ```
+   GITHUB_TOKEN=your_github_token
+   GEMINI_API_KEY=your_gemini_api_key
+   ```
 
-Slash commands can be used in issue or pull request comments to trigger specific actions. Note that these commands only work when a workflow is configured to listen to `issue_comment` events.
+3. Run the bot locally:
+   ```bash
+   # Set required environment variables
+   export GITHUB_REPOSITORY="your_username/your_repo"
+   export GITHUB_REF="refs/pull/1/head"  # PR number
+   
+   # Run the bot
+   python3 .github/workflows/pr_bot.py
+   ```
 
-Available commands:
-- `/review` - Review a PR
-- `/triage` - Triage an issue
+## Security Considerations
 
-Example workflow for handling slash commands:
-
-```yaml
-name: Slash Command Handler
-
-on:
-  issue_comment:
-    types: [created]
-
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-
-jobs:
-  handle-command:
-    runs-on: ubuntu-latest
-    container: node:20-slim
-    if: startsWith(github.event.comment.body, '/review') || startsWith(github.event.comment.body, '/triage')
-    steps:
-      - name: Install Gemini CLI
-        run: npm install -g @google/gemini-cli
-
-      - name: Process Command
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          if [[ ${{ github.event.comment.body }} == /review* ]]; then
-            gemini review
-          elif [[ ${{ github.event.comment.body }} == /triage* ]]; then
-            gemini triage
-          fi
-```
-- `@gemini-cli explain this code` - Get code explanations
+- Never expose your `GEMINI_API_KEY` in your code or logs
+- Use GitHub Secrets for sensitive information
+- Review all third-party actions and dependencies
+- Follow the principle of least privilege for GitHub tokens

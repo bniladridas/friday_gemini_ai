@@ -87,86 +87,47 @@ CLI shortcuts:
 
 For local development and testing, including running GitHub Actions workflows locally, see the [Development Guide](docs/guides/development.md).
 
-## Manual Triggers
+## GitHub Actions Integration
 
-You can interact with the Gemini AI directly in your GitHub issues and pull requests using slash commands. Note that these commands require a workflow to be set up to listen to `issue_comment` events.
+This repository includes a GitHub Actions workflow for automated code reviews and Gemini CLI integration. The workflow is triggered on pull requests and provides automated feedback.
 
-### Setting Up Slash Commands
+### Features
 
-Add this workflow to your repository (e.g., `.github/workflows/slash-commands.yml`):
+- **Automated PR Reviews**: Automatically analyzes pull requests and provides feedback
+- **Gemini CLI**: Includes a command-line interface for Gemini AI
+- **Customizable Analysis**: Configure the analysis parameters as needed
 
-```yaml
-name: Slash Command Handler
+### Setup
 
-on:
-  issue_comment:
-    types: [created]
+1. Add the following secrets to your repository:
+   - `GEMINI_API_KEY`: Your Google Gemini API key
+   - `GITHUB_TOKEN` (automatically provided by GitHub)
 
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
+2. The workflow is already configured in `.github/workflows/gemini-cli.yml` and will run automatically on pull requests.
 
-jobs:
-  handle-command:
-    runs-on: ubuntu-latest
-    container: node:20-slim
-    if: startsWith(github.event.comment.body, '/review') || 
-        startsWith(github.event.comment.body, '/triage') ||
-        startsWith(github.event.comment.body, '@gemini-cli')
-    steps:
-      - name: Install Gemini CLI
-        run: npm install -g @google/gemini-cli
+### Manual Trigger
 
-      - name: Process Command
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          COMMENT_BODY="${{ github.event.comment.body }}"
-          if [[ "$COMMENT_BODY" == "/review"* ]]; then
-            gemini review
-          elif [[ "$COMMENT_BODY" == "/triage"* ]]; then
-            gemini triage
-          elif [[ "$COMMENT_BODY" == *"@gemini-cli"* ]]; then
-            # Handle @gemini-cli commands
-            if [[ "$COMMENT_BODY" == *"explain this code"* ]]; then
-              gemini explain
-            elif [[ "$COMMENT_BODY" == *"write tests"* ]]; then
-              gemini test
-            fi
-          fi
-```
+You can also manually trigger the workflow from the Actions tab in your GitHub repository:
+1. Go to Actions
+2. Select "Gemini Tools" workflow
+3. Click "Run workflow"
 
-### Available Commands
+### Customization
 
-#### Code Review
-```markdown
-/review
-# or
-@gemini-cli /review
-```
-Reviews the pull request and provides feedback on code quality and potential issues.
+You can customize the behavior by modifying the workflow file (`.github/workflows/gemini-cli.yml`). The workflow includes:
 
-#### Issue Triage
-```markdown
-/triage
-# or
-@gemini-cli /triage
-```
-Helps categorize and prioritize new issues.
+- **Gemini CLI**: For direct interaction with Google's Generative AI
+- **PR Bot**: For automated code reviews on pull requests
 
-#### Code Explanation
-```markdown
-@gemini-cli explain this code
-```
-Explains the code in the current context.
+### Required Permissions
 
-#### Test Generation
-```markdown
-@gemini-cli write tests for this
-```
-Generates test cases for the current code.
+The workflow requires the following permissions:
+- `contents: read`
+- `pull-requests: write`
+- `issues: write`
+- `statuses: write`
+
+These are already configured in the workflow file.
 
 ## Documentation
 
