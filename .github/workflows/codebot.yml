@@ -1,0 +1,119 @@
+name: CodeBot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  push:
+    branches: [main]
+
+# Package versions
+env:
+  GENERATIVE_AI_VERSION: 0.24.1
+  GEMINI_CLI_VERSION: 0.2.2
+
+# Required permissions
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+
+# Cancel in-progress runs when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gemini-cli:
+    name: Gemini CLI
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container: node:20-slim
+    timeout-minutes: 15
+    
+    steps:
+    - name: Clone repository (Gemini CLI)
+      run: |
+        # Clone the repository with the current branch
+        git clone --depth=1 --branch=${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+        # Fetch all history for git diff to work
+        git fetch --unshallow
+
+    - name: Install Gemini CLI
+      run: |
+        # Install Node.js dependencies with pinned versions from environment
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
+        
+        # Create Gemini CLI wrapper with proper module resolution and version fallback
+        cat > /usr/local/bin/gemini-wrapper << 'EOL'
+        #!/bin/sh
+        NODE_PATH=$(npm root -g) node -e "
+        const fs = require('fs');
+        const path = require('path');
+        const modulePath = require.resolve('@google/generative-ai');
+        const pkgPath = path.join(path.dirname(modulePath), 'package.json');
+        import(modulePath).then(m => {
+          const fallback = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version : 'unknown';
+          console.log(m.GOOGLE_GENERATIVE_AI_VERSION || fallback);
+        }).catch(e => {
+          console.error('Error loading @google/generative-ai:', e);
+          process.exit(1);
+        });"
+        EOL
+        
+        # Make the script executable
+        chmod +x /usr/local/bin/gemini-wrapper
+
+    - name: Verify installation
+      run: |
+        # Test the installation
+        gemini --version
+        gemini-wrapper
+
+  pr-bot:
+    name: PR Bot
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container: python:3.11-slim
+    timeout-minutes: 10
+
+    steps:
+    - name: Clone repository (PR Bot)
+      run: |
+        # Clone the repository with the PR ref
+        git clone --depth=1 --branch=${{ github.head_ref || github.ref_name }} https://github.com/${{ github.repository }}.git .
+        # Fetch all history for git diff to work
+        git fetch --unshallow
+
+    - name: Install Python dependencies
+      run: |
+        pip install --no-cache-dir PyGithub python-dotenv
+
+    - name: Set up Node.js
+      run: |
+        # Install Node.js 20.x
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        
+        # Verify installation
+        node --version
+        npm --version
+
+    - name: Install Node.js dependencies
+      run: |
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
+
+    - name: Run Gemini PR Bot
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        # Verify Node.js and npm are available
+        node --version
+        npm --version
+        gemini --version
+        
+        # Run the PR bot script
+        python .github/scripts/pr_bot.py
