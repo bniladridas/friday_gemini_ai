@@ -86,8 +86,8 @@ Security updates will be:
 
 ## Contact
 
-For security-related questions or concerns:
-- Security team: security@bniladridas.com
-- General inquiries: hello@bniladridas.com
+For security-related questions or concerns, please use our [GitHub Security Advisory](https://github.com/bniladridas/friday_gemini_ai/security/advisories/new) page.
+
+For general inquiries, please open a [GitHub Discussion](https://github.com/bniladridas/friday_gemini_ai/discussions).
 
 Thank you for helping keep Friday Gemini AI secure!
