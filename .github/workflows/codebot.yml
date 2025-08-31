@@ -76,16 +76,10 @@ jobs:
     name: PR Bot
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    container: python:3.11-slim
+    container: node:20-slim
     timeout-minutes: 10
 
     steps:
-    - name: Install and configure git
-      run: |
-        apt-get update && apt-get install -y git
-        # Configure git to trust the workspace directory
-        git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
-
     - name: Clone repository (PR Bot)
       run: |
         # Clone the repository with the PR ref
@@ -93,23 +87,22 @@ jobs:
         # Fetch all history for git diff to work
         git fetch --unshallow
 
-    - name: Install Python dependencies
+    - name: Install dependencies
       run: |
-        pip install --no-cache-dir PyGithub python-dotenv
-
-    - name: Set up Node.js
-      run: |
-        # Install Node.js 20.x
-        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-        sudo apt-get install -y nodejs
-        
-        # Verify installation
+        # Verify Node.js is available
         node --version
         npm --version
-
-    - name: Install Node.js dependencies
-      run: |
+        
+        # Install Node.js dependencies
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
+        
+        # Install Python and dependencies
+        apt-get update && apt-get install -y python3-pip
+        python3 -m pip install --no-cache-dir PyGithub python-dotenv
+        
+        # Verify Python installation
+        python3 --version
+        pip3 --version
 
     - name: Run Gemini PR Bot
       env:
