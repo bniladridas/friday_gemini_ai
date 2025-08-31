@@ -77,22 +77,38 @@ bundle exec rake docs:preview  # View at http://localhost:8808
 1. **Branch Naming**: Use descriptive branch names like `feature/add-new-model` or `fix/issue-123`
 2. **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/)
 3. **Testing**: Ensure all tests pass and add new tests for your changes
-4. **Documentation**: Update relevant documentation
+4. **Documentation**: Update relevant documentation including CHANGELOG.md
 5. **Code Style**: Follow the project's RuboCop configuration
 6. **Keep PRs Focused**: Each PR should address a single issue or feature
+7. **PR Review**: All PRs will be automatically reviewed by our AI-powered CodeBot
+8. **Workflow Status**: Ensure all GitHub Actions workflows pass before requesting review
 
 ## Code Review Process
 
-1. Create a draft PR early for feedback
-2. Request reviews from maintainers
-3. Address all review comments
-4. Ensure CI passes before marking as ready for review
-5. A maintainer will merge your PR once approved
+1. **Draft PR**: Create a draft PR early for feedback
+2. **Automated Review**: Our CodeBot will automatically review your PR for:
+   - Code quality
+   - Test coverage
+   - Documentation updates
+   - Security best practices
+3. **Human Review**: Request reviews from maintainers
+4. **Address Feedback**: Respond to all review comments
+5. **CI Verification**: Ensure all GitHub Actions workflows pass
+6. **Approval**: A maintainer will merge your PR once approved
+
+### PR Review Expectations
+- All new features require tests
+- Documentation must be updated
+- Follow the project's coding standards
+- Keep commits focused and well-documented
+- Update the CHANGELOG.md for user-facing changes
 
 ### Test Requirements
 - **Unit tests**: Should not require API keys
 - **Integration tests**: May require API keys
 - **All tests**: Must pass before PR approval
+- **Code Coverage**: Aim for 90%+ test coverage
+- **CI/CD**: All GitHub Actions workflows must pass
 
 ## Code Style
 
