@@ -29,6 +29,10 @@ jobs:
       image: ruby:3.2-slim
     
     steps:
+      - name: Install Git
+        run: |
+          apt-get update && apt-get install -y --no-install-recommends git
+
       - name: Configure Git and checkout code
         run: |
           # Configure Git safe directories
