@@ -1,6 +1,10 @@
 # Friday Gemini AI
 
+[![Gem Version](https://badge.fury.io/rb/friday_gemini_ai.svg)](https://badge.fury.io/rb/friday_gemini_ai)
 [![CI](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
+[![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
+[![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
+[![Gemini CLI Integration](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/gemini-cli.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/gemini-cli.yml)
 
 Ruby gem for integrating with Google’s Gemini AI models.
 
@@ -10,7 +14,7 @@ Ruby gem for integrating with Google’s Gemini AI models.
 
 ```bash
 gem install friday_gemini_ai
-````
+```
 
 Set your API key in `.env`:
 
@@ -81,27 +85,49 @@ CLI shortcuts:
 
 ## Local Development
 
-For local testing and workflows, see the [Development Guide](docs/guides/development.md).
-
----
+For local development and testing, including running GitHub Actions workflows locally, see the [Development Guide](docs/guides/development.md).
 
 ## GitHub Actions Integration
 
-The Gemini Tools workflow provides:
+This repository includes a GitHub Actions workflow for automated code reviews and Gemini CLI integration. The workflow is triggered on pull requests and provides automated feedback.
 
-1. **Gemini CLI** – installs and verifies the CLI for AI tasks
-2. **PR Bot** – analyzes PR changes with Gemini AI and posts feedback
+### Features
 
-See `.github/workflows/codebot.yml` for configuration.
+- **Automated PR Reviews**: Automatically analyzes pull requests and provides feedback
+- **Gemini CLI**: Includes a command-line interface for Gemini AI
+- **Customizable Analysis**: Configure the analysis parameters as needed
 
-Required permissions:
+### Setup
 
-* `contents: read`
-* `pull-requests: write`
-* `issues: write`
-* `statuses: write`
+1. Add the following secrets to your repository:
+   - `GEMINI_API_KEY`: Your Google Gemini API key
+   - `GITHUB_TOKEN` (automatically provided by GitHub)
 
----
+2. The workflow is already configured in `.github/workflows/gemini-cli.yml` and will run automatically on pull requests.
+
+### Manual Trigger
+
+You can also manually trigger the workflow from the Actions tab in your GitHub repository:
+1. Go to Actions
+2. Select "Gemini Tools" workflow
+3. Click "Run workflow"
+
+### Customization
+
+You can customize the behavior by modifying the workflow file (`.github/workflows/gemini-cli.yml`). The workflow includes:
+
+- **Gemini CLI**: For direct interaction with Google's Generative AI
+- **PR Bot**: For automated code reviews on pull requests
+
+### Required Permissions
+
+The workflow requires the following permissions:
+- `contents: read`
+- `pull-requests: write`
+- `issues: write`
+- `statuses: write`
+
+These are already configured in the workflow file.
 
 ## Documentation
 
