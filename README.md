@@ -6,9 +6,7 @@
 [![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
 [![CodeBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 
-Ruby gem for integrating with Google’s Gemini AI models.
-
----
+Ruby gem for integrating with Google's Gemini AI models.
 
 ## Installation
 
