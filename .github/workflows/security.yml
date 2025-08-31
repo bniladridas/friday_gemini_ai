@@ -35,14 +35,13 @@ jobs:
           apt-get update && apt-get install -y --no-install-recommends git
           
           # Configure Git
+          git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
           git config --global --add safe.directory /github/workspace
           
-          # Checkout code
-          git init -q
-          git remote add origin https://github.com/${{ github.repository }}.git
-          git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/${{ github.ref_name || 'main' }}
-          git checkout --progress --force -B ${{ github.ref_name || 'main' }} ${{ github.sha }}
+          # Checkout code using GitHub's built-in action
+          git clone https://github.com/${{ github.repository }} .
           git fetch --unshallow  # Ensure we have full history for Gitleaks
+          git checkout ${{ github.sha }}
 
       - name: Set up Ruby environment
         run: |
