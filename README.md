@@ -26,17 +26,40 @@ GEMINI_API_KEY=your_api_key
 
 ## Usage
 
+### Basic Setup
 ```ruby
-require_relative 'lib/gemini'
-GeminiAI.load_env
+require 'friday_gemini_ai'
+GeminiAI.load_env  # Loads .env file if present
 
-# Default: Gemini 2.5 Pro
+# Initialize client with default model (Gemini 2.5 Pro)
 client = GeminiAI::Client.new
-puts client.generate_text('Write a haiku about Ruby')
 
-# Specific models
-GeminiAI::Client.new(model: :flash) # Gemini 2.5 Flash
-GeminiAI::Client.new(model: :pro)   # Gemini 2.5 Pro
+# Or specify a different model
+fast_client = GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
+image_client = GeminiAI::Client.new(model: :pro_1_5)  # For image analysis
+```
+
+### Available Models
+```ruby
+# Latest models (recommended)
+GeminiAI::Client.new(model: :pro)    # Gemini 2.5 Pro
+GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
+
+# Image analysis
+GeminiAI::Client.new(model: :pro_1_5)  # Gemini 1.5 Pro
+
+# Lightweight options
+GeminiAI::Client.new(model: :flash_1_5)  # Gemini 1.5 Flash
+GeminiAI::Client.new(model: :flash_8b)   # Compact model
+```
+
+### Environment Variables
+```bash
+# Required
+GEMINI_API_KEY=your_api_key_here
+
+# Optional
+GEMINI_LOG_LEVEL=debug  # Set log level (debug, info, warn, error)
 ```
 
 CLI shortcuts:
@@ -74,12 +97,31 @@ CLI shortcuts:
 
 ## Features
 
-* Gemini 2.5, 2.0, and 1.5 families
-* Image-to-text auto-selection (`pro_1_5`)
-* Configurable parameters (temperature, tokens, etc.)
-* Rate limiting (1s default, 3s in CI)
-* Secure API key + prompt validation
-* Robust error handling and CLI integration
+* **Multiple Model Support**
+  - Gemini 2.5, 2.0, and 1.5 families
+  - Automatic model selection based on task
+  - Backward compatibility with legacy models
+
+* **Text Generation**
+  - Flexible prompt handling
+  - Configurable parameters (temperature, max tokens, etc.)
+  - Safety settings and content filtering
+
+* **Image Analysis**
+  - Image-to-text generation
+  - Support for base64-encoded images
+  - Automatic model selection for image tasks
+
+* **Chat & Conversations**
+  - Multi-turn conversations
+  - System instructions
+  - Message history management
+
+* **Security & Reliability**
+  - API key validation and masking
+  - Rate limiting (1s default, 3s in CI)
+  - Comprehensive error handling
+  - Request retries with exponential backoff
 
 ---
 
@@ -145,9 +187,65 @@ These are already configured in the workflow file.
 
 ## Examples
 
-* `examples/basic.rb` – text generation
-* `examples/advanced.rb` – advanced configs
-* `examples/modelsdemo.rb` – model comparison
+### Basic Text Generation
+```ruby
+require 'friday_gemini_ai'
+
+client = GeminiAI::Client.new
+response = client.generate_text('Write a haiku about Ruby')
+puts response
+```
+
+### Image Analysis
+```ruby
+require 'base64'
+
+# Read and encode image
+image_data = Base64.strict_encode64(File.binread('path/to/image.jpg'))
+
+# Generate text from image
+response = client.generate_image_text(
+  image_data,
+  'Describe this image in detail',
+  max_output_tokens: 500
+)
+puts response
+```
+
+### Chat Conversation
+```ruby
+messages = [
+  { role: 'user', content: 'Hello, how are you?' },
+  { role: 'model', content: 'I\'m doing well, thank you! How can I assist you today?' },
+  { role: 'user', content: 'What can you tell me about Ruby?' }
+]
+
+response = client.chat(
+  messages,
+  system_instruction: 'You are a helpful assistant that specializes in programming languages.',
+  temperature: 0.7
+)
+puts response
+```
+
+### Advanced Configuration
+```ruby
+response = client.generate_text(
+  'Write a technical explanation of blockchain',
+  {
+    max_output_tokens: 1000,
+    temperature: 0.3,
+    top_p: 0.9,
+    top_k: 40,
+    safety_settings: [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_ONLY_HIGH'
+      }
+    ]
+  }
+)
+```
 
 ---
 
