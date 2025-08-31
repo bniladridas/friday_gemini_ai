@@ -114,7 +114,17 @@ def analyze_with_gemini(pr_details):
             ]
         )
         
-        return response.text
+        # Handle the response based on the model version
+        if hasattr(response, 'text'):
+            return response.text
+        elif hasattr(response, 'candidates') and response.candidates:
+            # For newer API versions that return candidates
+            candidate = response.candidates[0]
+            if hasattr(candidate, 'content') and candidate.content.parts:
+                return '\n'.join(part.text for part in candidate.content.parts if hasattr(part, 'text'))
+        
+        # If we get here, we couldn't extract the response text
+        raise ValueError("Could not extract text from the model's response")
         
     except Exception as e:
         import traceback
