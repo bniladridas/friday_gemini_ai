@@ -80,10 +80,14 @@ jobs:
     timeout-minutes: 10
 
     steps:
+    - name: Install git
+      run: |
+        apt-get update && apt-get install -y git
+
     - name: Clone repository (PR Bot)
       run: |
         # Clone the repository with the PR ref
-        git clone --depth=1 --branch=${{ github.head_ref || github.ref_name }} https://github.com/${{ github.repository }}.git .
+        git clone --depth=1 --branch=${{ github.event.pull_request.head.ref }} https://github.com/${{ github.repository }}.git .
         # Fetch all history for git diff to work
         git fetch --unshallow
 
