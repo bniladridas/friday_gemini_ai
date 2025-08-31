@@ -1,177 +1,215 @@
-# Friday Gemini AI
+# Friday Gemini AI Ruby Gem
 
-[![Gem Version](https://badge.fury.io/rb/friday_gemini_ai.svg)](https://badge.fury.io/rb/friday_gemini_ai)
-[![CI](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
-[![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
-[![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
-[![Gemini CLI Integration](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/gemini-cli.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/gemini-cli.yml)
+## Overview
+A powerful Ruby gem for interacting with Google's Gemini AI models, providing easy text generation capabilities.
 
-Ruby gem for integrating with Google’s Gemini AI models.
+## Features
+- Support for multiple Gemini AI models
+- Flexible text generation
+- Comprehensive error handling
+- Configurable generation parameters
+- Advanced security and logging
 
----
+## Security
+
+### 🔒 API Key Protection
+
+#### Key Management
+1. **Never Hardcode API Keys**
+   - Do NOT include your API key directly in your code
+   - Use environment variables or secure key management systems
+
+2. **Environment Variable Setup**
+   ```bash
+   # Set in your shell profile (.bashrc, .zshrc, etc.)
+   export GEMINI_API_KEY='your_actual_api_key'
+   ```
+
+3. **Secure Key Passing**
+   ```ruby
+   # Recommended: Use environment variable
+   client = GeminiAI::Client.new
+
+   # Alternative: Pass key securely
+   client = GeminiAI::Client.new(ENV['GEMINI_API_KEY'])
+   ```
+
+#### Advanced Security Features
+- API key format validation
+- Automatic key masking in logs
+- Strict input validation
+- Request timeout protection
+
+### 🕵️ Logging and Monitoring
+
+#### Logging Configuration
+```ruby
+# Configure logging level
+GeminiAI::Client.logger.level = Logger::WARN  # Default
+GeminiAI::Client.logger.level = Logger::DEBUG  # More verbose
+```
+
+#### Log Masking
+- API keys are automatically masked in logs
+- Sensitive information is redacted
+- Prevents accidental key exposure
+
+### 🛡️ Best Practices
+- Restrict API key permissions
+- Use the principle of least privilege
+- Keep your API key confidential
+- Monitor API usage and set up alerts
+- Implement rate limiting
+- Regularly rotate API keys
 
 ## Installation
 
+### Local Installation
+1. Clone the repository
+```bash
+git clone https://github.com/bniladridas/gemini_ai.git
+cd gemini_ai
+```
+
+2. Build the gem
+```bash
+gem build gemini_ai.gemspec
+```
+
+3. Install the gem locally
+```bash
+gem install gemini_ai-0.1.0.gem
+```
+
+### Using Bundler
+Add to your Gemfile:
+```ruby
+gem 'gemini_ai', path: '/path/to/gemini_ai'
+```
+
+### From RubyGems
 ```bash
 gem install friday_gemini_ai
 ```
 
-Set your API key in `.env`:
-
+Or add to your Gemfile:
+```ruby
+gem 'friday_gemini_ai', '~> 0.1.0'
 ```
-GEMINI_API_KEY=your_api_key
+
+## Quick Start
+
+1. Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+2. Set your API key:
+```bash
+export GEMINI_API_KEY='your_api_key_here'
 ```
 
----
+3. Start using the gem:
+```ruby
+require 'gemini_ai'
+
+# Initialize client
+client = GeminiAI::Client.new
+
+# Generate text
+response = client.generate_text('Tell me a joke')
+puts response
+
+# Use different model
+client_lite = GeminiAI::Client.new(model: :flash_lite)
+response = client_lite.generate_text('What is AI?')
+puts response
+
+# Use custom parameters
+response = client.generate_text('Write a haiku', 
+  temperature: 0.3,
+  max_tokens: 30,
+  top_p: 0.8,
+  top_k: 20
+)
+puts response
+```
+
+## Configuration
+
+## Testing and Verification
+
+### Running the Test Suite
+To run the comprehensive test suite:
+```bash
+ruby comprehensive_test.rb
+```
+
+### Quick Verification
+First, ensure your API key is set:
+```bash
+export GEMINI_API_KEY='your_api_key_here'
+```
+
+Then run the verification script:
+```bash
+ruby verify_api.rb
+```
+
+This will run a series of quick tests:
+- Basic text generation with the default model
+- Text generation with the flash_lite model
+- Text generation with custom parameters
 
 ## Usage
 
+### Basic Text Generation
 ```ruby
-require_relative 'lib/gemini'
-GeminiAI.load_env
+require 'gemini_ai'
 
-# Default: Gemini 2.5 Pro
-client = GeminiAI::Client.new
-puts client.generate_text('Write a haiku about Ruby')
+# Initialize client with default model
+client = GeminiAI::Client.new(ENV['GEMINI_API_KEY'])
 
-# Specific models
-GeminiAI::Client.new(model: :flash) # Gemini 2.5 Flash
-GeminiAI::Client.new(model: :pro)   # Gemini 2.5 Pro
+# Generate text
+response = client.generate_text('Tell me a joke about programming')
+puts response
 ```
 
-CLI shortcuts:
-
-```bash
-./bin/gemini test
-./bin/gemini generate "Your prompt"
-./bin/gemini chat
+### Specifying a Model
+```ruby
+# Use Flash Lite model
+client_lite = GeminiAI::Client.new(ENV['GEMINI_API_KEY'], model: :flash_lite)
+response = client_lite.generate_text('Explain AI in simple terms')
 ```
 
----
+### Custom Generation Options
+```ruby
+options = {
+  temperature: 0.7,
+  max_tokens: 100,
+  top_p: 0.9,
+  top_k: 40
+}
 
-## Models
-
-| Key           | ID                      | Use case                        |
-| ------------- | ----------------------- | ------------------------------- |
-| `:pro`        | `gemini-2.5-pro`        | Most capable, complex reasoning |
-| `:flash`      | `gemini-2.5-flash`      | Fast, general-purpose           |
-| `:pro_1_5`    | `gemini-1.5-pro`        | Image-to-text                   |
-| `:flash_1_5`  | `gemini-1.5-flash`      | Lightweight tasks               |
-| `:flash_8b`   | `gemini-1.5-flash-8b`   | Compact, efficient              |
-| `:flash_2_0`  | `gemini-2.0-flash`      | Legacy support                  |
-| `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight legacy              |
-
----
-
-## Capabilities
-
-* **Text:** content generation, explanations, documentation
-* **Chat:** multi-turn conversations, Q\&A, assistants
-* **Image:** image-to-text analysis and descriptions
-* **CLI:** quick prototyping and automation
-
----
-
-## Features
-
-* Gemini 2.5, 2.0, and 1.5 families
-* Image-to-text auto-selection (`pro_1_5`)
-* Configurable parameters (temperature, tokens, etc.)
-* Rate limiting (1s default, 3s in CI)
-* Secure API key + prompt validation
-* Robust error handling and CLI integration
-
----
-
-## Local Development
-
-For local development and testing, including running GitHub Actions workflows locally, see the [Development Guide](docs/guides/development.md).
-
-## GitHub Actions Integration
-
-This repository includes a GitHub Actions workflow for automated code reviews and Gemini CLI integration. The workflow is triggered on pull requests and provides automated feedback.
-
-### Features
-
-- **Automated PR Reviews**: Automatically analyzes pull requests and provides feedback
-- **Gemini CLI**: Includes a command-line interface for Gemini AI
-- **Customizable Analysis**: Configure the analysis parameters as needed
-
-### Setup
-
-1. Add the following secrets to your repository:
-   - `GEMINI_API_KEY`: Your Google Gemini API key
-   - `GITHUB_TOKEN` (automatically provided by GitHub)
-
-2. The workflow is already configured in `.github/workflows/gemini-cli.yml` and will run automatically on pull requests.
-
-### Manual Trigger
-
-You can also manually trigger the workflow from the Actions tab in your GitHub repository:
-1. Go to Actions
-2. Select "Gemini Tools" workflow
-3. Click "Run workflow"
-
-### Customization
-
-You can customize the behavior by modifying the workflow file (`.github/workflows/gemini-cli.yml`). The workflow includes:
-
-- **Gemini CLI**: For direct interaction with Google's Generative AI
-- **PR Bot**: For automated code reviews on pull requests
-
-### Required Permissions
-
-The workflow requires the following permissions:
-- `contents: read`
-- `pull-requests: write`
-- `issues: write`
-- `statuses: write`
-
-These are already configured in the workflow file.
-
-## Documentation
-
-* [Overview](docs/start/overview.md)
-* [Quickstart](docs/start/quickstart.md)
-* [API Reference](docs/reference/api.md)
-* [Usage Guide](docs/reference/usage.md)
-* [Models](docs/reference/models.md)
-* [Cookbook](docs/reference/cookbook.md)
-* [Best Practices](docs/guides/practices.md)
-* [Troubleshooting](docs/guides/troubleshoot.md)
-* [Changelog](CHANGELOG.md)
-
----
-
-## Examples
-
-* `examples/basic.rb` – text generation
-* `examples/advanced.rb` – advanced configs
-* `examples/modelsdemo.rb` – model comparison
-
----
-
-## Development
-
-Run tests:
-
-```bash
-bundle exec rake test
+response = client.generate_text('Write a short story', options)
 ```
 
-Lint & fix:
-
-```bash
-bundle exec rubocop
-bundle exec rubocop -a
+## Error Handling
+The gem provides robust error handling:
+```ruby
+begin
+  client.generate_text('')  # Raises an error
+rescue GeminiAI::Error => e
+  puts "An error occurred: #{e.message}"
+end
 ```
-
----
 
 ## Contributing
-
-Fork → branch → commit → PR.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ## License
+MIT License
 
-MIT – see [LICENSE](LICENSE).
+## Support
+For issues, please file a GitHub issue in the repository.
