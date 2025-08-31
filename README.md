@@ -20,8 +20,6 @@ Set your API key in `.env`:
 GEMINI_API_KEY=your_api_key
 ```
 
----
-
 ## Usage
 
 ### Basic Setup
@@ -49,26 +47,6 @@ GeminiAI::Client.new(model: :pro_1_5)  # Gemini 1.5 Pro
 # Lightweight options
 GeminiAI::Client.new(model: :flash_1_5)  # Gemini 1.5 Flash
 GeminiAI::Client.new(model: :flash_8b)   # Compact model
-```
-
-### Environment Variables
-```bash
-# Required
-GEMINI_API_KEY=your_api_key_here
-
-# Optional
-GEMINI_LOG_LEVEL=debug  # Set log level (debug, info, warn, error)
-```
-
-CLI shortcuts:
-
-```bash
-./bin/gemini test
-./bin/gemini generate "Your prompt"
-./bin/gemini chat
-```
-
----
 
 ## Models
 
@@ -82,16 +60,12 @@ CLI shortcuts:
 | `:flash_2_0`  | `gemini-2.0-flash`      | Legacy support                  |
 | `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight legacy              |
 
----
-
 ## Capabilities
 
 * **Text:** content generation, explanations, documentation
 * **Chat:** multi-turn conversations, Q\&A, assistants
 * **Image:** image-to-text analysis and descriptions
 * **CLI:** quick prototyping and automation
-
----
 
 ## Features
 
@@ -121,7 +95,22 @@ CLI shortcuts:
   - Comprehensive error handling
   - Request retries with exponential backoff
 
----
+## Environment Variables
+```bash
+# Required
+GEMINI_API_KEY=your_api_key_here
+
+# Optional
+GEMINI_LOG_LEVEL=debug  # Set log level (debug, info, warn, error)
+```
+
+CLI shortcuts:
+
+```bash
+./bin/gemini test
+./bin/gemini generate "Your prompt"
+./bin/gemini chat
+```
 
 ## Local Development
 
@@ -195,8 +184,6 @@ This ensures that only the most recent workflow run will complete when multiple 
 * [Troubleshooting](docs/guides/troubleshoot.md)
 * [Changelog](CHANGELOG.md)
 
----
-
 ## Examples
 
 ### Basic Text Generation
@@ -259,8 +246,6 @@ response = client.generate_text(
 )
 ```
 
----
-
 ## Development
 
 Run tests:
@@ -275,8 +260,6 @@ Lint & fix:
 bundle exec rubocop
 bundle exec rubocop -a
 ```
-
----
 
 ## Contributing
 
