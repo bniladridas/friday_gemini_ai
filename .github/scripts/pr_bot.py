@@ -54,35 +54,77 @@ def get_pr_details(github_token, repo_name, pr_number):
 
 def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
-    model = genai.GenerativeModel('gemini-pro')
-    
-    # Prepare the prompt
-    prompt = f"""
-    Please review the following pull request and provide feedback:
-    
-    Title: {pr_details['title']}
-    Description: {pr_details['body']}
-    
-    Files changed: {', '.join(pr_details['files_changed'])}
-    
-    Diff:
-    ```diff
-    {pr_details['diff'][:4000]}  # Limit diff size to avoid context window issues
-    ```
-    
-    Please provide:
-    1. A brief summary of the changes
-    2. Code quality assessment
-    3. Potential issues or bugs
-    4. Security concerns, if any
-    5. Suggestions for improvement
-    """
-    
     try:
-        response = model.generate_content(prompt)
+        # Initialize the model with the latest stable version
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        
+        # Prepare the prompt with clear instructions
+        prompt = {
+            'role': 'user',
+            'parts': [f"""
+            Please review the following pull request and provide structured feedback:
+            
+            Title: {pr_details['title']}
+            Description: {pr_details['body']}
+            
+            Files changed: {', '.join(pr_details['files_changed'])}
+            
+            Diff:
+            ```diff
+            {pr_details['diff'][:4000]}
+            ```
+            
+            Please provide a detailed analysis with the following sections:
+            1. **Summary**: Brief overview of the changes
+            2. **Code Quality**: Assessment of code structure, style, and best practices
+            3. **Potential Issues**: Any bugs, edge cases, or potential problems
+            4. **Security**: Security considerations and vulnerabilities
+            5. **Suggestions**: Specific recommendations for improvement
+            
+            Format your response in clear markdown with appropriate headers.
+            """]
+        }
+        
+        # Generate content with safety settings
+        response = model.generate_content(
+            contents=[prompt],
+            generation_config={
+                'temperature': 0.2,
+                'top_p': 0.95,
+                'top_k': 40,
+                'max_output_tokens': 2048,
+            },
+            safety_settings=[
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_NONE"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_NONE"
+                },
+            ]
+        )
+        
         return response.text
+        
     except Exception as e:
-        return f"Error generating analysis: {str(e)}"
+        import traceback
+        error_details = f"""
+        Error details:
+        - Type: {type(e).__name__}
+        - Message: {str(e)}
+        - Available models: {', '.join([m.name for m in genai.list_models()]) if hasattr(genai, 'list_models') else 'N/A'}
+        """
+        return f"Error generating analysis: {str(e)}\n{error_details}"
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR."""
