@@ -17,12 +17,9 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 
 Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.
 
-### 2. Report privately
+### 2. Report Privately
 
-Instead, please report security vulnerabilities by:
-
-- **GitHub Security Advisories**: Use the [GitHub Security Advisory](https://github.com/bniladridas/friday_gemini_ai/security/advisories/new) feature
-- **Email**: Send details to security@bniladridas.com
+Please report security vulnerabilities using our [GitHub Security Advisory](https://github.com/bniladridas/friday_gemini_ai/security/advisories/new) feature. This ensures your report is handled securely and efficiently.
 
 ### 3. Include details
 
