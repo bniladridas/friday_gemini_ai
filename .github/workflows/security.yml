@@ -18,59 +18,54 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    container:
+      image: ruby:3.2-slim
     
     steps:
-      - name: Checkout code
-        uses: https://github.com/actions/checkout@v3
+      - name: Install system dependencies
+        run: |
+          apt-get update && apt-get install -y --no-install-recommends \
+            git \
+            curl \
+            build-essential \
+            libssl-dev \
+            zlib1g-dev \
+            libyaml-dev \
+            libreadline-dev \
+            libxml2-dev \
+            libxslt1-dev \
+            libcurl4-openssl-dev \
+            libffi-dev \
+            ruby-dev \
+            ruby-bundler
 
-      - name: Set up Ruby
-        uses: https://github.com/ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'  # Match the version used in CI
-          bundler-cache: true  # Cache gems
+      - name: Checkout code
+        run: |
+          git clone https://github.com/${{ github.repository }} .
+          git checkout ${{ github.sha }}
+
+      - name: Install Ruby dependencies
+        run: |
+          gem install bundler
+          bundle config set --local path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
         
       - name: Set up Gitleaks
         run: |
           # Install Gitleaks
           curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/install.sh | sh
-          sudo mv bin/gitleaks /usr/local/bin/
+          mv bin/gitleaks /usr/local/bin/
           gitleaks --version
 
-      - name: Install Ruby dependencies
-        run: |
-          gem install bundler
-          bundle install
-
-      # Dependency Security
-      - name: Install dependencies
+      - name: Install security tools
         run: |
           gem install bundler-audit
-          bundle install
 
       - name: Run security audit
-        id: bundler_audit
         run: |
-          bundle exec bundler-audit update
-          # Continue even if vulnerabilities are found
-          if ! bundle exec bundler-audit check --update; then
-            echo "vulnerabilities_found=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "vulnerabilities_found=false" >> "$GITHUB_OUTPUT"
-          fi
-          bundle exec bundler-audit check --format json --output bundler-audit.json || true
+          bundle audit check --update
 
-      - name: Run static code analysis
-        run: |
-          # Install Brakeman if not provided via Gemfile
-          gem install brakeman
-          # Run Brakeman with --force since this isn't a Rails app
-          brakeman --no-exit-on-warn --no-exit-on-error --force --format json --output brakeman.json --no-pager || true
-          brakeman --no-exit-on-warn --no-exit-on-error --force --format html --output brakeman.html --no-pager || true
-        continue-on-error: true
-
-      # Secret Scanning with Gitleaks
       - name: Run Gitleaks
-        id: gitleaks
         run: |
           # Install Gitleaks using official GitHub release
           GITLEAKS_VERSION="8.18.0"
