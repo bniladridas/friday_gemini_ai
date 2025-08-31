@@ -39,9 +39,14 @@ jobs:
           git config --global --add safe.directory /github/workspace
           
           # Checkout code using GitHub's built-in action
-          git clone https://github.com/${{ github.repository }} .
-          git fetch --unshallow  # Ensure we have full history for Gitleaks
-          git checkout ${{ github.sha }}
+          git clone --depth=1 https://github.com/${{ github.repository }} .
+          
+          # Only fetch full history if this is a shallow clone
+          if [ -f $(git rev-parse --git-dir)/shallow ]; then
+            git fetch --unshallow  # Ensure we have full history for Gitleaks
+          fi
+          
+          git checkout ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Ruby environment
         run: |
