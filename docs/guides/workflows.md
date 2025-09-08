@@ -104,5 +104,5 @@ Add to README.md:
 ```markdown
 [![CI](https://github.com/bniladridas/friday_gemini_ai/workflows/CI/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
 [![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
-[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/workflows/HarperBot/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 ```
