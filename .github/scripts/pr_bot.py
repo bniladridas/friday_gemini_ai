@@ -113,7 +113,7 @@ def analyze_with_gemini(pr_details):
             
              <details><summary>Recommendations</summary>
              <strong>Code Improvements</strong>
-             - [Specific improvement suggestions]
+             - [Specific improvement suggestions with code examples in code blocks if applicable]
              
              <strong>Documentation</strong>
              - [Documentation suggestions]
@@ -218,7 +218,7 @@ def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
     return f"""<img src="https://avatars.githubusercontent.com/u/203538727?s=400&u=03d5f82ddba3ed9bbd6b8ec6817bad7e532a44e8&v=4" width="32" height="32" alt="Harper Logo">
 
-## 🤖 PR Analysis by Harper Friday Gemini AI
+## PR Analysis by Harper Friday Gemini AI
 
 {analysis}
 
