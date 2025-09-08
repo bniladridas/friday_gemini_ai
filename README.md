@@ -54,8 +54,8 @@ GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
 
 ### Model Reference
 
-| Key           | ID                      | Use case                        |
-| ------------- | ----------------------- | ------------------------------- |
+| Key          | ID                     | Use case                        |
+| ------------ | ---------------------- | ------------------------------- |
 | `:pro`        | `gemini-2.5-pro`        | Most capable, complex reasoning |
 | `:flash`      | `gemini-2.5-flash`      | Fast, general-purpose           |
 | `:pro_1_5`    | `gemini-1.5-pro`        | Image-to-text                   |
