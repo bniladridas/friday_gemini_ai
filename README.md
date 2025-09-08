@@ -51,6 +51,7 @@ GeminiAI::Client.new(model: :flash_8b)   # Compact model
 # Legacy options
 GeminiAI::Client.new(model: :flash_2_0)  # Gemini 2.0 Flash
 GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
+```
 
 ### Model Reference
 
