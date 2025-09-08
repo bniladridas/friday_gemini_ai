@@ -63,18 +63,13 @@ def analyze_with_gemini(pr_details):
         prompt = {
             'role': 'user',
             'parts': [f"""
-             **Pull Request Review Requested**
-            
-            **Title**: {pr_details['title']}
-            **Description**: {pr_details['body'] or 'No description provided'}
-            
              **Files Changed** ({len(pr_details['files_changed'])}):
-            {', '.join(pr_details['files_changed'])}
-            
-            ```diff
-            {pr_details['diff'][:4000]}
-            ```
-            
+             {', '.join(pr_details['files_changed'])}
+             
+             ```diff
+             {pr_details['diff'][:4000]}
+             ```
+             
              Please provide a detailed analysis following this exact format. Ensure the analysis is accurate, concise, and noise-free. Replace all [placeholder] text with actual content:
             
             ## 🔍 Summary
