@@ -129,6 +129,8 @@ Format your response with:
              - Create no linguistic noise
              - Refine the language and structure for a seamless and noise-free narrative
              - Absolutely no excess or repetition
+             - Do not add any extra headings, footers, or repetitions
+             - Stick exactly to the format provided
             """]
         }
         
