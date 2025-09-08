@@ -4,7 +4,7 @@
 [![CI](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
 [![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
 [![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
-[![CodeBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 
 Ruby gem for integrating with Google's Gemini AI models.
 
@@ -118,13 +118,31 @@ For local development and testing, including running GitHub Actions workflows lo
 
 ## GitHub Actions Integration
 
-This repository includes a GitHub Actions workflow for automated code reviews and Gemini CLI integration. The workflow is triggered on pull requests and provides automated feedback.
+This repository includes a GitHub Actions workflow for automated code reviews and Gemini CLI integration. The workflow is triggered on pull requests and provides automated feedback using HarperBot.
 
 ### Features
 
-- **Automated PR Reviews**: Automatically analyzes pull requests and provides feedback
+- **Automated PR Reviews**: HarperBot automatically analyzes pull requests and provides detailed feedback including code quality assessment, potential issues, and improvement suggestions
 - **Gemini CLI**: Includes a command-line interface for Gemini AI
 - **Concurrent Run Handling**: Automatically cancels in-progress runs when new commits are pushed
+
+### HarperBot PR Analysis Capabilities
+
+HarperBot provides comprehensive automated analysis of pull requests with the following features:
+
+- **Code Quality Assessment**: Evaluates code structure, readability, and adherence to best practices
+- **Security Analysis**: Identifies potential security vulnerabilities and suggests mitigations
+- **Performance Review**: Analyzes code for performance bottlenecks and optimization opportunities
+- **Documentation Check**: Ensures proper documentation and comments for new code
+- **Testing Coverage**: Reviews test coverage and suggests additional test cases
+- **Issue Detection**: Identifies bugs, edge cases, and potential runtime errors
+- **Improvement Suggestions**: Provides actionable recommendations for code enhancement
+
+The analysis output includes:
+- Collapsible sections for organized feedback
+- Severity levels (🐛 Critical, 🔍 Minor) for easy prioritization
+- Timestamp and Harper branding for professional presentation
+- Clean, focused prompts optimized for accurate analysis
 
 ### Setup
 
@@ -132,7 +150,7 @@ This repository includes a GitHub Actions workflow for automated code reviews an
    - `GEMINI_API_KEY`: Your Google Gemini API key
    - `GITHUB_TOKEN` (automatically provided by GitHub)
 
-2. The workflow is configured in `.github/workflows/codebot.yml` and runs automatically on pull requests and pushes to main.
+2. The workflow is configured in `.github/workflows/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
 
 ### Workflow Triggers
 
@@ -147,11 +165,11 @@ This repository includes a GitHub Actions workflow for automated code reviews an
    - Installs and verifies Gemini CLI
    - Uses Node.js 20 container
 
-2. **PR Bot**
-   - Runs on pull request events
-   - Uses Python 3.11 container
-   - Installs required dependencies
-   - Runs the PR bot script
+2. **HarperBot**
+    - Runs on pull request events
+    - Uses Python 3.11 container
+    - Installs required dependencies
+    - Runs the HarperBot PR analysis script
 
 ### Required Permissions
 
