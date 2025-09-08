@@ -62,12 +62,12 @@ def analyze_with_gemini(pr_details):
         prompt = {
             'role': 'user',
             'parts': [f"""
-            📝 **Pull Request Review Requested**
+             **Pull Request Review Requested**
             
             **Title**: {pr_details['title']}
             **Description**: {pr_details['body'] or 'No description provided'}
             
-            📂 **Files Changed** ({len(pr_details['files_changed'])}):
+             **Files Changed** ({len(pr_details['files_changed'])}):
             {', '.join(pr_details['files_changed'])}
             
             ```diff
@@ -136,6 +136,7 @@ Format your response with:
              - Do not add any extra headings, footers, or repetitions
              - Stick exactly to the format provided
              - Do not wrap the response in code blocks or backticks
+             - Use only 🐛 and 🔍 emojis if any, no other emojis
             """]
         }
         
