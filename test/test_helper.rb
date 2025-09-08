@@ -197,7 +197,7 @@ module Minitest
       expected = parse_json_if_needed(expected)
       actual = parse_json_if_needed(actual)
 
-      return compare_values(expected, actual, path) unless expected.is_a?(Hash) && actual.is_a?(Hash)
+      return compare_values?(expected, actual, path) unless expected.is_a?(Hash) && actual.is_a?(Hash)
 
       all_keys = (expected.keys + actual.keys).uniq
       log_comparison_start(expected, actual, path)
@@ -216,7 +216,7 @@ module Minitest
       end
     end
 
-    def compare_values(expected, actual, path)
+    def compare_values?(expected, actual, path)
       return true if expected == actual
 
       debug_puts "❌ #{path}: Value mismatch"
@@ -236,21 +236,21 @@ module Minitest
       current_path = path.empty? ? key.to_s : "#{path}.#{key}"
 
       if !expected.key?(key)
-        log_missing_expected_key(key, actual, current_path)
+        report_unexpected_key?(key, actual, current_path)
       elsif !actual.key?(key)
-        log_unexpected_key(key, expected, current_path)
+        report_missing_key?(key, expected, current_path)
       else
         compare_values_for_key(key, expected, actual, current_path)
       end
     end
 
-    def log_missing_expected_key(key, actual, current_path)
+    def report_unexpected_key?(key, actual, current_path)
       debug_puts "❌ #{current_path}: Unexpected key in actual: #{key}"
       debug_puts "    Actual: #{actual[key].inspect} (type: #{actual[key].class})"
       false
     end
 
-    def log_unexpected_key(key, expected, current_path)
+    def report_missing_key?(key, expected, current_path)
       debug_puts "❌ #{current_path}: Missing expected key: #{key}"
       debug_puts "    Expected: #{expected[key].inspect} (type: #{expected[key].class})"
       false
@@ -267,9 +267,9 @@ module Minitest
         debug_puts "🔍 #{current_path}: Comparing JSON strings..."
         compare_hashes(expected_val, actual_val, current_path)
       elsif expected_val.class != actual_val.class
-        log_type_mismatch(current_path, expected_val, actual_val)
+        log_type_mismatch?(current_path, expected_val, actual_val)
       elsif expected_val != actual_val
-        log_value_mismatch(current_path, expected_val, actual_val)
+        log_value_mismatch?(current_path, expected_val, actual_val)
       else
         true
       end
@@ -281,14 +281,14 @@ module Minitest
          (first_str.start_with?('[') && second_str.start_with?('[')))
     end
 
-    def log_type_mismatch(path, expected, actual)
+    def log_type_mismatch?(path, expected, actual)
       debug_puts "❌ #{path}: Type mismatch - Expected #{expected.class} but got #{actual.class}"
       debug_puts "    Expected: #{expected.inspect}"
       debug_puts "    Actual:   #{actual.inspect}"
       false
     end
 
-    def log_value_mismatch(path, expected, actual)
+    def log_value_mismatch?(path, expected, actual)
       debug_puts "❌ #{path}: Value mismatch"
       debug_puts "    Expected: #{expected.inspect} (type: #{expected.class})"
       debug_puts "    Actual:   #{actual.inspect} (type: #{actual.class})"
