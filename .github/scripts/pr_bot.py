@@ -74,7 +74,7 @@ def analyze_with_gemini(pr_details):
             {pr_details['diff'][:4000]}
             ```
             
-             Please provide a detailed analysis following this exact format. Ensure the analysis is accurate, concise, and noise-free:
+             Please provide a detailed analysis following this exact format. Ensure the analysis is accurate, concise, and noise-free. Replace all [placeholder] text with actual content:
             
             ## 🔍 Summary
             [Brief overview of changes and purpose]
