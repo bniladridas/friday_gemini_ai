@@ -84,34 +84,34 @@ def analyze_with_gemini(pr_details):
             - [Be specific and constructive]
             
              <details><summary>Code Quality</summary>
-             <strong>Structure & Organization</strong>
+             Structure & Organization
              - [Comments on code structure]
              
-             <strong>Style & Readability</strong>
+             Style & Readability
              - [Comments on code style and readability]
              </details>
             
              <details><summary>Potential Issues</summary>
-             <strong>Bugs & Edge Cases</strong>
+             Bugs & Edge Cases
              - [List any potential bugs]
              
-             <strong>Performance</strong>
+             Performance
              - [Performance considerations]
              </details>
             
              <details><summary>Security</summary>
-             <strong>Authentication & Data</strong>
+             Authentication & Data
              - [Security considerations]
              
-             <strong>Dependencies</strong>
+             Dependencies
              - [Dependency analysis]
              </details>
             
              <details><summary>Recommendations</summary>
-             <strong>Code Improvements</strong>
+             Code Improvements
              - [Specific improvement suggestions with code examples in code blocks if applicable]
              
-             <strong>Documentation</strong>
+             Documentation
              - [Documentation suggestions]
              </details>
             
@@ -216,15 +216,13 @@ Format your response with:
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""<img src="https://avatars.githubusercontent.com/u/203538727?s=400&u=03d5f82ddba3ed9bbd6b8ec6817bad7e532a44e8&v=4" width="32" height="32" alt="Harper Logo">
-
-PR Analysis by Harper Friday Gemini AI
+    return f"""PR Analysis by Harper Friday Gemini AI
 
 Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 
 {analysis}
 
-This is an automated analysis by [Harper](https://github.com/harpertoken). Please review the suggestions carefully."""
+This is an automated analysis by Harper. Please review the suggestions carefully."""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
