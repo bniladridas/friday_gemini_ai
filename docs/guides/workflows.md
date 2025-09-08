@@ -48,7 +48,7 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 - Uploads security reports
 - Fails on vulnerabilities
 
-### **HarperBot** (`.github/workflows/codebot.yml`)
+### **HarperBot** (`.harper/codebot.yml`)
 **Purpose**: Automated PR analysis and code review  
 **Triggers**: Pull requests (opened, synchronize, reopened) + manual  
 **Features**:
