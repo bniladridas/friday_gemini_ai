@@ -10,7 +10,7 @@ gem 'bigdecimal', '~> 3.1'
 group :development, :test do
   # Test coverage
   gem 'simplecov', '~> 0.22.0', require: false
-  gem 'simplecov-lcov', '~> 0.8.0', require: false
+  gem 'simplecov-lcov', '~> 0.9.0', require: false
   
   # Security and development tools
   gem 'bundler-audit', '~> 0.9', require: false
