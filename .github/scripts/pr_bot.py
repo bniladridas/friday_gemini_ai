@@ -6,6 +6,7 @@ import os
 import sys
 import argparse
 import textwrap
+from datetime import datetime
 from github import Github
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -62,68 +63,80 @@ def analyze_with_gemini(pr_details):
         prompt = {
             'role': 'user',
             'parts': [f"""
-            📝 **Pull Request Review Requested**
-            
-            **Title**: {pr_details['title']}
-            **Description**: {pr_details['body'] or 'No description provided'}
-            
-            📂 **Files Changed** ({len(pr_details['files_changed'])}):
-            {', '.join(pr_details['files_changed'])}
-            
-            ```diff
-            {pr_details['diff'][:4000]}
-            ```
-            
-            Please provide a detailed analysis following this exact format:
+             **Files Changed** ({len(pr_details['files_changed'])}):
+             {', '.join(pr_details['files_changed'])}
+             
+             ```diff
+             {pr_details['diff'][:4000]}
+             ```
+             
+             Please provide a detailed analysis following this exact format. Ensure the analysis is accurate, concise, and noise-free. Replace all [placeholder] text with actual content:
             
             ## 🔍 Summary
             [Brief overview of changes and purpose]
             
-            ### ✅ Strengths
-            - [List key strengths with emojis]
+             ### Strengths
+             - [List key strengths]
             - [Focus on what's working well]
             
-            ### 🚧 Areas Needing Attention
-            - [List potential issues with emojis]
+             ### Areas Needing Attention
+             - [List potential issues]
             - [Be specific and constructive]
             
-            ### 🛠️ Code Quality
-            #### 🏗️ Structure & Organization
-            - [Comments on code structure]
+             <details><summary>Code Quality</summary>
+             Structure & Organization
+             - [Comments on code structure]
+             
+             Style & Readability
+             - [Comments on code style and readability]
+             </details>
             
-            #### 📝 Style & Readability
-            - [Comments on code style and readability]
+             <details><summary>Potential Issues</summary>
+             Bugs & Edge Cases
+             - [List any potential bugs]
+             
+             Performance
+             - [Performance considerations]
+             </details>
             
-            ### ⚠️ Potential Issues
-            #### 🐛 Bugs & Edge Cases
-            - [List any potential bugs]
+             <details><summary>Security</summary>
+             Authentication & Data
+             - [Security considerations]
+             
+             Dependencies
+             - [Dependency analysis]
+             </details>
             
-            #### 🚀 Performance
-            - [Performance considerations]
+             <details><summary>Recommendations</summary>
+             Code Improvements
+             - [Specific improvement suggestions with code examples in code blocks if applicable]
+             
+             Documentation
+             - [Documentation suggestions]
+             </details>
             
-            ### 🔒 Security
-            #### 🔐 Authentication & Data
-            - [Security considerations]
+             ### Next Steps
+             - [Actionable next steps]
             
-            #### 📦 Dependencies
-            - [Dependency analysis]
-            
-            ### 💡 Recommendations
-            #### 🛠️ Code Improvements
-            - [Specific improvement suggestions]
-            
-            #### 📚 Documentation
-            - [Documentation suggestions]
-            
-            ### 🔄 Next Steps
-            - [Actionable next steps with emojis]
-            
-            Format your response with:
-            - Clear section headers with emojis
-            - Bullet points for lists
-            - Code blocks with syntax highlighting
-            - Bold text for important points
-            - Keep lines under 100 characters
+Format your response with:
+             - Clear section headers (minimal emojis)
+             - Bullet points for lists
+             - Code blocks with syntax highlighting
+             - Bold text for important points
+             - Keep lines under 100 characters
+             - Craft the language for a clearer, more harmonious reading experience with no clutter
+             - Ensure cleaner, more focused writing with no unnecessary repetition
+             - Create no linguistic noise
+             - Refine the language and structure for a seamless and noise-free narrative
+             - Absolutely no excess or repetition
+             - Do not add any extra headings, footers, or repetitions
+             - Stick exactly to the format provided
+             - Do not wrap the response in code blocks or backticks
+             - Use only 🐛 and 🔍 emojis if any, no other emojis
+             - Typography to create a cleaner, more harmonious visual experience with no noise
+             - Cleaner, more focused user interface with no redundancy
+             - Creates no visual noise
+             - Further refine the typography and interface to create an even cleaner, more harmonious visual experience with absolutely no noise or redundancy
             """]
         }
         
@@ -203,12 +216,21 @@ def analyze_with_gemini(pr_details):
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""## 🤖 PR Analysis by HarperBot
+    return f"""## PR Analysis by HarperBot
 
 {analysis}
 
 ---
 *This is an automated analysis by [@harpertoken](https://github.com/harpertoken) (Harper). Please review the suggestions carefully.*"""
+    return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+
+PR Analysis by Harper Friday Gemini AI
+
+Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+
+{analysis}
+
+This is an automated analysis by Harper. Please review the suggestions carefully."""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
@@ -246,7 +268,7 @@ def main():
     # Post the comment with formatted analysis
     print("Posting analysis to PR...")
     post_comment(github_token, args.repo, args.pr, analysis)
-    print("✅ Analysis complete!")
+    print("Analysis complete!")
 
 if __name__ == "__main__":
     main()
