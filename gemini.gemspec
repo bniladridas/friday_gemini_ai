@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*", "LICENSE", "README.md"]
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "httparty", "~> 0.21.0"
+  spec.add_dependency "httparty", ">= 0.21", "< 0.24"
   # Testing
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "rake", "~> 13.0"
