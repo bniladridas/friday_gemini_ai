@@ -155,9 +155,7 @@ The analysis output includes:
    - `GEMINI_API_KEY`: Your Google Gemini API key
    - `GITHUB_TOKEN` (automatically provided by GitHub)
 
-2. The workflow is configured in `.harper/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
-
-   > **Note**: HarperBot files are now organized in the `.harper/` directory for better structure.
+2. The workflow is configured in `.github/workflows/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
 
 ### Workflow Triggers
 
