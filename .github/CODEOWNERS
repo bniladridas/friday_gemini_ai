@@ -4,5 +4,8 @@
 # Core library files
 /lib/ @harpertoken
 
+# Harper bot and related files
+/.harper/ @harpertoken
+
 # CI/CD and workflows
 /.github/ @harpertoken
