@@ -4,7 +4,7 @@
 [![CI](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
 [![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
 [![Release](https://github.com/bniladridas/friday_gemini_ai/workflows/Release/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/release.yml)
-[![CodeBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 
 Ruby gem for integrating with Google's Gemini AI models.
 
@@ -48,10 +48,15 @@ GeminiAI::Client.new(model: :pro_1_5)  # Gemini 1.5 Pro
 GeminiAI::Client.new(model: :flash_1_5)  # Gemini 1.5 Flash
 GeminiAI::Client.new(model: :flash_8b)   # Compact model
 
-## Models
+# Legacy options
+GeminiAI::Client.new(model: :flash_2_0)  # Gemini 2.0 Flash
+GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
+```
 
-| Key           | ID                      | Use case                        |
-| ------------- | ----------------------- | ------------------------------- |
+### Model Reference
+
+| Key          | ID                     | Use case                        |
+| ------------ | ---------------------- | ------------------------------- |
 | `:pro`        | `gemini-2.5-pro`        | Most capable, complex reasoning |
 | `:flash`      | `gemini-2.5-flash`      | Fast, general-purpose           |
 | `:pro_1_5`    | `gemini-1.5-pro`        | Image-to-text                   |

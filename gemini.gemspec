@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "dotenv", "~> 2.8"
   spec.add_development_dependency "simplecov", "~> 0.22.0"
-  spec.add_development_dependency "simplecov-lcov", "~> 0.8.0"
+  spec.add_development_dependency "simplecov-lcov", "~> 0.9.0"
   
   # Documentation
   spec.add_development_dependency "yard", "~> 0.9.34"
