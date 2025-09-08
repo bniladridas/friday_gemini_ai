@@ -203,12 +203,12 @@ def analyze_with_gemini(pr_details):
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""## 🤖 PR Analysis by Gemini AI
+    return f"""## 🤖 PR Analysis by HarperBot
 
 {analysis}
 
 ---
-*This is an automated analysis. Please review the suggestions carefully.*"""
+*This is an automated analysis by [@harpertoken](https://github.com/harpertoken) (Harper). Please review the suggestions carefully.*"""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
