@@ -87,36 +87,40 @@ def analyze_with_gemini(pr_details):
              - [List potential issues]
             - [Be specific and constructive]
             
-            ### 🛠️ Code Quality
-            #### 🏗️ Structure & Organization
-            - [Comments on code structure]
+             <details><summary>Code Quality</summary>
+             #### Structure & Organization
+             - [Comments on code structure]
+             
+             #### Style & Readability
+             - [Comments on code style and readability]
+             </details>
             
-            #### 📝 Style & Readability
-            - [Comments on code style and readability]
+             <details><summary>Potential Issues</summary>
+             #### Bugs & Edge Cases
+             - [List any potential bugs]
+             
+             #### Performance
+             - [Performance considerations]
+             </details>
             
-            ### ⚠️ Potential Issues
-            #### 🐛 Bugs & Edge Cases
-            - [List any potential bugs]
+             <details><summary>Security</summary>
+             #### Authentication & Data
+             - [Security considerations]
+             
+             #### Dependencies
+             - [Dependency analysis]
+             </details>
             
-            #### 🚀 Performance
-            - [Performance considerations]
+             <details><summary>Recommendations</summary>
+             #### Code Improvements
+             - [Specific improvement suggestions]
+             
+             #### Documentation
+             - [Documentation suggestions]
+             </details>
             
-            ### 🔒 Security
-            #### 🔐 Authentication & Data
-            - [Security considerations]
-            
-            #### 📦 Dependencies
-            - [Dependency analysis]
-            
-            ### 💡 Recommendations
-            #### 🛠️ Code Improvements
-            - [Specific improvement suggestions]
-            
-            #### 📚 Documentation
-            - [Documentation suggestions]
-            
-            ### 🔄 Next Steps
-            - [Actionable next steps with emojis]
+             ### Next Steps
+             - [Actionable next steps]
             
 Format your response with:
              - Clear section headers (minimal emojis)
