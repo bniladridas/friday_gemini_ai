@@ -216,14 +216,14 @@ Format your response with:
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""<img src="https://avatars.githubusercontent.com/u/203538727?s=400&u=03d5f82ddba3ed9bbd6b8ec6817bad7e532a44e8&v=4" width="32" height="32" alt="Harper's Logo">
+    return f"""<img src="https://avatars.githubusercontent.com/u/203538727?s=400&u=03d5f82ddba3ed9bbd6b8ec6817bad7e532a44e8&v=4" width="32" height="32" alt="Harper Logo">
 
-## 🤖 PR Analysis by Harper's Friday Gemini AI
+## 🤖 PR Analysis by Harper Friday Gemini AI
 
 {analysis}
 
 ---
-*This is an automated analysis by [Harper's](https://github.com/harpertoken). Please review the suggestions carefully.*"""
+*This is an automated analysis by [Harper](https://github.com/harpertoken). Please review the suggestions carefully.*"""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
