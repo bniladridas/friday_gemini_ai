@@ -1,0 +1,155 @@
+name: HarperBot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  push:
+    branches: [main]
+
+# Package versions
+env:
+  GENERATIVE_AI_VERSION: 0.24.1
+  GEMINI_CLI_VERSION: 0.2.2
+
+# Required permissions
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+
+# Cancel in-progress runs when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  harper-cli:
+    name: Harper CLI
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout repository
+      run: |
+        # Install Git
+        apt-get update && apt-get install -y git
+        
+        # Configure Git
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
+        # Clone the repository
+        git clone --depth=1 --branch=${{ github.ref_name || 'main' }} https://${{ github.token }}@github.com/${{ github.repository }}.git .
+        
+        # Configure Git to trust the working directory
+        git config --global --add safe.directory $(pwd)
+        
+        # Fetch all history for git diff to work
+        git fetch --unshallow
+
+    - name: Install Gemini CLI
+      run: |
+        # Install Node.js dependencies with pinned versions from environment
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
+        
+        # Create Gemini CLI wrapper with proper module resolution and version fallback
+        cat > /usr/local/bin/gemini-wrapper << 'EOL'
+        #!/bin/sh
+        NODE_PATH=$(npm root -g) node -e "
+        const fs = require('fs');
+        const path = require('path');
+        const modulePath = require.resolve('@google/generative-ai');
+        const pkgPath = path.join(path.dirname(modulePath), 'package.json');
+        import(modulePath).then(m => {
+          const fallback = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version : 'unknown';
+          console.log(m.GOOGLE_GENERATIVE_AI_VERSION || fallback);
+        }).catch(e => {
+          console.error('Error loading @google/generative-ai:', e);
+          process.exit(1);
+        });"
+        EOL
+        
+        # Make the script executable
+        chmod +x /usr/local/bin/gemini-wrapper
+
+    - name: Verify installation
+      run: |
+        # Test the installation
+        gemini --version
+        gemini-wrapper
+
+  harper-pr-bot:
+    name: Harper PR Bot
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container: python:3.11-slim
+    timeout-minutes: 10
+
+    steps:
+    - name: Install system dependencies
+      run: |
+        apt-get update && apt-get install -y --no-install-recommends git curl
+
+    - name: Install Node.js using nvm
+      run: |
+        # Install nvm (Node Version Manager)
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        # Load nvm
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        # Install Node.js 20 and npm
+        nvm install 20
+        nvm use 20
+        # Make npm available in PATH
+        echo "$HOME/.nvm/versions/node/$(nvm version)/bin" >> $GITHUB_PATH
+
+    - name: Configure Git
+      run: |
+        git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
+    - name: Checkout code
+      run: |
+        git init
+        git remote add origin https://github.com/${{ github.repository }}.git
+        git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/pr
+        git checkout --progress --force refs/remotes/origin/pr
+
+    - name: Install dependencies
+      run: |
+        # Install Node.js dependencies
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
+        
+        # Install Python dependencies
+        pip install --no-cache-dir PyGithub python-dotenv
+        
+        # Verify installations
+        node --version
+        npm --version
+        python --version
+        pip --version
+
+    - name: Run Gemini PR Bot
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        # Verify installations
+        echo "Node.js: $(node --version)"
+        echo "npm: $(npm --version)"
+        echo "Python: $(python --version)"
+        echo "pip: $(pip --version)"
+        
+        # Install Python dependencies
+        pip install --no-cache-dir PyGithub python-dotenv google-generativeai
+        
+        # Run the PR bot script with repository and PR number
+        python ../.harper/pr_bot.py \
+          --repo ${{ github.repository }} \
+          --pr ${{ github.event.pull_request.number }}
+        
