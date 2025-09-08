@@ -88,34 +88,34 @@ def analyze_with_gemini(pr_details):
             - [Be specific and constructive]
             
              <details><summary>Code Quality</summary>
-             #### Structure & Organization
+             **Structure & Organization**
              - [Comments on code structure]
              
-             #### Style & Readability
+             **Style & Readability**
              - [Comments on code style and readability]
              </details>
             
              <details><summary>Potential Issues</summary>
-             #### Bugs & Edge Cases
+             **Bugs & Edge Cases**
              - [List any potential bugs]
              
-             #### Performance
+             **Performance**
              - [Performance considerations]
              </details>
             
              <details><summary>Security</summary>
-             #### Authentication & Data
+             **Authentication & Data**
              - [Security considerations]
              
-             #### Dependencies
+             **Dependencies**
              - [Dependency analysis]
              </details>
             
              <details><summary>Recommendations</summary>
-             #### Code Improvements
+             **Code Improvements**
              - [Specific improvement suggestions]
              
-             #### Documentation
+             **Documentation**
              - [Documentation suggestions]
              </details>
             
@@ -135,6 +135,7 @@ Format your response with:
              - Absolutely no excess or repetition
              - Do not add any extra headings, footers, or repetitions
              - Stick exactly to the format provided
+             - Do not wrap the response in code blocks or backticks
             """]
         }
         
