@@ -6,6 +6,7 @@ import os
 import sys
 import argparse
 import textwrap
+from datetime import datetime
 from github import Github
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -220,11 +221,15 @@ Format your response with:
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""PR Analysis by Harper Friday Gemini AI
+    return f"""<img src="https://avatars.githubusercontent.com/u/203538727?s=400&u=03d5f82ddba3ed9bbd6b8ec6817bad7e532a44e8&v=4" width="32" height="32" alt="Harper Logo">
+
+PR Analysis by Harper Friday Gemini AI
+
+Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 
 {analysis}
 
-This is an automated analysis by Harper. Please review the suggestions carefully."""
+This is an automated analysis by [Harper](https://github.com/harpertoken). Please review the suggestions carefully."""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
