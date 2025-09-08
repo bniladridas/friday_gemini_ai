@@ -236,21 +236,21 @@ module Minitest
       current_path = path.empty? ? key.to_s : "#{path}.#{key}"
 
       if !expected.key?(key)
-        log_missing_expected_key?(key, actual, current_path)
+        report_unexpected_key?(key, actual, current_path)
       elsif !actual.key?(key)
-        log_unexpected_key?(key, expected, current_path)
+        report_missing_key?(key, expected, current_path)
       else
         compare_values_for_key(key, expected, actual, current_path)
       end
     end
 
-    def log_missing_expected_key?(key, actual, current_path)
+    def report_unexpected_key?(key, actual, current_path)
       debug_puts "❌ #{current_path}: Unexpected key in actual: #{key}"
       debug_puts "    Actual: #{actual[key].inspect} (type: #{actual[key].class})"
       false
     end
 
-    def log_unexpected_key?(key, expected, current_path)
+    def report_missing_key?(key, expected, current_path)
       debug_puts "❌ #{current_path}: Missing expected key: #{key}"
       debug_puts "    Expected: #{expected[key].inspect} (type: #{expected[key].class})"
       false
