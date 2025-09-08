@@ -149,7 +149,7 @@ jobs:
         pip install --no-cache-dir PyGithub python-dotenv google-generativeai
         
         # Run the PR bot script with repository and PR number
-        python .github/scripts/pr_bot.py \
+        python .harper/pr_bot.py \
           --repo ${{ github.repository }} \
           --pr ${{ github.event.pull_request.number }}
         
