@@ -137,6 +137,10 @@ Format your response with:
              - Stick exactly to the format provided
              - Do not wrap the response in code blocks or backticks
              - Use only 🐛 and 🔍 emojis if any, no other emojis
+             - Typography to create a cleaner, more harmonious visual experience with no noise
+             - Cleaner, more focused user interface with no redundancy
+             - Creates no visual noise
+             - Further refine the typography and interface to create an even cleaner, more harmonious visual experience with absolutely no noise or redundancy
             """]
         }
         
