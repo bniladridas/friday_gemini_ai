@@ -24,7 +24,7 @@ GEM
       rexml
     docile (1.4.1)
     dotenv (2.8.1)
-    github-markup (4.0.2)
+    github-markup (5.0.1)
     hashdiff (1.2.0)
     httparty (0.21.0)
       mini_mime (>= 1.0.0)
@@ -100,7 +100,7 @@ DEPENDENCIES
   bundler-audit (~> 0.9)
   dotenv (~> 2.8)
   friday_gemini_ai!
-  github-markup (~> 4.0)
+  github-markup (~> 5.0)
   minitest (~> 5.0)
   minitest-reporters (~> 1.7)
   mocha (~> 2.7)

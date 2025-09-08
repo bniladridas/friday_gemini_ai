@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   # Documentation
   spec.add_development_dependency "yard", "~> 0.9.34"
   spec.add_development_dependency "redcarpet", "~> 3.6"  # For markdown in YARD
-  spec.add_development_dependency "github-markup", "~> 4.0"
+  spec.add_development_dependency "github-markup", "~> 5.0"
   
   # Code quality
   spec.add_development_dependency "rubocop", "~> 1.56.0"
