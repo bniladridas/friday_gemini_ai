@@ -216,7 +216,9 @@ Format your response with:
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""PR Analysis by Harper Friday Gemini AI
+    return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+
+PR Analysis by Harper Friday Gemini AI
 
 Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 
