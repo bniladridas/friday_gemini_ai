@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "github-markup", "~> 5.0"
   
   # Code quality
-  spec.add_development_dependency "rubocop", "~> 1.56.0"
-  spec.add_development_dependency "rubocop-minitest", "~> 0.31.0"
-  spec.add_development_dependency "rubocop-rake", "~> 0.6.0"
+  spec.add_development_dependency "rubocop", "~> 1.80.2"
+  spec.add_development_dependency "rubocop-minitest", "~> 0.38.2"
+  spec.add_development_dependency "rubocop-rake", "~> 0.7.1"
 end
