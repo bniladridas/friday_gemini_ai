@@ -216,21 +216,16 @@ Format your response with:
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""## PR Analysis by HarperBot
-
-{analysis}
-
----
-*This is an automated analysis by [@harpertoken](https://github.com/harpertoken) (Harper). Please review the suggestions carefully.*"""
     return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 
-PR Analysis by Harper Friday Gemini AI
+## PR Analysis by HarperBot
 
 Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 
 {analysis}
 
-This is an automated analysis by Harper. Please review the suggestions carefully."""
+---
+*This is an automated analysis by [@harpertoken](https://github.com/harpertoken) (Harper). Please review the suggestions carefully.*"""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
