@@ -9,10 +9,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 * (no new changes yet)
 
 ### Changed
-* (no new changes yet)
+* Improved RuboCop configuration with plugin syntax updates
+* Enhanced method naming for better code clarity and maintainability
+* Renamed confusing predicate methods in test helpers:
+  - `log_missing_expected_key?` → `report_unexpected_key?`
+  - `log_unexpected_key?` → `report_missing_key?`
+* Added `?` suffix to predicate methods for Ruby convention compliance:
+  - `compare_values` → `compare_values?`
+  - `log_type_mismatch` → `log_type_mismatch?`
+  - `log_value_mismatch` → `log_value_mismatch?`
 
 ### Fixed
-* (no new changes yet)
+* RuboCop naming convention offenses for predicate methods
+* Code style consistency with Ruby best practices
 
 ---
 
