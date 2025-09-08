@@ -77,15 +77,20 @@ bundle exec rubocop -a
 The project uses GitHub Actions for CI/CD. Key workflows:
 
 1. **CI Workflow** (`.github/workflows/ci.yml`):
-   - Runs on push and pull requests
-   - Tests on multiple Ruby versions
-   - Runs linters and security checks
+    - Runs on push and pull requests
+    - Tests on multiple Ruby versions
+    - Runs linters and security checks
 
-2. **Release Workflow** (`.github/workflows/release.yml`):
-   - Publishes the gem to RubyGems on version tag push
+2. **HarperBot Workflow** (`.github/workflows/codebot.yml`):
+    - Automated PR analysis and code review
+    - Provides intelligent feedback on code quality, security, and performance
+    - Uses Gemini AI for comprehensive analysis
 
-3. **Security Workflow** (`.github/workflows/security.yml`):
-   - Runs security scans and dependency checks
+3. **Release Workflow** (`.github/workflows/release.yml`):
+    - Publishes the gem to RubyGems on version tag push
+
+4. **Security Workflow** (`.github/workflows/security.yml`):
+    - Runs security scans and dependency checks
 
 ## Security Considerations
 
