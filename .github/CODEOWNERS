@@ -1,38 +1,8 @@
 # Global code owners
-* @bniladridas
+* @harpertoken @bniladridas
 
 # Core library files
-/lib/ @bniladridas
-/lib/core/ @bniladridas
-
-# Configuration and environment
-/config/ @bniladridas
-/.env.example @bniladridas
-
-# Documentation
-/docs/ @bniladridas
-/README.md @bniladridas
-/CONTRIBUTING.md @bniladridas
-
-# Tests
-/tests/ @bniladridas
+/lib/ @harpertoken
 
 # CI/CD and workflows
-/.github/ @bniladridas
-/.github/workflows/ @bniladridas
-
-# Security-related files
-/SECURITY.md @bniladridas
-/.github/workflows/security.yml @bniladridas
-
-# Dependency management
-/Gemfile @bniladridas
-/Gemfile.lock @bniladridas
-/gemini.gemspec @bniladridas
-
-# Scripts and tools
-/scripts/ @bniladridas
-/bin/ @bniladridas
-
-# Examples
-/examples/ @bniladridas
+/.github/ @harpertoken
