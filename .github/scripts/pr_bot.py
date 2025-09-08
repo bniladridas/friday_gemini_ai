@@ -74,17 +74,17 @@ def analyze_with_gemini(pr_details):
             {pr_details['diff'][:4000]}
             ```
             
-            Please provide a detailed analysis following this exact format:
+             Please provide a detailed analysis following this exact format. Ensure the analysis is accurate, concise, and noise-free:
             
             ## 🔍 Summary
             [Brief overview of changes and purpose]
             
-            ### ✅ Strengths
-            - [List key strengths with emojis]
+             ### Strengths
+             - [List key strengths]
             - [Focus on what's working well]
             
-            ### 🚧 Areas Needing Attention
-            - [List potential issues with emojis]
+             ### Areas Needing Attention
+             - [List potential issues]
             - [Be specific and constructive]
             
             ### 🛠️ Code Quality
@@ -118,12 +118,17 @@ def analyze_with_gemini(pr_details):
             ### 🔄 Next Steps
             - [Actionable next steps with emojis]
             
-            Format your response with:
-            - Clear section headers with emojis
-            - Bullet points for lists
-            - Code blocks with syntax highlighting
-            - Bold text for important points
-            - Keep lines under 100 characters
+Format your response with:
+             - Clear section headers (minimal emojis)
+             - Bullet points for lists
+             - Code blocks with syntax highlighting
+             - Bold text for important points
+             - Keep lines under 100 characters
+             - Craft the language for a clearer, more harmonious reading experience with no clutter
+             - Ensure cleaner, more focused writing with no unnecessary repetition
+             - Create no linguistic noise
+             - Refine the language and structure for a seamless and noise-free narrative
+             - Absolutely no excess or repetition
             """]
         }
         
@@ -203,12 +208,14 @@ def analyze_with_gemini(pr_details):
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""## 🤖 PR Analysis by Gemini AI
+    return f"""![Harper's Logo](https://avatars.githubusercontent.com/u/203538727?s=400&u=03d5f82ddba3ed9bbd6b8ec6817bad7e532a44e8&v=4)
+
+## 🤖 PR Analysis by Harper's Friday Gemini AI
 
 {analysis}
 
 ---
-*This is an automated analysis. Please review the suggestions carefully.*"""
+*This is an automated analysis by [Harper's](https://github.com/harpertoken). Please review the suggestions carefully.*"""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
