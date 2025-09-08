@@ -26,8 +26,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gemini-cli:
-    name: Gemini CLI
+  harper-cli:
+    name: Harper CLI
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -82,8 +82,8 @@ jobs:
         gemini --version
         gemini-wrapper
 
-  pr-bot:
-    name: PR Bot
+  harper-pr-bot:
+    name: Harper PR Bot
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     container: python:3.11-slim
