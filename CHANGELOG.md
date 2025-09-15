@@ -3,7 +3,7 @@
 All notable changes are tracked here.  
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
-## [0.1.6] - Unreleased
+## [0.1.6] - 2025-09-15
 
 ### Added
 
