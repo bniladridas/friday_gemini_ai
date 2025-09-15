@@ -6,6 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 ## [0.1.6] - Unreleased
 
 ### Added
+
 - PR reviews with Gemini AI
 - PR Bot script
 - Documentation updates
@@ -13,6 +14,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 - Contributor recognition
 
 ### Changed
+
 - RuboCop configuration
 - Method naming
 - Predicate methods renamed
@@ -23,12 +25,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 - Changes organization
 
 ### Fixed
+
 - RuboCop offenses
 - Code style consistency
 - Git ownership issues
 - Workflow syntax
 
 ### Security
+
 - TBD
 
 ---
@@ -36,48 +40,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 ## [0.1.5] – 2025-08-24
 
 ### Added
-* Gemini 2.5 models
-* Legacy alias
-* Auto image-to-text
-* Rate limiting
-* API validation
+
+- Gemini 2.5 models
+- Legacy alias
+- Auto image-to-text
+- Rate limiting
+- API validation
 
 ### Changed
-* Test suite reliability
-* Error messages
-* Model selection
-* GitHub Actions permissions
-* Release workflow
+
+- Test suite reliability
+- Error messages
+- Model selection
+- GitHub Actions permissions
+- Release workflow
 
 ### Fixed
-* Ruby 3.1 compatibility
-* Syntax errors
-* Rate limiting stability
+
+- Ruby 3.1 compatibility
+- Syntax errors
+- Rate limiting stability
 
 ---
 
 ## [0.1.4] – 2025-08-24
 
 ### Added
-* MFA auth
-* Manual release workflow
-* Release helper script
+
+- MFA auth
+- Manual release workflow
+- Release helper script
 
 ### Changed
-* Workflow permissions
-* Gem publishing handling
-* Release MFA support
+
+- Workflow permissions
+- Gem publishing handling
+- Release MFA support
 
 ---
 
 ## [0.1.3] – 2025-03-03
 
 ### Added
-* First release
-* Gemini models
-* Text generation
-* Image-to-text
 
-
-
-
+- First release
+- Gemini models
+- Text generation
+- Image-to-text
