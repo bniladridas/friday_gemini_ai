@@ -136,7 +136,7 @@ jobs:
 
     - name: Run Gemini PR Bot
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         # Verify installations
