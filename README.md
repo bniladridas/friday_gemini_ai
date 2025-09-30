@@ -149,6 +149,8 @@ The analysis output includes:
 - Timestamp and Harper branding for professional presentation
 - Clean, focused prompts optimized for accurate analysis
 
+The HarperBot prompt is specifically designed to avoid noise, repetition, and unnecessary content. It enforces clean, focused writing with no clutter.
+
 ### Setup
 
 1. Add the following secrets to your repository:
