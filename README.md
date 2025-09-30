@@ -157,6 +157,31 @@ The analysis output includes:
 
 2. The workflow is configured in `.github/workflows/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
 
+### Local Testing
+
+For local development and testing:
+
+1. Set up environment variables in `.env`:
+   ```
+   GEMINI_API_KEY=your_api_key
+   GITHUB_TOKEN=your_github_token
+   ```
+
+2. Install Python dependencies:
+   ```
+   pip3 install PyGithub python-dotenv google-generativeai
+   ```
+
+3. Run HarperBot on a specific PR:
+   ```
+   python3 .harper/pr_bot.py --repo owner/repo --pr number
+   ```
+
+   Example:
+   ```
+   python3 .harper/pr_bot.py --repo bniladridas/friday_gemini_ai --pr 59
+   ```
+
 ### Workflow Triggers
 
 - **Pull Requests**: On `opened`, `synchronize`, and `reopened` events

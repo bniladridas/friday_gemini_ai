@@ -90,6 +90,13 @@ All workflows support manual triggering via GitHub Actions UI:
 - Select workflow
 - Click "Run workflow"
 
+### Rerunning Failed Workflows
+To rerun a failed workflow run:
+- Go to Actions tab
+- Find the failed run
+- Click "Re-run jobs" or "Re-run failed jobs"
+- Or use GitHub CLI: `gh run rerun <run-id>`
+
 ## Required Secrets
 
 Add these secrets in repository settings:
