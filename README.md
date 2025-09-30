@@ -149,6 +149,8 @@ The analysis output includes:
 - Timestamp and Harper branding for professional presentation
 - Clean, focused prompts optimized for accurate analysis
 
+The HarperBot prompt is specifically designed to avoid noise, repetition, and unnecessary content. It enforces clean, focused writing with no clutter.
+
 ### Setup
 
 1. Add the following secrets to your repository:
@@ -156,6 +158,31 @@ The analysis output includes:
    - `GITHUB_TOKEN` (automatically provided by GitHub)
 
 2. The workflow is configured in `.github/workflows/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
+
+### Local Testing
+
+For local development and testing:
+
+1. Set up environment variables in `.env`:
+   ```
+   GEMINI_API_KEY=your_api_key
+   GITHUB_TOKEN=your_github_token
+   ```
+
+2. Install Python dependencies:
+   ```
+   pip3 install PyGithub python-dotenv google-generativeai
+   ```
+
+3. Run HarperBot on a specific PR:
+   ```
+   python3 .harper/pr_bot.py --repo owner/repo --pr number
+   ```
+
+   Example:
+   ```
+   python3 .harper/pr_bot.py --repo bniladridas/friday_gemini_ai --pr 59
+   ```
 
 ### Workflow Triggers
 
