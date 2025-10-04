@@ -1,4 +1,4 @@
-name: HarperBot
+name: harperbot
 
 on:
   workflow_dispatch:
@@ -134,9 +134,16 @@ jobs:
         python --version
         pip --version
 
+    - name: Generate GitHub App Token
+      id: app-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ secrets.HARPER_BOT_APP_ID }}
+        private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
+
     - name: Run Gemini PR Bot
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         # Verify installations
@@ -149,7 +156,7 @@ jobs:
         pip install --no-cache-dir PyGithub python-dotenv google-generativeai
         
         # Run the PR bot script with repository and PR number
-        python ./.harper/pr_bot.py \
+        python ./.harperbot/harperbot.py \
           --repo ${{ github.repository }} \
           --pr ${{ github.event.pull_request.number }}
         
