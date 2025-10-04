@@ -83,31 +83,7 @@ def analyze_with_gemini(pr_details):
              - [List potential issues]
             - [Be specific and constructive]
             
-             <details><summary>Code Quality</summary>
-             Structure & Organization
-             - [Comments on code structure]
-             
-             Style & Readability
-             - [Comments on code style and readability]
-             </details>
-            
-             <details><summary>Potential Issues</summary>
-             Bugs & Edge Cases
-             - [List any potential bugs]
-             
-             Performance
-             - [Performance considerations]
-             </details>
-            
-             <details><summary>Security</summary>
-             Authentication & Data
-             - [Security considerations]
-             
-             Dependencies
-             - [Dependency analysis]
-             </details>
-            
-              <details><summary>Recommendations</summary>
+             <details><summary>Recommendations</summary>
               Code Improvements
               - [Specific improvement suggestions with code examples in code blocks if applicable]
 
