@@ -1,1 +1,0 @@
-Support open source work
