@@ -315,6 +315,8 @@ bundle exec rubocop -a
 
 Fork → branch → commit → PR.
 
+# Test comment for HarperBot analysis v2
+
 ## License
 
 MIT – see [LICENSE](LICENSE).
