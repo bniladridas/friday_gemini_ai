@@ -107,16 +107,20 @@ def analyze_with_gemini(pr_details):
              - [Dependency analysis]
              </details>
             
-             <details><summary>Recommendations</summary>
-             Code Improvements
-             - [Specific improvement suggestions with code examples in code blocks if applicable]
-             
-             Documentation
-             - [Documentation suggestions]
-             </details>
-            
-             ### Next Steps
-             - [Actionable next steps]
+              <details><summary>Recommendations</summary>
+              Code Improvements
+              - [Specific improvement suggestions with code examples in code blocks if applicable]
+
+              Documentation
+              - [Documentation suggestions]
+              </details>
+
+              <details><summary>Testing & Validation</summary>
+              - [Suggestions for unit tests, integration tests, or validation checks]
+              </details>
+
+              ### Next Steps
+              - [Actionable next steps]
             
 Format your response with:
              - Clear section headers (minimal emojis)
