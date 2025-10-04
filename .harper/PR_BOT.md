@@ -12,11 +12,14 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 
 ## Setup
 
-1. **Required Secrets**
-   - `GEMINI_API_KEY`: Your Google Gemini API key
-   - `GITHUB_TOKEN` (automatically provided by GitHub Actions)
+1. **Bot Account**
+   Create a dedicated GitHub account for HarperBot (e.g., @harper-bot) to post comments as a custom user instead of github-actions.
 
-2. **Installation**
+2. **Required Secrets**
+   - `GEMINI_API_KEY`: Your Google Gemini API key
+   - `HARPER_BOT_TOKEN`: Personal Access Token from the HarperBot account (with repo, issues, pull_requests scopes)
+
+3. **Installation**
    The bot is automatically set up to run on pull requests. No additional installation is needed.
 
 ## How It Works
