@@ -7,7 +7,7 @@ import sys
 import argparse
 import textwrap
 from datetime import datetime
-from github import Github
+from github import Github, Auth
 from dotenv import load_dotenv
 import google.generativeai as genai
 
