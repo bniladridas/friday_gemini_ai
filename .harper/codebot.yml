@@ -110,8 +110,8 @@ jobs:
     - name: Configure Git
       run: |
         git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+        git config --global user.name "harper-bot-glitch"
+        git config --global user.email "236089746+harper-bot-glitch@users.noreply.github.com"
         
     - name: Checkout code
       run: |
@@ -124,19 +124,30 @@ jobs:
       run: |
         # Install Node.js dependencies
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
-        
+
         # Install Python dependencies
         pip install --no-cache-dir PyGithub python-dotenv
-        
+
         # Verify installations
         node --version
         npm --version
         python --version
         pip --version
 
+    - name: Debug GitHub identity
+      env:
+        GITHUB_TOKEN: ${{ secrets.HARPER_BOT_TOKEN }}
+      run: |
+        python3 - <<'EOF'
+        from github import Github, Auth
+        import os
+        g = Github(auth=Auth.Token(os.getenv("GITHUB_TOKEN")))
+        print("Authenticated as:", g.get_user().login)
+        EOF
+
     - name: Run Gemini PR Bot
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.HARPER_BOT_TOKEN }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         # Verify installations
