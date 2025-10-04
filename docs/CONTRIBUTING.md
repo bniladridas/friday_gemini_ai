@@ -289,10 +289,6 @@ We pledge to make participation in our project a harassment-free experience for 
 ### Enforcement
 Report unacceptable behavior to [bniladridas@gmail.com](mailto:bniladridas@gmail.com).
 
-## License
-
-By contributing, you agree that your contributions will be licensed under the MIT License.
-
 ---
 
 Thank you for contributing to Friday Gemini AI!

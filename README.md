@@ -315,6 +315,3 @@ bundle exec rubocop -a
 
 Fork → branch → commit → PR.
 
-## License
-
-MIT – see [LICENSE](LICENSE).
