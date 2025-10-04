@@ -1,4 +1,4 @@
-name: HarperBot
+name: harperbot
 
 on:
   workflow_dispatch:
