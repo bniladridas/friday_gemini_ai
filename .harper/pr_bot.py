@@ -7,7 +7,7 @@ import sys
 import argparse
 import textwrap
 from datetime import datetime
-from github import Github, Auth
+from github import Github, Auth, Auth
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -29,7 +29,7 @@ def setup_environment():
 
 def get_pr_details(github_token, repo_name, pr_number):
     """Fetch PR details from GitHub."""
-    g = Github(github_token)
+    g = Github(auth=Auth.Token(github_token))
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
     
@@ -230,7 +230,7 @@ Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
     try:
-        g = Github(github_token)
+        g = Github(auth=Auth.Token(github_token))
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_number)
         
