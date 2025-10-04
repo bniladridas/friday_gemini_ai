@@ -9,28 +9,32 @@ class TestModels < Minitest::Test
     @api_key = 'AIzaSyDummyTestKeyForUnitTests123456789'
   end
 
-  def test_gemini_2_5_pro_model
+  def test_gemini_pro_model
     client = GeminiAI::Client.new(@api_key, model: :pro)
 
     assert_instance_of GeminiAI::Client, client
-    # Should use gemini-2.5-pro by default now
+    assert_equal 'gemini-pro', client.instance_variable_get(:@model)
   end
 
-  def test_gemini_2_5_flash_model
+  def test_gemini_1_5_flash_model
     client = GeminiAI::Client.new(@api_key, model: :flash)
 
     assert_instance_of GeminiAI::Client, client
-    # Should use gemini-2.5-flash by default now
+    assert_equal 'gemini-1.5-flash', client.instance_variable_get(:@model)
   end
 
-  def test_gemini_2_0_models
-    flash_2_0_client = GeminiAI::Client.new(@api_key, model: :flash_2_0)
-    pro_2_0_client = GeminiAI::Client.new(@api_key, model: :pro_2_0)
-    lite_client = GeminiAI::Client.new(@api_key, model: :flash_lite)
+  def test_gemini_1_5_models
+    pro_1_5_client = GeminiAI::Client.new(@api_key, model: :pro_1_5)
+    flash_1_5_client = GeminiAI::Client.new(@api_key, model: :flash_1_5)
+    flash_8b_client = GeminiAI::Client.new(@api_key, model: :flash_8b)
 
-    assert_instance_of GeminiAI::Client, flash_2_0_client
-    assert_instance_of GeminiAI::Client, pro_2_0_client
-    assert_instance_of GeminiAI::Client, lite_client
+    assert_instance_of GeminiAI::Client, pro_1_5_client
+    assert_instance_of GeminiAI::Client, flash_1_5_client
+    assert_instance_of GeminiAI::Client, flash_8b_client
+
+    assert_equal 'gemini-1.5-pro', pro_1_5_client.instance_variable_get(:@model)
+    assert_equal 'gemini-1.5-flash', flash_1_5_client.instance_variable_get(:@model)
+    assert_equal 'gemini-1.5-flash-8b', flash_8b_client.instance_variable_get(:@model)
   end
 
   def test_gemini_1_5_models
@@ -52,9 +56,10 @@ class TestModels < Minitest::Test
   end
 
   def test_invalid_model_defaults_to_pro
-    # Should not raise error, should default to pro model (now gemini-2.5-pro)
+    # Should not raise error, should default to pro model (gemini-pro)
     client = GeminiAI::Client.new(@api_key, model: :invalid_model)
 
     assert_instance_of GeminiAI::Client, client
+    assert_equal 'gemini-pro', client.instance_variable_get(:@model)
   end
 end

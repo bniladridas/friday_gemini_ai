@@ -27,19 +27,19 @@ GEMINI_API_KEY=your_api_key
 require 'friday_gemini_ai'
 GeminiAI.load_env  # Loads .env file if present
 
-# Initialize client with default model (Gemini 2.5 Pro)
+# Initialize client with default model (Gemini Pro)
 client = GeminiAI::Client.new
 
 # Or specify a different model
-fast_client = GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
+fast_client = GeminiAI::Client.new(model: :flash)  # Gemini 1.5 Flash
 image_client = GeminiAI::Client.new(model: :pro_1_5)  # For image analysis
 ```
 
 ### Available Models
 ```ruby
 # Latest models (recommended)
-GeminiAI::Client.new(model: :pro)    # Gemini 2.5 Pro
-GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
+GeminiAI::Client.new(model: :pro)    # Gemini Pro
+GeminiAI::Client.new(model: :flash)  # Gemini 1.5 Flash
 
 # Image analysis
 GeminiAI::Client.new(model: :pro_1_5)  # Gemini 1.5 Pro
@@ -47,23 +47,17 @@ GeminiAI::Client.new(model: :pro_1_5)  # Gemini 1.5 Pro
 # Lightweight options
 GeminiAI::Client.new(model: :flash_1_5)  # Gemini 1.5 Flash
 GeminiAI::Client.new(model: :flash_8b)   # Compact model
-
-# Legacy options
-GeminiAI::Client.new(model: :flash_2_0)  # Gemini 2.0 Flash
-GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
 ```
 
 ### Model Reference
 
 | Key          | ID                     | Use case                        |
 | ------------ | ---------------------- | ------------------------------- |
-| `:pro`        | `gemini-2.5-pro`        | Most capable, complex reasoning |
-| `:flash`      | `gemini-2.5-flash`      | Fast, general-purpose           |
+| `:pro`        | `gemini-pro`            | Most capable, complex reasoning |
+| `:flash`      | `gemini-1.5-flash`      | Fast, general-purpose           |
 | `:pro_1_5`    | `gemini-1.5-pro`        | Image-to-text                   |
 | `:flash_1_5`  | `gemini-1.5-flash`      | Lightweight tasks               |
 | `:flash_8b`   | `gemini-1.5-flash-8b`   | Compact, efficient              |
-| `:flash_2_0`  | `gemini-2.0-flash`      | Legacy support                  |
-| `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight legacy              |
 
 ## Features
 
@@ -71,7 +65,7 @@ GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
 * **Chat & Conversations:** multi-turn dialogues with context awareness
 * **Image Analysis:** image-to-text processing with base64 support
 * **CLI Tools:** quick prototyping and automation
-* **Multiple Model Support:** Gemini 2.5, 2.0, and 1.5 families with automatic selection
+* **Multiple Model Support:** Gemini Pro and 1.5 families with automatic selection
 * **Security & Reliability:** API key masking, rate limiting, error handling, and retries
 
 ## Environment Variables

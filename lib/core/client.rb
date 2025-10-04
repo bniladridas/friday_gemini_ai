@@ -12,18 +12,11 @@ module GeminiAI
   class Client
     BASE_URL = 'https://generativelanguage.googleapis.com/v1/models'
     MODELS = {
-      # Gemini 2.5 models (latest)
-      pro: 'gemini-2.5-pro',
-      flash: 'gemini-2.5-flash',
+      # Latest models
+      pro: 'gemini-pro',
+      flash: 'gemini-1.5-flash',
 
-      # Gemini 2.0 models
-      flash_2_0: 'gemini-2.0-flash',
-      flash_lite: 'gemini-2.0-flash-lite',
-
-      # Legacy aliases for backward compatibility
-      pro_2_0: 'gemini-2.0-flash',
-
-      # Gemini 1.5 models (for specific use cases)
+      # Gemini 1.5 models
       pro_1_5: 'gemini-1.5-pro',
       flash_1_5: 'gemini-1.5-flash',
       flash_8b: 'gemini-1.5-flash-8b'
