@@ -54,7 +54,7 @@ jobs:
     - name: Install Gemini CLI
       run: |
         # Install Node.js dependencies with pinned versions from environment
-        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GENERATIVE_AI_VERSION }}
         
         # Create Gemini CLI wrapper with proper module resolution and version fallback
         cat > /usr/local/bin/gemini-wrapper << 'EOL'
@@ -110,8 +110,8 @@ jobs:
     - name: Configure Git
       run: |
         git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+        git config --global user.name "harper-bot-glitch"
+        git config --global user.email "236089746+harper-bot-glitch@users.noreply.github.com"
         
     - name: Checkout code
       run: |
@@ -124,19 +124,37 @@ jobs:
       run: |
         # Install Node.js dependencies
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
-        
+
         # Install Python dependencies
         pip install --no-cache-dir PyGithub python-dotenv
-        
+
         # Verify installations
         node --version
         npm --version
         python --version
         pip --version
 
+    - name: Generate GitHub App Token
+      id: app-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ secrets.HARPER_BOT_APP_ID }}
+        private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
+
+    - name: Debug GitHub identity
+      run: |
+        python3 - <<'EOF'
+        from github import Github, Auth
+        import os
+        g = Github(auth=Auth.Token(os.getenv("GITHUB_TOKEN")))
+        print("Authenticated as:", g.get_user().login)
+        EOF
+      env:
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
     - name: Run Gemini PR Bot
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         # Verify installations
@@ -152,4 +170,3 @@ jobs:
         python ./.harper/pr_bot.py \
           --repo ${{ github.repository }} \
           --pr ${{ github.event.pull_request.number }}
-        
