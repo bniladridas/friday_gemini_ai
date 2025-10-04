@@ -134,21 +134,28 @@ jobs:
         python --version
         pip --version
 
-    - name: Debug GitHub identity
-      env:
-        GITHUB_TOKEN: ${{ secrets.HARPER_BOT_TOKEN }}
-      run: |
-        python3 - <<'EOF'
-        from github import Github, Auth
-        import os
-        g = Github(auth=Auth.Token(os.getenv("GITHUB_TOKEN")))
-        print("Authenticated as:", g.get_user().login)
-        EOF
+     - name: Generate GitHub App Token
+       id: app-token
+       uses: actions/create-github-app-token@v1
+       with:
+         app-id: ${{ secrets.HARPER_BOT_APP_ID }}
+         private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
 
-    - name: Run Gemini PR Bot
-      env:
-        GITHUB_TOKEN: ${{ secrets.HARPER_BOT_TOKEN }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+     - name: Debug GitHub identity
+       run: |
+         python3 - <<'EOF'
+         from github import Github, Auth
+         import os
+         g = Github(auth=Auth.Token(os.getenv("GITHUB_TOKEN")))
+         print("Authenticated as:", g.get_user().login)
+         EOF
+       env:
+         GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+     - name: Run Gemini PR Bot
+       env:
+         GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         # Verify installations
         echo "Node.js: $(node --version)"
