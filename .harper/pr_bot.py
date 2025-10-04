@@ -57,7 +57,7 @@ def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
     try:
         # Initialize with a stable model version
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         # Prepare the prompt with clear instructions
         prompt = {
