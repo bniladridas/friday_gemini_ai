@@ -224,8 +224,7 @@ Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 
 {analysis}
 
----
-*This is an automated analysis by [@harpertoken](https://github.com/harpertoken) (Harper). Please review the suggestions carefully.*"""
+---"""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
