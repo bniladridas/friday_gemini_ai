@@ -141,17 +141,6 @@ jobs:
         app-id: ${{ secrets.HARPER_BOT_APP_ID }}
         private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
 
-    - name: Debug GitHub identity
-      run: |
-        python3 - <<'EOF'
-        from github import Github, Auth
-        import os
-        g = Github(auth=Auth.Token(os.getenv("GITHUB_TOKEN")))
-        print("Authenticated as:", g.get_user().login)
-        EOF
-      env:
-        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-
     - name: Run Gemini PR Bot
       env:
         GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
