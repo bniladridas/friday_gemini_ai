@@ -7,7 +7,7 @@ import sys
 import argparse
 import textwrap
 from datetime import datetime
-from github import Github
+from github import Github, Auth, Auth
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -29,7 +29,7 @@ def setup_environment():
 
 def get_pr_details(github_token, repo_name, pr_number):
     """Fetch PR details from GitHub."""
-    g = Github(github_token)
+    g = Github(auth=Auth.Token(github_token))
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
     
@@ -57,7 +57,7 @@ def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
     try:
         # Initialize with a stable model version
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
         # Prepare the prompt with clear instructions
         prompt = {
@@ -107,16 +107,20 @@ def analyze_with_gemini(pr_details):
              - [Dependency analysis]
              </details>
             
-             <details><summary>Recommendations</summary>
-             Code Improvements
-             - [Specific improvement suggestions with code examples in code blocks if applicable]
-             
-             Documentation
-             - [Documentation suggestions]
-             </details>
-            
-             ### Next Steps
-             - [Actionable next steps]
+              <details><summary>Recommendations</summary>
+              Code Improvements
+              - [Specific improvement suggestions with code examples in code blocks if applicable]
+
+              Documentation
+              - [Documentation suggestions]
+              </details>
+
+              <details><summary>Testing & Validation</summary>
+              - [Suggestions for unit tests, integration tests, or validation checks]
+              </details>
+
+              ### Next Steps
+              - [Actionable next steps]
             
 Format your response with:
              - Clear section headers (minimal emojis)
@@ -205,32 +209,20 @@ Format your response with:
                    f"Response content: {response}"
         
     except Exception as e:
-        import traceback
-        error_details = f"""
-        Error details:
-        - Type: {type(e).__name__}
-        - Message: {str(e)}
-        - Available models: {', '.join([m.name for m in genai.list_models()]) if hasattr(genai, 'list_models') else 'N/A'}
-        """
-        return f"Error generating analysis: {str(e)}\n{error_details}"
+        return "Error generating analysis: API quota exceeded or unavailable. Please try again later."
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
     return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 
-## PR Analysis by HarperBot
-
-Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
-
 {analysis}
 
----
-*This is an automated analysis by [@harpertoken](https://github.com/harpertoken) (Harper). Please review the suggestions carefully.*"""
+---"""
 
 def post_comment(github_token, repo_name, pr_number, comment):
     """Post a comment on the PR with proper formatting."""
     try:
-        g = Github(github_token)
+        g = Github(auth=Auth.Token(github_token))
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_number)
         
