@@ -65,40 +65,14 @@ GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
 | `:flash_2_0`  | `gemini-2.0-flash`      | Legacy support                  |
 | `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight legacy              |
 
-## Capabilities
-
-* **Text:** content generation, explanations, documentation
-* **Chat:** multi-turn conversations, Q\&A, assistants
-* **Image:** image-to-text analysis and descriptions
-* **CLI:** quick prototyping and automation
-
 ## Features
 
-* **Multiple Model Support**
-  - Gemini 2.5, 2.0, and 1.5 families
-  - Automatic model selection based on task
-  - Backward compatibility with legacy models
-
-* **Text Generation**
-  - Flexible prompt handling
-  - Configurable parameters (temperature, max tokens, etc.)
-  - Safety settings and content filtering
-
-* **Image Analysis**
-  - Image-to-text generation
-  - Support for base64-encoded images
-  - Automatic model selection for image tasks
-
-* **Chat & Conversations**
-  - Multi-turn conversations
-  - System instructions
-  - Message history management
-
-* **Security & Reliability**
-  - API key validation and masking
-  - Rate limiting (1s default, 3s in CI)
-  - Comprehensive error handling
-  - Request retries with exponential backoff
+* **Text Generation:** content creation, explanations, documentation with configurable parameters
+* **Chat & Conversations:** multi-turn dialogues with context awareness
+* **Image Analysis:** image-to-text processing with base64 support
+* **CLI Tools:** quick prototyping and automation
+* **Multiple Model Support:** Gemini 2.5, 2.0, and 1.5 families with automatic selection
+* **Security & Reliability:** API key masking, rate limiting, error handling, and retries
 
 ## Environment Variables
 ```bash
@@ -123,116 +97,19 @@ For local development and testing, including running GitHub Actions workflows lo
 
 ## GitHub Actions Integration
 
-This repository includes a GitHub Actions workflow for automated code reviews and Gemini CLI integration. The workflow is triggered on pull requests and provides automated feedback using HarperBot.
-
-### Features
-
-- **Automated PR Reviews**: HarperBot automatically analyzes pull requests and provides detailed feedback including code quality assessment, potential issues, and improvement suggestions
-- **Gemini CLI**: Includes a command-line interface for Gemini AI
-- **Concurrent Run Handling**: Automatically cancels in-progress runs when new commits are pushed
-
-### HarperBot PR Analysis Capabilities
-
-HarperBot provides comprehensive automated analysis of pull requests with the following features:
-
-- **Code Quality Assessment**: Evaluates code structure, readability, and adherence to best practices
-- **Security Analysis**: Identifies potential security vulnerabilities and suggests mitigations
-- **Performance Review**: Analyzes code for performance bottlenecks and optimization opportunities
-- **Documentation Check**: Ensures proper documentation and comments for new code
-- **Testing Coverage**: Reviews test coverage and suggests additional test cases
-- **Issue Detection**: Identifies bugs, edge cases, and potential runtime errors
-- **Improvement Suggestions**: Provides actionable recommendations for code enhancement
-
-The analysis output includes:
-- Collapsible sections for organized feedback
-- Severity levels (🐛 Critical, 🔍 Minor) for easy prioritization
-- Timestamp and Harper branding for professional presentation
-- Clean, focused prompts optimized for accurate analysis
-
-The HarperBot prompt is specifically designed to avoid noise, repetition, and unnecessary content. It enforces clean, focused writing with no clutter.
-
-### Setup
-
-1. Add the following secrets to your repository:
-   - `GEMINI_API_KEY`: Your Google Gemini API key
-   - `GITHUB_TOKEN` (automatically provided by GitHub)
-
-2. The workflow is configured in `.github/workflows/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
-
-### Local Testing
-
-For local development and testing:
-
-1. Set up environment variables in `.env`:
-   ```
-   GEMINI_API_KEY=your_api_key
-   GITHUB_TOKEN=your_github_token
-   ```
-
-2. Install Python dependencies:
-   ```
-   pip3 install PyGithub python-dotenv google-generativeai
-   ```
-
-3. Run HarperBot on a specific PR:
-   ```
-   python3 .harper/pr_bot.py --repo owner/repo --pr number
-   ```
-
-   Example:
-   ```
-   python3 .harper/pr_bot.py --repo bniladridas/friday_gemini_ai --pr 59
-   ```
-
-### Workflow Triggers
-
-- **Pull Requests**: On `opened`, `synchronize`, and `reopened` events
-- **Manual Dispatch**: Trigger manually from the Actions tab
-- **Push to Main**: Runs the Gemini CLI job on direct pushes to main
-
-### Jobs
-
-1. **Gemini CLI**
-   - Runs on workflow dispatch or push to main
-   - Installs and verifies Gemini CLI
-   - Uses Node.js 20 container
-
-2. **HarperBot**
-    - Runs on pull request events
-    - Uses Python 3.11 container
-    - Installs required dependencies
-    - Runs the HarperBot PR analysis script
-
-### Required Permissions
-
-The workflow requires the following permissions:
-- `contents: read`
-- `pull-requests: write`
-- `issues: write`
-- `statuses: write`
-
-### Concurrency Control
-
-The workflow includes concurrency control to optimize CI resources:
-```yaml
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-```
-
-This ensures that only the most recent workflow run will complete when multiple runs are triggered in quick succession.
+Includes automated PR reviews with HarperBot for code quality assessment, security analysis, and improvement suggestions. See [Workflows Guide](docs/guides/workflows.md) for setup and usage.
 
 ## Documentation
 
 * [Overview](docs/start/overview.md)
 * [Quickstart](docs/start/quickstart.md)
 * [API Reference](docs/reference/api.md)
-* [Usage Guide](docs/reference/usage.md)
 * [Models](docs/reference/models.md)
 * [Cookbook](docs/reference/cookbook.md)
 * [Best Practices](docs/guides/practices.md)
 * [Troubleshooting](docs/guides/troubleshoot.md)
-* [Changelog](CHANGELOG.md)
+* [Workflows](docs/guides/workflows.md)
+* [Changelog](docs/CHANGELOG.md)
 
 ## Examples
 
