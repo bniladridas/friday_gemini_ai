@@ -205,14 +205,7 @@ Format your response with:
                    f"Response content: {response}"
         
     except Exception as e:
-        import traceback
-        error_details = f"""
-        Error details:
-        - Type: {type(e).__name__}
-        - Message: {str(e)}
-        - Available models: {', '.join([m.name for m in genai.list_models()]) if hasattr(genai, 'list_models') else 'N/A'}
-        """
-        return f"Error generating analysis: {str(e)}\n{error_details}"
+        return "Error generating analysis: API quota exceeded or unavailable. Please try again later."
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
