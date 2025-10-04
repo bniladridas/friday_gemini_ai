@@ -16,7 +16,7 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
    Create a GitHub App for HarperBot to post comments as a dedicated bot:
    - Go to https://github.com/settings/apps
    - Create a new GitHub App named "HarperBot"
-   - Set permissions: Repository permissions - Issues: Read & Write, Pull requests: Read & Write
+   - Set permissions: Repository permissions - Contents: Read, Issues: Read & Write, Pull requests: Read & Write
    - Generate and download a private key
    - Install the app on your repository
 
