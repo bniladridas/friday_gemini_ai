@@ -81,7 +81,7 @@ def analyze_with_gemini(pr_details):
         num_files = len(pr_details['files_changed'])
         if diff_length > 10000 or num_files > 10:
             model_name = 'gemini-2.5-pro'  # More powerful model for complex PRs
-        # For simple PRs, use the configured model (default gemini-1.5-flash)
+        # For simple PRs, use the configured model (default gemini-2.0-flash)
 
         # Initialize with selected model
         model = genai.GenerativeModel(model_name)
