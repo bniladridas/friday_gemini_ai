@@ -121,7 +121,7 @@ jobs:
         git checkout --progress --force refs/remotes/origin/pr
 
     - name: Install dependencies
-       run: |
+      run: |
          # Install Node.js dependencies
          npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
 
