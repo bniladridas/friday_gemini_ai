@@ -1,0 +1,14 @@
+# HarperBot Configuration
+# Customize the analysis focus and model
+
+# Analysis focus: 'all', 'security', 'performance', 'quality'
+focus: all
+
+# Gemini model to use: 'gemini-2.0-flash', 'gemini-1.5-pro', etc.
+model: gemini-2.0-flash
+
+# Maximum diff length to analyze (characters)
+max_diff_length: 4000
+
+# Temperature for generation (0.0 to 1.0)
+temperature: 0.2
