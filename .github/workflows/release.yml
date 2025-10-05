@@ -97,8 +97,8 @@ jobs:
         name: gem-file
         path: "*.gem"
 
-  publish-rubygems:
-    name: Publish to RubyGems
+  publish-gems:
+    name: Publish Gems
     runs-on: ubuntu-latest
     needs: build
     environment: production
@@ -176,8 +176,8 @@ jobs:
           exit 1
         fi
 
-  publish-github:
-    name: Publish to GitHub Packages
+  publish-gh:
+    name: Publish GH
     runs-on: ubuntu-latest
     needs: build
     permissions:
@@ -222,10 +222,10 @@ jobs:
       env:
         GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
 
-  create-release:
-    name: Create GitHub Release
+  release:
+    name: Release
     runs-on: ubuntu-latest
-    needs: [build, publish-rubygems, publish-github]
+    needs: [build, publish-gems, publish-gh]
     permissions:
       contents: write
 
