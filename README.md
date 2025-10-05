@@ -20,6 +20,8 @@ Set your API key in `.env`:
 GEMINI_API_KEY=your_api_key
 ```
 
+For automated PR reviews, install the [HarperBot GitHub App](https://github.com/apps/harperbot).
+
 ## Usage
 
 ### Basic Setup
