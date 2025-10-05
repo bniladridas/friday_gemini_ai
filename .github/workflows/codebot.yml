@@ -120,14 +120,14 @@ jobs:
         git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/pr
         git checkout --progress --force refs/remotes/origin/pr
 
-    - name: Install dependencies
-      run: |
-        # Install Node.js dependencies
-        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
-        
-        # Install Python dependencies
-        pip install --no-cache-dir PyGithub python-dotenv PyYAML
+     - name: Install dependencies
+       run: |
+         # Install Node.js dependencies
+         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
 
+         # Install Python dependencies
+         pip install --no-cache-dir PyGithub python-dotenv PyYAML
+        
         # Verify installations
         node --version
         npm --version
@@ -152,8 +152,8 @@ jobs:
         echo "Python: $(python --version)"
         echo "pip: $(pip --version)"
         
-        # Install Python dependencies
-        pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
+         # Install Python dependencies
+         pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
         
         # Run the PR bot script with repository and PR number
         python ./.harperbot/harperbot.py \
