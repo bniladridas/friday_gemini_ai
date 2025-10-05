@@ -78,11 +78,15 @@ def get_pr_details(github_token, repo_name, pr_number):
     diff_content = requests.get(diff_url).text
     
     return {
-        'focus': 'all',
-        'model': 'gemini-2.0-flash',
-        'max_diff_length': 4000,
-        'temperature': 0.2,
-        'max_output_tokens': 4096
+        'title': pr.title,
+        'body': pr.body or "",
+        'author': pr.user.login,
+        'files_changed': files_changed,
+        'diff': diff_content,
+        'base': pr.base.ref,
+        'head': pr.head.ref,
+        'head_sha': pr.head.sha,
+        'number': pr_number
     }
 
 def load_config():
@@ -269,11 +273,11 @@ def format_comment(analysis):
 
 ---"""
 
-def post_comment(github_token, pr_details, analysis):
+def post_comment(github_token, repo_name, pr_details, analysis):
     """Post a comment on the PR with proper formatting and inline suggestions."""
     try:
         g = Github(auth=Auth.Token(github_token))
-        repo = g.get_repo(pr_details['repo'])
+        repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_details['number'])
         
         # Parse suggestions from analysis (diff blocks)
@@ -341,7 +345,7 @@ def main():
     
     # Post the comment with formatted analysis
     print("Posting analysis to PR...")
-    post_comment(github_token, pr_details, analysis)
+    post_comment(github_token, args.repo, pr_details, analysis)
     print("Analysis complete!")
 
 if __name__ == "__main__":
