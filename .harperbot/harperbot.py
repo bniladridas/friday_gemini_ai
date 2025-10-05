@@ -13,29 +13,37 @@ import google.generativeai as genai
 import yaml
 
 def find_diff_position(diff, file_path, line_number):
-    """Find the position in the diff hunk for a given file and line number."""
+    """
+    Find the position in the diff hunk for a given file and line number.
+
+    Parses the unified diff to locate the hunk containing the specified line,
+    then calculates the position within that hunk for inline comments.
+    """
     lines = diff.split('\n')
     i = 0
     while i < len(lines):
+        # Look for the diff header for the specific file
         if lines[i].startswith('diff --git') and f'b/{file_path}' in lines[i]:
-            # Found the file, now find hunks
-            i += 1
+            i += 1  # Skip the header
+            # Process hunks for this file
             while i < len(lines) and not lines[i].startswith('diff --git'):
                 if lines[i].startswith('@@'):
+                    # Parse hunk header to get starting line in new file
                     match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', lines[i])
                     if match:
                         hunk_start = int(match.group(1))
-                        # Collect hunk lines
-                        i += 1
+                        i += 1  # Move to hunk content
+                        # Collect all lines in this hunk
                         hunk_lines = []
                         while i < len(lines) and not lines[i].startswith('@@') and not lines[i].startswith('diff --git'):
                             hunk_lines.append(lines[i])
                             i += 1
-                        # Now find the position for the line_number
+                        # Find the position of the target line in the hunk
                         position = 1
                         plus_count = 0
                         for line in hunk_lines:
                             if line.startswith('+'):
+                                # Calculate the actual line number in the file
                                 current_line = hunk_start + plus_count
                                 plus_count += 1
                                 if current_line == line_number:
@@ -45,7 +53,7 @@ def find_diff_position(diff, file_path, line_number):
                     i += 1
         else:
             i += 1
-    return None
+    return None  # Line not found in any hunk
 
 def setup_environment():
     """Load environment variables and configure the Gemini API."""
