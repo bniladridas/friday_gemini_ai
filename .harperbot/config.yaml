@@ -4,8 +4,8 @@
 # Analysis focus: 'all', 'security', 'performance', 'quality'
 focus: all
 
-# Gemini model to use: 'gemini-1.5-flash', 'gemini-1.5-pro', etc.
-model: gemini-1.5-flash
+# Gemini model to use: 'gemini-2.0-flash', 'gemini-2.5-pro', etc.
+model: gemini-2.0-flash
 
 # Maximum diff length to analyze (characters)
 max_diff_length: 4000
