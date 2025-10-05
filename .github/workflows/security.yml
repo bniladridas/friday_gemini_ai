@@ -156,7 +156,7 @@ jobs:
 
       # Upload SARIF reports to GitHub Security tab if the file exists
       - name: Upload SARIF report
-        if: success()
+        if: success() && hashFiles('gitleaks.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: gitleaks.sarif
