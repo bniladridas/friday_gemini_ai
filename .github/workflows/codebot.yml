@@ -128,7 +128,7 @@ jobs:
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
 
         # Install Python dependencies
-        pip install --no-cache-dir PyGithub python-dotenv PyYAML
+        pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
 
         # Verify installations
         node --version
@@ -155,9 +155,6 @@ jobs:
         echo "npm: $(npm --version)"
         echo "Python: $(python --version)"
         echo "pip: $(pip --version)"
-        
-         # Install Python dependencies
-         pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
         
         # Run the PR bot script with repository and PR number
         python ./.harperbot/harperbot.py \
