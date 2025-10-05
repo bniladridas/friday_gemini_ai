@@ -222,7 +222,7 @@ def post_comment(github_token, pr_details, analysis):
         pr = repo.get_pull(pr_details['number'])
         
         # Parse suggestions from analysis
-        suggestions = re.findall(r'(\w+\.\w+):(\d+):```suggestion\n(.*?)\n```', analysis, re.DOTALL)
+        suggestions = re.findall(r'([\w/.-]+):(\d+):```suggestion\n(.*?)\n```', analysis, re.DOTALL)
         
         # Remove suggestions from main comment to avoid duplication
         main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
