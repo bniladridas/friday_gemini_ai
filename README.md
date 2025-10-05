@@ -153,6 +153,7 @@ The analysis output includes:
 - Specific recommendations and code suggestions
 - Actionable next steps
 - Inline code suggestions posted as review comments
+- Severity levels for easy prioritization
 - Collapsible summary for organized feedback
 - Clean, focused prompts optimized for accurate analysis
 
