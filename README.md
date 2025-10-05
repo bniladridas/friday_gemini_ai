@@ -175,14 +175,14 @@ For local development and testing:
    ```
 
 3. Run HarperBot on a specific PR:
-   ```
-   python3 .harper/pr_bot.py --repo owner/repo --pr number
-   ```
+    ```
+    python3 .harperbot/harperbot.py --repo owner/repo --pr number
+    ```
 
    Example:
    ```
-   python3 .harper/pr_bot.py --repo bniladridas/friday_gemini_ai --pr 59
-   ```
+    python3 .harperbot/harperbot.py --repo bniladridas/friday_gemini_ai --pr 59
+    ```
 
 ### Workflow Triggers
 
