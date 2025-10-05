@@ -40,7 +40,7 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 
 ## Customization
 
-You can modify the analysis prompt in `.github/scripts/pr_bot.py` to adjust:
+You can modify the analysis prompt in `.harperbot/harperbot.py` to adjust:
 - The type of feedback provided
 - The format of the analysis
 - Specific checks to perform
