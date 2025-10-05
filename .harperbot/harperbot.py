@@ -130,8 +130,8 @@ def analyze_with_gemini(pr_details):
                 - [Specific suggestions for code, docs, or tests]
 
                 ### Code Suggestions
-                - [Provide specific code changes with inline diffs where applicable]
-                - [Use ```diff format for code suggestions]
+                - [Provide specific code changes using GitHub suggestion format for direct application]
+                - [Use ```suggestion for code blocks that can be applied directly]
 
                 ### Next Steps
                 - [Actionable items for the author]
