@@ -12,6 +12,41 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import yaml
 
+def find_diff_position(diff, file_path, line_number):
+    """Find the position in the diff hunk for a given file and line number."""
+    lines = diff.split('\n')
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith('diff --git') and f'b/{file_path}' in lines[i]:
+            # Found the file, now find hunks
+            i += 1
+            while i < len(lines) and not lines[i].startswith('diff --git'):
+                if lines[i].startswith('@@'):
+                    match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', lines[i])
+                    if match:
+                        hunk_start = int(match.group(1))
+                        # Collect hunk lines
+                        i += 1
+                        hunk_lines = []
+                        while i < len(lines) and not lines[i].startswith('@@') and not lines[i].startswith('diff --git'):
+                            hunk_lines.append(lines[i])
+                            i += 1
+                        # Now find the position for the line_number
+                        position = 1
+                        plus_count = 0
+                        for line in hunk_lines:
+                            if line.startswith('+'):
+                                current_line = hunk_start + plus_count
+                                plus_count += 1
+                                if current_line == line_number:
+                                    return position
+                            position += 1
+                else:
+                    i += 1
+        else:
+            i += 1
+    return None
+
 def setup_environment():
     """Load environment variables and configure the Gemini API."""
     load_dotenv()
@@ -237,11 +272,15 @@ def post_comment(github_token, pr_details, analysis):
             for file_path, line_str, suggestion in suggestions:
                 try:
                     line = int(line_str)
-                    comments.append({
-                        'path': file_path,
-                        'position': line,
-                        'body': f"```suggestion\n{suggestion}\n```"
-                    })
+                    position = find_diff_position(pr_details['diff'], file_path, line)
+                    if position is not None:
+                        comments.append({
+                            'path': file_path,
+                            'position': position,
+                            'body': f"```suggestion\n{suggestion}\n```"
+                        })
+                    else:
+                        print(f"Could not find diff position for {file_path}:{line}")
                 except ValueError:
                     print(f"Invalid line number: {line_str}")
             if comments:
