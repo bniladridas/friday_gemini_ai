@@ -121,18 +121,13 @@ jobs:
         git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/pr
         git checkout --progress --force refs/remotes/origin/pr
 
-    # Install Node.js and Python dependencies required for HarperBot
+    # Install Python dependencies required for HarperBot
     - name: Install dependencies
       run: |
-        # Install Node.js dependencies
-        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
-
         # Install Python dependencies
         pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
 
         # Verify installations
-        node --version
-        npm --version
         python --version
         pip --version
 
