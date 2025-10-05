@@ -6,6 +6,7 @@ import os
 import sys
 import argparse
 import textwrap
+import re
 from datetime import datetime
 from github import Github, Auth, Auth
 from dotenv import load_dotenv
@@ -50,6 +51,7 @@ def get_pr_details(github_token, repo_name, pr_number):
         'diff': diff_content,
         'base': pr.base.ref,
         'head': pr.head.ref,
+        'head_sha': pr.head.sha,
         'number': pr_number,
         'repo': repo_name
     }
@@ -130,8 +132,8 @@ def analyze_with_gemini(pr_details):
                 - [Specific suggestions for code, docs, or tests]
 
                 ### Code Suggestions
-                - [Provide specific code changes using GitHub suggestion format for direct application]
-                - [Use ```suggestion for code blocks that can be applied directly]
+                - [Provide specific code changes in the format: file.py:line_number:```suggestion\nnew_code\n```]
+                - [Each suggestion should be on a new line for parsing]
 
                 ### Next Steps
                 - [Actionable items for the author]
@@ -213,18 +215,45 @@ def format_comment(analysis):
 
 ---"""
 
-def post_comment(github_token, repo_name, pr_number, comment):
-    """Post a comment on the PR with proper formatting."""
+def post_comment(github_token, pr_details, analysis):
+    """Post a comment on the PR with proper formatting and inline suggestions."""
     try:
         g = Github(auth=Auth.Token(github_token))
-        repo = g.get_repo(repo_name)
-        pr = repo.get_pull(pr_number)
+        repo = g.get_repo(pr_details['repo'])
+        pr = repo.get_pull(pr_details['number'])
         
-        # Format the comment with consistent styling
-        formatted_comment = format_comment(comment)
+        # Parse suggestions from analysis
+        suggestions = re.findall(r'(\w+\.\w+):(\d+):```suggestion\n(.*?)\n```', analysis, re.DOTALL)
         
-        # Post the comment
+        # Remove suggestions from main comment to avoid duplication
+        main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
+        
+        # Format and post main comment
+        formatted_comment = format_comment(main_comment)
         pr.create_issue_comment(formatted_comment)
+        
+        # Post inline suggestions as a review
+        if suggestions:
+            comments = []
+            for file_path, line_str, suggestion in suggestions:
+                try:
+                    line = int(line_str)
+                    comments.append({
+                        'path': file_path,
+                        'position': line,
+                        'body': f"```suggestion\n{suggestion}\n```"
+                    })
+                except ValueError:
+                    print(f"Invalid line number: {line_str}")
+            if comments:
+                try:
+                    pr.create_review(
+                        commit=pr_details['head_sha'],
+                        comments=comments,
+                        event='COMMENT'
+                    )
+                except Exception as e:
+                    print(f"Error posting review with suggestions: {str(e)}")
         
     except Exception as e:
         print(f"Error posting comment: {str(e)}")
@@ -248,7 +277,7 @@ def main():
     
     # Post the comment with formatted analysis
     print("Posting analysis to PR...")
-    post_comment(github_token, args.repo, args.pr, analysis)
+    post_comment(github_token, pr_details, analysis)
     print("Analysis complete!")
 
 if __name__ == "__main__":
