@@ -56,16 +56,18 @@ def get_pr_details(github_token, repo_name, pr_number):
 
 def load_config():
     """Load configuration from config.yaml."""
-    config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
-    if os.path.exists(config_path):
-        with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-    return {
+    default_config = {
         'focus': 'all',
         'model': 'gemini-2.0-flash',
         'max_diff_length': 4000,
         'temperature': 0.2
     }
+    config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            user_config = yaml.safe_load(f) or {}
+            return {**default_config, **user_config}
+    return default_config
 
 def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
