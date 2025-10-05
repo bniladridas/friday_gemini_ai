@@ -7,6 +7,7 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
+  # Update Ruby gem dependencies weekly
   update:
     name: Update
     permissions:
