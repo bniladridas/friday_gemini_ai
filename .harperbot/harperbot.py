@@ -245,7 +245,12 @@ def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
     return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 
+<details>
+<summary>HarperBot Analysis</summary>
+
 {analysis}
+
+</details>
 
 ---"""
 
