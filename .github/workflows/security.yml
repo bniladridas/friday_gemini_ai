@@ -22,8 +22,8 @@ env:
   BUNDLE_RETRY: 3
 
 jobs:
-  security-scan:
-    name: Security Scan
+  scan:
+    name: Scan
     runs-on: ubuntu-latest
     container:
       image: ruby:3.2-slim
