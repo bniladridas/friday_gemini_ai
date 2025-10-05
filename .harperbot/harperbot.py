@@ -342,6 +342,8 @@ def main():
     # Analyze PR with Gemini
     print("Analyzing PR with Gemini...")
     analysis = analyze_with_gemini(pr_details)
+    print("Analysis response:")
+    print(analysis)
     
     # Post the comment with formatted analysis
     print("Posting analysis to PR...")
