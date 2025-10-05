@@ -87,13 +87,12 @@ def analyze_with_gemini(pr_details):
         model = genai.GenerativeModel(model_name)
         
         # Prepare the prompt based on focus
-        focus_instruction = ""
-        if focus == 'security':
-            focus_instruction = "Focus primarily on security concerns, authentication, data handling, and potential vulnerabilities."
-        elif focus == 'performance':
-            focus_instruction = "Focus primarily on performance optimizations, efficiency, and potential bottlenecks."
-        elif focus == 'quality':
-            focus_instruction = "Focus primarily on code quality, maintainability, readability, and best practices."
+        focus_instructions = {
+            'security': "Focus primarily on security concerns, authentication, data handling, and potential vulnerabilities.",
+            'performance': "Focus primarily on performance optimizations, efficiency, and potential bottlenecks.",
+            'quality': "Focus primarily on code quality, maintainability, readability, and best practices."
+        }
+        focus_instruction = focus_instructions.get(focus, "")
 
         prompt = {
             'role': 'user',
