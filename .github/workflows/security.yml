@@ -78,7 +78,8 @@ jobs:
           echo "PATH=$HOME/.gem/bin:$PATH" >> $GITHUB_ENV
           echo "GITLEAKS_VERSION=8.28.0" >> $GITHUB_ENV
 
-      - name: Install and run Gitleaks
+       # Install and run Gitleaks for secret scanning
+       - name: Install and run Gitleaks
         run: |
           # Install Gitleaks
           mkdir -p /tmp/gitleaks
@@ -120,7 +121,8 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: Run security audit
+       # Run bundle audit for Ruby dependency vulnerabilities
+       - name: Run security audit
         run: |
           echo "Running bundle audit..."
           cd "$GITHUB_WORKSPACE"
@@ -128,6 +130,7 @@ jobs:
         continue-on-error: true
 
       # Additional security checks: dependency vulnerabilities and code security
+      # Check and update vulnerable dependencies
       - name: Check for vulnerable dependencies
         run: |
           # Temporarily unfreeze bundle for updates
