@@ -122,12 +122,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-         # Install Node.js dependencies
-         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
+        # Install Node.js dependencies
+        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
 
-         # Install Python dependencies
-         pip install --no-cache-dir PyGithub python-dotenv PyYAML
-        
+        # Install Python dependencies
+        pip install --no-cache-dir PyGithub python-dotenv PyYAML
+
         # Verify installations
         node --version
         npm --version
