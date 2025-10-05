@@ -15,19 +15,18 @@ permissions:
   security-events: write
 
 env:
-  GITLEAKS_VERSION: "8.18.0"
+  GITLEAKS_VERSION: "8.28.0"
   GEM_HOME: /usr/local/bundle
   BUNDLE_PATH: vendor/bundle
   BUNDLE_JOBS: 4
   BUNDLE_RETRY: 3
 
 jobs:
-  security-scan:
-    name: Security Scan
+  scan:
+    name: Scan
     runs-on: ubuntu-latest
     container:
       image: ruby:3.2-slim
-    
     steps:
       - name: Install Git
         run: |
@@ -78,6 +77,7 @@ jobs:
           echo "PATH=$HOME/.gem/bin:$PATH" >> $GITHUB_ENV
           echo "GITLEAKS_VERSION=8.28.0" >> $GITHUB_ENV
 
+       # Install and run Gitleaks for secret scanning
       - name: Install and run Gitleaks
         run: |
           # Install Gitleaks
@@ -109,25 +109,27 @@ jobs:
           # Run Gitleaks from the workspace directory
           echo "Running Gitleaks scan..."
           cd "$GITHUB_WORKSPACE"
-          gitleaks detect --source=. --report-format=sarif --report-path=./gitleaks-results.sarif --no-git --verbose || true
+          gitleaks detect --source=. --report-format=sarif --report-path=./gitleaks.sarif --no-git --verbose || true
           
           # Upload results as artifact
-          if [ -f "./gitleaks-results.sarif" ]; then
-            echo "GITLEAKS_RESULTS=$(cat ./gitleaks-results.sarif | jq -c '.' | base64 -w 0 | tr -d '\n')" >> $GITHUB_ENV
-            echo "Gitleaks scan completed. Results saved to gitleaks-results.sarif"
+          if [ -f "./gitleaks.sarif" ]; then
+            echo "GITLEAKS_RESULTS=$(cat ./gitleaks.sarif | jq -c '.' | base64 -w 0 | tr -d '\n')" >> $GITHUB_ENV
+            echo "Gitleaks scan completed. Results saved to gitleaks.sarif"
           else
             echo "No Gitleaks results file was generated."
           fi
         continue-on-error: true
 
+        # Run bundle audit for Ruby dependency vulnerabilities
       - name: Run security audit
         run: |
           echo "Running bundle audit..."
           cd "$GITHUB_WORKSPACE"
-          bundle audit check --update --quiet || echo "Bundle audit completed with findings"
+          bundle audit check --update --quiet --format json > bundler-audit.json || echo "Bundle audit completed with findings"
         continue-on-error: true
 
-      # Dependency Scanning (using GitHub's built-in Dependabot)
+      # Additional security checks: dependency vulnerabilities and code security
+      # Check and update vulnerable dependencies
       - name: Check for vulnerable dependencies
         run: |
           # Temporarily unfreeze bundle for updates
@@ -149,22 +151,15 @@ jobs:
           name: security-reports-${{ github.sha }}
           path: |
             bundler-audit.json
-            brakeman.*
-            gitleaks.*
+            gitleaks.sarif
           retention-days: 90
 
       # Upload SARIF reports to GitHub Security tab if the file exists
       - name: Upload SARIF report
-        if: success()
-        run: |
-          if [ -f "gitleaks.sarif" ]; then
-            # Upload SARIF report manually
-            echo "SARIF report would be uploaded here in a real GitHub Actions environment"
-            echo "::set-output name=sarif_uploaded::true"
-          else
-            echo "No SARIF file found"
-            echo "::set-output name=sarif_uploaded::false"
-          fi
+        if: success() && hashFiles('gitleaks.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
         id: sarif_upload
 
       # Fail the job if critical vulnerabilities found

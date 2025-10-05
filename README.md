@@ -137,18 +137,24 @@ This repository includes a GitHub Actions workflow for automated code reviews an
 
 HarperBot provides comprehensive automated analysis of pull requests with the following features:
 
+- **Configurable Analysis Focus**: Choose from all, security, performance, or quality-focused reviews
 - **Code Quality Assessment**: Evaluates code structure, readability, and adherence to best practices
 - **Security Analysis**: Identifies potential security vulnerabilities and suggests mitigations
 - **Performance Review**: Analyzes code for performance bottlenecks and optimization opportunities
 - **Documentation Check**: Ensures proper documentation and comments for new code
 - **Testing Coverage**: Reviews test coverage and suggests additional test cases
 - **Issue Detection**: Identifies bugs, edge cases, and potential runtime errors
-- **Improvement Suggestions**: Provides actionable recommendations for code enhancement
+- **Improvement Suggestions**: Provides actionable recommendations and inline code suggestions
 
 The analysis output includes:
-- Collapsible sections for organized feedback
-- Severity levels (🐛 Critical, 🔍 Minor) for easy prioritization
-- Timestamp and Harper branding for professional presentation
+- Summary of changes and purpose
+- Quality scores (Code Quality, Maintainability, Security)
+- Strengths and areas needing attention
+- Specific recommendations and code suggestions
+- Actionable next steps
+- Inline code suggestions posted as review comments
+- Severity levels for easy prioritization
+- Collapsible summary for organized feedback
 - Clean, focused prompts optimized for accurate analysis
 
 The HarperBot prompt is specifically designed to avoid noise, repetition, and unnecessary content. It enforces clean, focused writing with no clutter.
@@ -160,6 +166,8 @@ The HarperBot prompt is specifically designed to avoid noise, repetition, and un
    - `GITHUB_TOKEN` (automatically provided by GitHub)
 
 2. The workflow is configured in `.github/workflows/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
+
+3. Optionally, customize HarperBot analysis in `.harperbot/config.yaml` (focus: all/security/performance/quality, model selection, etc.).
 
 ### Local Testing
 
@@ -173,7 +181,7 @@ For local development and testing:
 
 2. Install Python dependencies:
    ```
-   pip3 install PyGithub python-dotenv google-generativeai
+   pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
    ```
 
 3. Run HarperBot on a specific PR:
@@ -194,16 +202,16 @@ For local development and testing:
 
 ### Jobs
 
-1. **Gemini CLI**
+1. **CLI**
    - Runs on workflow dispatch or push to main
    - Installs and verifies Gemini CLI
    - Uses Node.js 20 container
 
-2. **HarperBot**
-    - Runs on pull request events
-    - Uses Python 3.11 container
-    - Installs required dependencies
-    - Runs the HarperBot PR analysis script
+2. **Bot**
+   - Runs on pull request events
+   - Uses Python 3.11 container
+   - Installs required dependencies (PyGithub, python-dotenv, PyYAML, google-generativeai)
+   - Runs the HarperBot PR analysis script
 
 ### Required Permissions
 
