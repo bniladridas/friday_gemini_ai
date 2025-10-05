@@ -6,6 +6,10 @@ on:
     - cron: '0 9 * * 1'
   workflow_dispatch: # Allow manual trigger
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   # Update Ruby gem dependencies weekly
   update:
@@ -21,10 +25,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
+       - name: Set up Ruby
+         uses: ruby/setup-ruby@v1
+         with:
+           ruby-version: '3.3'
+           bundler-cache: true
 
       - name: Update Bundler
         run: gem update bundler
