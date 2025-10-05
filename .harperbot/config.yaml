@@ -12,3 +12,6 @@ max_diff_length: 4000
 
 # Temperature for generation (0.0 to 1.0)
 temperature: 0.2
+
+# Maximum output tokens
+max_output_tokens: 4096
