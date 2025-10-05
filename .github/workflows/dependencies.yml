@@ -25,11 +25,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-       - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: '3.3'
-           bundler-cache: true
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
 
       - name: Update Bundler
         run: gem update bundler
