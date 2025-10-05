@@ -59,88 +59,36 @@ def analyze_with_gemini(pr_details):
         # Initialize with a stable model version
         model = genai.GenerativeModel('gemini-2.0-flash')
         
-        # Prepare the prompt with clear instructions
+        # Prepare the simplified prompt
         prompt = {
             'role': 'user',
             'parts': [f"""
-             **Files Changed** ({len(pr_details['files_changed'])}):
-             {', '.join(pr_details['files_changed'])}
-             
-             ```diff
-             {pr_details['diff'][:4000]}
-             ```
-             
-             Please provide a detailed analysis following this exact format. Ensure the analysis is accurate, concise, and noise-free. Replace all [placeholder] text with actual content:
-            
-            ## 🔍 Summary
-            [Brief overview of changes and purpose]
-            
-             ### Strengths
-             - [List key strengths]
-            - [Focus on what's working well]
-            
-             ### Areas Needing Attention
-             - [List potential issues]
-            - [Be specific and constructive]
-            
-             <details><summary>Code Quality</summary>
-             Structure & Organization
-             - [Comments on code structure]
-             
-             Style & Readability
-             - [Comments on code style and readability]
-             </details>
-            
-             <details><summary>Potential Issues</summary>
-             Bugs & Edge Cases
-             - [List any potential bugs]
-             
-             Performance
-             - [Performance considerations]
-             </details>
-            
-             <details><summary>Security</summary>
-             Authentication & Data
-             - [Security considerations]
-             
-             Dependencies
-             - [Dependency analysis]
-             </details>
-            
-              <details><summary>Recommendations</summary>
-              Code Improvements
-              - [Specific improvement suggestions with code examples in code blocks if applicable]
+**Files Changed** ({len(pr_details['files_changed'])}):
+{', '.join(pr_details['files_changed'])}
 
-              Documentation
-              - [Documentation suggestions]
-              </details>
+```diff
+{pr_details['diff'][:4000]}
+```
 
-              <details><summary>Testing & Validation</summary>
-              - [Suggestions for unit tests, integration tests, or validation checks]
-              </details>
+Provide a concise code review analysis in this format:
 
-              ### Next Steps
-              - [Actionable next steps]
-            
-Format your response with:
-             - Clear section headers (minimal emojis)
-             - Bullet points for lists
-             - Code blocks with syntax highlighting
-             - Bold text for important points
-             - Keep lines under 100 characters
-             - Craft the language for a clearer, more harmonious reading experience with no clutter
-             - Ensure cleaner, more focused writing with no unnecessary repetition
-             - Create no linguistic noise
-             - Refine the language and structure for a seamless and noise-free narrative
-             - Absolutely no excess or repetition
-             - Do not add any extra headings, footers, or repetitions
-             - Stick exactly to the format provided
-             - Do not wrap the response in code blocks or backticks
-             - Use only 🐛 and 🔍 emojis if any, no other emojis
-             - Typography to create a cleaner, more harmonious visual experience with no noise
-             - Cleaner, more focused user interface with no redundancy
-             - Creates no visual noise
-             - Further refine the typography and interface to create an even cleaner, more harmonious visual experience with absolutely no noise or redundancy
+## Summary
+[Brief overview of changes and purpose]
+
+### Strengths
+- [Key positives]
+- [What's working well]
+
+### Areas Needing Attention
+- [Potential issues or improvements]
+- [Be specific and constructive]
+
+### Recommendations
+- [Specific suggestions for code, docs, or tests]
+- [Include code examples if helpful]
+
+### Next Steps
+- [Actionable items for the author]
             """]
         }
         
