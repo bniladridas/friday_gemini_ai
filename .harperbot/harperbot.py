@@ -62,34 +62,34 @@ def analyze_with_gemini(pr_details):
         # Prepare the simplified prompt
         prompt = {
             'role': 'user',
-            'parts': [f"""
-**Files Changed** ({len(pr_details['files_changed'])}):
-{', '.join(pr_details['files_changed'])}
+            'parts': [textwrap.dedent(f"""
+                **Files Changed** ({len(pr_details['files_changed'])}):
+                {', '.join(pr_details['files_changed'])}
 
-```diff
-{pr_details['diff'][:4000]}
-```
+                ```diff
+                {pr_details['diff'][:4000]}
+                ```
 
-Provide a concise code review analysis in this format:
+                Provide a concise code review analysis in this format:
 
-## Summary
-[Brief overview of changes and purpose]
+                ## Summary
+                [Brief overview of changes and purpose]
 
-### Strengths
-- [Key positives]
-- [What's working well]
+                ### Strengths
+                - [Key positives]
+                - [What's working well]
 
-### Areas Needing Attention
-- [Potential issues or improvements]
-- [Be specific and constructive]
+                ### Areas Needing Attention
+                - [Potential issues or improvements]
+                - [Be specific and constructive]
 
-### Recommendations
-- [Specific suggestions for code, docs, or tests]
-- [Include code examples if helpful]
+                ### Recommendations
+                - [Specific suggestions for code, docs, or tests]
+                - [Include code examples if helpful]
 
-### Next Steps
-- [Actionable items for the author]
-            """]
+                ### Next Steps
+                - [Actionable items for the author]
+            """)]
         }
         
         # Generate content with safety settings
