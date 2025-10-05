@@ -78,16 +78,11 @@ def get_pr_details(github_token, repo_name, pr_number):
     diff_content = requests.get(diff_url).text
     
     return {
-        'title': pr.title,
-        'body': pr.body or "",
-        'author': pr.user.login,
-        'files_changed': files_changed,
-        'diff': diff_content,
-        'base': pr.base.ref,
-        'head': pr.head.ref,
-        'head_sha': pr.head.sha,
-        'number': pr_number,
-        'repo': repo_name
+        'focus': 'all',
+        'model': 'gemini-2.0-flash',
+        'max_diff_length': 4000,
+        'temperature': 0.2,
+        'max_output_tokens': 4096
     }
 
 def load_config():
@@ -113,6 +108,7 @@ def analyze_with_gemini(pr_details):
         focus = config.get('focus', 'all')
         max_diff = config.get('max_diff_length', 4000)
         temperature = config.get('temperature', 0.2)
+        max_output_tokens = config.get('max_output_tokens', 4096)
 
         # Auto-select model based on PR complexity
         diff_length = len(pr_details['diff'])
@@ -181,7 +177,7 @@ def analyze_with_gemini(pr_details):
                 'temperature': temperature,
                 'top_p': 0.95,
                 'top_k': 40,
-                'max_output_tokens': 2048,
+                'max_output_tokens': max_output_tokens,
             },
             safety_settings=[
                 {
