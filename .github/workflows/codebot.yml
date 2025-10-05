@@ -118,7 +118,7 @@ jobs:
         git init
         git remote add origin https://github.com/${{ github.repository }}.git
         git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/pr
-        git checkout --progress --force refs/remotes/origin/pr
+        git checkout --force refs/remotes/origin/pr
 
     - name: Install dependencies
       run: |
