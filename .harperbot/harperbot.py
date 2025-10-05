@@ -166,8 +166,8 @@ def analyze_with_gemini(pr_details):
                 - [Specific suggestions for code, docs, or tests]
 
                 ### Code Suggestions
-                - [Provide specific code changes in the format: file.py:line_number:```suggestion\nnew_code\n```]
-                - [Each suggestion should be on a new line for parsing]
+                - [Provide specific code changes as diff blocks]
+                - [Use ```diff format for each suggestion]
 
                 ### Next Steps
                 - [Actionable items for the author]
@@ -241,6 +241,25 @@ def analyze_with_gemini(pr_details):
     except Exception as e:
         return "Error generating analysis: API quota exceeded or unavailable. Please try again later."
 
+def parse_diff_for_suggestions(diff_text):
+    """Parse a diff block to extract file, line, and suggestion code."""
+    lines = diff_text.strip().split('\n')
+    if not lines or not lines[0].startswith('--- a/'):
+        return None
+    file_path = lines[0][6:]  # --- a/file
+    hunk_start = None
+    suggestion_lines = []
+    for line in lines:
+        if line.startswith('@@'):
+            match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', line)
+            if match:
+                hunk_start = int(match.group(1))
+        elif line.startswith('+') and hunk_start is not None:
+            suggestion_lines.append(line[1:])  # remove +
+    if hunk_start is not None and suggestion_lines:
+        return file_path, hunk_start, '\n'.join(suggestion_lines)
+    return None
+
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
     return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
@@ -261,8 +280,14 @@ def post_comment(github_token, pr_details, analysis):
         repo = g.get_repo(pr_details['repo'])
         pr = repo.get_pull(pr_details['number'])
         
-        # Parse suggestions from analysis
-        suggestions = re.findall(r'([\w/.-]+):(\d+):```suggestion\n(.*?)\n```', analysis, re.DOTALL)
+        # Parse suggestions from analysis (diff blocks)
+        diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
+        suggestions = []
+        for diff_text in diff_blocks:
+            parsed = parse_diff_for_suggestions(diff_text)
+            if parsed:
+                file_path, line, suggestion = parsed
+                suggestions.append((file_path, str(line), suggestion))
         
         # Remove suggestions from main comment to avoid duplication
         main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
