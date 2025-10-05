@@ -6,10 +6,54 @@ import os
 import sys
 import argparse
 import textwrap
-from datetime import datetime
+import re
 from github import Github, Auth, Auth
 from dotenv import load_dotenv
 import google.generativeai as genai
+import yaml
+
+def find_diff_position(diff, file_path, line_number):
+    """
+    Find the position in the diff hunk for a given file and line number.
+
+    Parses the unified diff to locate the hunk containing the specified line,
+    then calculates the position within that hunk for inline comments.
+    """
+    lines = diff.split('\n')
+    i = 0
+    while i < len(lines):
+        # Look for the diff header for the specific file
+        if lines[i].startswith('diff --git') and f'b/{file_path}' in lines[i]:
+            i += 1  # Skip the header
+            # Process hunks for this file
+            while i < len(lines) and not lines[i].startswith('diff --git'):
+                if lines[i].startswith('@@'):
+                    # Parse hunk header to get starting line in new file
+                    match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', lines[i])
+                    if match:
+                        hunk_start = int(match.group(1))
+                        i += 1  # Move to hunk content
+                        # Collect all lines in this hunk
+                        hunk_lines = []
+                        while i < len(lines) and not lines[i].startswith('@@') and not lines[i].startswith('diff --git'):
+                            hunk_lines.append(lines[i])
+                            i += 1
+                        # Find the position of the target line in the hunk
+                        position = 1
+                        plus_count = 0
+                        for line in hunk_lines:
+                            if line.startswith('+'):
+                                # Calculate the actual line number in the file
+                                current_line = hunk_start + plus_count
+                                plus_count += 1
+                                if current_line == line_number:
+                                    return position
+                            position += 1
+                else:
+                    i += 1
+        else:
+            i += 1
+    return None  # Line not found in any hunk
 
 def setup_environment():
     """Load environment variables and configure the Gemini API."""
@@ -49,109 +93,107 @@ def get_pr_details(github_token, repo_name, pr_number):
         'diff': diff_content,
         'base': pr.base.ref,
         'head': pr.head.ref,
-        'number': pr_number,
-        'repo': repo_name
+        'head_sha': pr.head.sha,
+        'number': pr_number
     }
+
+def load_config():
+    default_config = {
+        'focus': 'all',
+        'model': 'gemini-2.0-flash',
+        'max_diff_length': 4000,
+        'temperature': 0.2,
+        'max_output_tokens': 4096
+    }
+    config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            try:
+                user_config = yaml.safe_load(f) or {}
+                return {**default_config, **user_config}
+            except yaml.YAMLError as e:
+                print(f"Error loading config.yaml: {e}")
+                return default_config
+    return default_config
 
 def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
     try:
-        # Initialize with a stable model version
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        config = load_config()
+        model_name = config.get('model', 'gemini-2.0-flash')
+        focus = config.get('focus', 'all')
+        max_diff = config.get('max_diff_length', 4000)
+        temperature = config.get('temperature', 0.2)
+        max_output_tokens = config.get('max_output_tokens', 4096)
+
+        # Auto-select model based on PR complexity
+        diff_length = len(pr_details['diff'])
+        num_files = len(pr_details['files_changed'])
+        if diff_length > 10000 or num_files > 10:
+            model_name = 'gemini-2.5-pro'  # More powerful model for complex PRs
+        # For simple PRs, use the configured model (default gemini-2.0-flash)
+
+        # Initialize with selected model
+        model = genai.GenerativeModel(model_name)
         
-        # Prepare the prompt with clear instructions
+        # Prepare the prompt based on focus
+        focus_instructions = {
+            'security': "Focus primarily on security concerns, authentication, data handling, and potential vulnerabilities.",
+            'performance': "Focus primarily on performance optimizations, efficiency, and potential bottlenecks.",
+            'quality': "Focus primarily on code quality, maintainability, readability, and best practices."
+        }
+        focus_instruction = focus_instructions.get(focus, "")
+
         prompt = {
             'role': 'user',
-            'parts': [f"""
-             **Files Changed** ({len(pr_details['files_changed'])}):
-             {', '.join(pr_details['files_changed'])}
-             
-             ```diff
-             {pr_details['diff'][:4000]}
-             ```
-             
-             Please provide a detailed analysis following this exact format. Ensure the analysis is accurate, concise, and noise-free. Replace all [placeholder] text with actual content:
-            
-            ## 🔍 Summary
-            [Brief overview of changes and purpose]
-            
-             ### Strengths
-             - [List key strengths]
-            - [Focus on what's working well]
-            
-             ### Areas Needing Attention
-             - [List potential issues]
-            - [Be specific and constructive]
-            
-             <details><summary>Code Quality</summary>
-             Structure & Organization
-             - [Comments on code structure]
-             
-             Style & Readability
-             - [Comments on code style and readability]
-             </details>
-            
-             <details><summary>Potential Issues</summary>
-             Bugs & Edge Cases
-             - [List any potential bugs]
-             
-             Performance
-             - [Performance considerations]
-             </details>
-            
-             <details><summary>Security</summary>
-             Authentication & Data
-             - [Security considerations]
-             
-             Dependencies
-             - [Dependency analysis]
-             </details>
-            
-              <details><summary>Recommendations</summary>
-              Code Improvements
-              - [Specific improvement suggestions with code examples in code blocks if applicable]
+            'parts': [textwrap.dedent(f"""
+                **Files Changed** ({len(pr_details['files_changed'])}):
+                {', '.join(pr_details['files_changed'])}
 
-              Documentation
-              - [Documentation suggestions]
-              </details>
+                ```diff
+                {pr_details['diff'][:max_diff]}
+                ```
 
-              <details><summary>Testing & Validation</summary>
-              - [Suggestions for unit tests, integration tests, or validation checks]
-              </details>
+                {focus_instruction}
 
-              ### Next Steps
-              - [Actionable next steps]
-            
-Format your response with:
-             - Clear section headers (minimal emojis)
-             - Bullet points for lists
-             - Code blocks with syntax highlighting
-             - Bold text for important points
-             - Keep lines under 100 characters
-             - Craft the language for a clearer, more harmonious reading experience with no clutter
-             - Ensure cleaner, more focused writing with no unnecessary repetition
-             - Create no linguistic noise
-             - Refine the language and structure for a seamless and noise-free narrative
-             - Absolutely no excess or repetition
-             - Do not add any extra headings, footers, or repetitions
-             - Stick exactly to the format provided
-             - Do not wrap the response in code blocks or backticks
-             - Use only 🐛 and 🔍 emojis if any, no other emojis
-             - Typography to create a cleaner, more harmonious visual experience with no noise
-             - Cleaner, more focused user interface with no redundancy
-             - Creates no visual noise
-             - Further refine the typography and interface to create an even cleaner, more harmonious visual experience with absolutely no noise or redundancy
-            """]
+                Provide a concise code review analysis in this format:
+
+                ## Summary
+                [Brief overview of changes and purpose]
+
+                ### Scores
+                - Code Quality: [score]/10
+                - Maintainability: [score]/10
+                - Security: [score]/10
+
+                ### Strengths
+                - [Key positives]
+                - [What's working well]
+
+                ### Areas Needing Attention
+                - [Potential issues or improvements]
+                - [Be specific and constructive]
+
+                ### Recommendations
+                - [Specific suggestions for code, docs, or tests]
+
+                ### Code Suggestions
+                - [Provide specific code changes as diff blocks]
+                - [Use ```diff format for each suggestion]
+
+                ### Next Steps
+                - [Actionable items for the author]
+            """)]
         }
         
         # Generate content with safety settings
         response = model.generate_content(
             contents=[prompt],
             generation_config={
-                'temperature': 0.2,
+                'temperature': temperature,
                 'top_p': 0.95,
                 'top_k': 40,
-                'max_output_tokens': 2048,
+                'max_output_tokens': max_output_tokens,
             },
             safety_settings=[
                 {
@@ -211,26 +253,87 @@ Format your response with:
     except Exception as e:
         return "Error generating analysis: API quota exceeded or unavailable. Please try again later."
 
+def parse_diff_for_suggestions(diff_text):
+    """Parse a diff block to extract file, line, and suggestion code."""
+    lines = diff_text.strip().split('\n')
+    if not lines or not lines[0].startswith('--- a/'):
+        return None
+    file_path = lines[0][6:]  # --- a/file
+    hunk_start = None
+    suggestion_lines = []
+    for line in lines:
+        if line.startswith('@@'):
+            match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', line)
+            if match:
+                hunk_start = int(match.group(1))
+        elif line.startswith('+') and hunk_start is not None:
+            suggestion_lines.append(line[1:])  # remove +
+    if hunk_start is not None and suggestion_lines:
+        return file_path, hunk_start, '\n'.join(suggestion_lines)
+    return None
+
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
     return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
 
+<details>
+<summary>HarperBot Analysis</summary>
+
 {analysis}
+
+</details>
 
 ---"""
 
-def post_comment(github_token, repo_name, pr_number, comment):
-    """Post a comment on the PR with proper formatting."""
+def post_comment(github_token, repo_name, pr_details, analysis):
+    """Post a comment on the PR with proper formatting and inline suggestions."""
     try:
         g = Github(auth=Auth.Token(github_token))
         repo = g.get_repo(repo_name)
-        pr = repo.get_pull(pr_number)
+        pr = repo.get_pull(pr_details['number'])
         
-        # Format the comment with consistent styling
-        formatted_comment = format_comment(comment)
+        # Parse suggestions from analysis (diff blocks)
+        diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
+        suggestions = []
+        for diff_text in diff_blocks:
+            parsed = parse_diff_for_suggestions(diff_text)
+            if parsed:
+                file_path, line, suggestion = parsed
+                suggestions.append((file_path, str(line), suggestion))
         
-        # Post the comment
+        # Remove suggestions from main comment to avoid duplication
+        main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
+        
+        # Format and post main comment
+        formatted_comment = format_comment(main_comment)
         pr.create_issue_comment(formatted_comment)
+        
+        # Post inline suggestions as a review
+        if suggestions:
+            comments = []
+            for file_path, line_str, suggestion in suggestions:
+                try:
+                    line = int(line_str)
+                    position = find_diff_position(pr_details['diff'], file_path, line)
+                    if position is not None:
+                        comments.append({
+                            'path': file_path,
+                            'position': position,
+                            'body': f"```suggestion\n{suggestion}\n```"
+                        })
+                    else:
+                        print(f"Could not find diff position for {file_path}:{line}")
+                except ValueError:
+                    print(f"Invalid line number: {line_str}")
+            if comments:
+                try:
+                    pr.create_review(
+                        commit=pr_details['head_sha'],
+                        comments=comments,
+                        event='COMMENT'
+                    )
+                except Exception as e:
+                    print(f"Error posting review with suggestions: {str(e)}")
         
     except Exception as e:
         print(f"Error posting comment: {str(e)}")
@@ -251,11 +354,14 @@ def main():
     # Analyze PR with Gemini
     print("Analyzing PR with Gemini...")
     analysis = analyze_with_gemini(pr_details)
+    print("Analysis response:")
+    print(analysis)
     
     # Post the comment with formatted analysis
     print("Posting analysis to PR...")
-    post_comment(github_token, args.repo, args.pr, analysis)
+    post_comment(github_token, args.repo, pr_details, analysis)
     print("Analysis complete!")
 
 if __name__ == "__main__":
     main()
+

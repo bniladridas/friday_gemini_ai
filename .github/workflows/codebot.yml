@@ -26,8 +26,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  harper-cli:
-    name: Harper CLI
+  cli:
+    name: CLI
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -82,8 +82,8 @@ jobs:
         gemini --version
         gemini-wrapper
 
-  harper-pr-bot:
-    name: Harper PR Bot
+  bot:
+    name: Bot
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     container: python:3.11-slim
@@ -126,8 +126,8 @@ jobs:
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
         
         # Install Python dependencies
-        pip install --no-cache-dir PyGithub python-dotenv
-        
+        pip install --no-cache-dir PyGithub python-dotenv PyYAML
+
         # Verify installations
         node --version
         npm --version
@@ -153,7 +153,7 @@ jobs:
         echo "pip: $(pip --version)"
         
         # Install Python dependencies
-        pip install --no-cache-dir PyGithub python-dotenv google-generativeai
+        pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
         
         # Run the PR bot script with repository and PR number
         python ./.harperbot/harperbot.py \
