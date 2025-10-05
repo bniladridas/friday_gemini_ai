@@ -62,7 +62,7 @@ def load_config():
             return yaml.safe_load(f)
     return {
         'focus': 'all',
-        'model': 'gemini-2.0-flash',
+        'model': 'gemini-1.5-flash',
         'max_diff_length': 4000,
         'temperature': 0.2
     }
@@ -81,9 +81,7 @@ def analyze_with_gemini(pr_details):
         num_files = len(pr_details['files_changed'])
         if diff_length > 10000 or num_files > 10:
             model_name = 'gemini-1.5-pro'  # More powerful model for complex PRs
-        elif diff_length < 1000 and num_files <= 2:
-            model_name = 'gemini-2.0-flash-lite'  # Lighter model for simple PRs, if available
-        # Else use configured model
+        # For simple PRs, use the configured model (default gemini-1.5-flash)
 
         # Initialize with selected model
         model = genai.GenerativeModel(model_name)
