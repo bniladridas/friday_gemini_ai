@@ -10,6 +10,7 @@ from datetime import datetime
 from github import Github, Auth, Auth
 from dotenv import load_dotenv
 import google.generativeai as genai
+import yaml
 
 def setup_environment():
     """Load environment variables and configure the Gemini API."""
@@ -53,13 +54,49 @@ def get_pr_details(github_token, repo_name, pr_number):
         'repo': repo_name
     }
 
+def load_config():
+    """Load configuration from config.yaml."""
+    config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            return yaml.safe_load(f)
+    return {
+        'focus': 'all',
+        'model': 'gemini-2.0-flash',
+        'max_diff_length': 4000,
+        'temperature': 0.2
+    }
+
 def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
     try:
-        # Initialize with a stable model version
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        config = load_config()
+        model_name = config.get('model', 'gemini-2.0-flash')
+        focus = config.get('focus', 'all')
+        max_diff = config.get('max_diff_length', 4000)
+        temperature = config.get('temperature', 0.2)
+
+        # Auto-select model based on PR complexity
+        diff_length = len(pr_details['diff'])
+        num_files = len(pr_details['files_changed'])
+        if diff_length > 10000 or num_files > 10:
+            model_name = 'gemini-1.5-pro'  # More powerful model for complex PRs
+        elif diff_length < 1000 and num_files <= 2:
+            model_name = 'gemini-2.0-flash-lite'  # Lighter model for simple PRs, if available
+        # Else use configured model
+
+        # Initialize with selected model
+        model = genai.GenerativeModel(model_name)
         
-        # Prepare the simplified prompt
+        # Prepare the prompt based on focus
+        focus_instruction = ""
+        if focus == 'security':
+            focus_instruction = "Focus primarily on security concerns, authentication, data handling, and potential vulnerabilities."
+        elif focus == 'performance':
+            focus_instruction = "Focus primarily on performance optimizations, efficiency, and potential bottlenecks."
+        elif focus == 'quality':
+            focus_instruction = "Focus primarily on code quality, maintainability, readability, and best practices."
+
         prompt = {
             'role': 'user',
             'parts': [textwrap.dedent(f"""
@@ -67,13 +104,20 @@ def analyze_with_gemini(pr_details):
                 {', '.join(pr_details['files_changed'])}
 
                 ```diff
-                {pr_details['diff'][:4000]}
+                {pr_details['diff'][:max_diff]}
                 ```
+
+                {focus_instruction}
 
                 Provide a concise code review analysis in this format:
 
                 ## Summary
                 [Brief overview of changes and purpose]
+
+                ### Scores
+                - Code Quality: [score]/10
+                - Maintainability: [score]/10
+                - Security: [score]/10
 
                 ### Strengths
                 - [Key positives]
@@ -85,7 +129,10 @@ def analyze_with_gemini(pr_details):
 
                 ### Recommendations
                 - [Specific suggestions for code, docs, or tests]
-                - [Include code examples if helpful]
+
+                ### Code Suggestions
+                - [Provide specific code changes with inline diffs where applicable]
+                - [Use ```diff format for code suggestions]
 
                 ### Next Steps
                 - [Actionable items for the author]
@@ -96,7 +143,7 @@ def analyze_with_gemini(pr_details):
         response = model.generate_content(
             contents=[prompt],
             generation_config={
-                'temperature': 0.2,
+                'temperature': temperature,
                 'top_p': 0.95,
                 'top_k': 40,
                 'max_output_tokens': 2048,
