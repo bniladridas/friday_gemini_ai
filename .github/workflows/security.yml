@@ -127,7 +127,7 @@ jobs:
           bundle audit check --update --quiet || echo "Bundle audit completed with findings"
         continue-on-error: true
 
-      # Dependency Scanning (using GitHub's built-in Dependabot)
+      # Additional security checks: dependency vulnerabilities and code security
       - name: Check for vulnerable dependencies
         run: |
           # Temporarily unfreeze bundle for updates

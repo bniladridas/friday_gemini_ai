@@ -113,13 +113,15 @@ jobs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         
+    # Checkout PR code for analysis
     - name: Checkout code
       run: |
         git init
         git remote add origin https://github.com/${{ github.repository }}.git
         git fetch --no-tags --prune --depth=1 origin +${{ github.sha }}:refs/remotes/origin/pr
-        git checkout --force refs/remotes/origin/pr
+        git checkout --progress --force refs/remotes/origin/pr
 
+    # Install Node.js and Python dependencies required for HarperBot
     - name: Install dependencies
       run: |
         # Install Node.js dependencies
@@ -134,6 +136,7 @@ jobs:
         python --version
         pip --version
 
+    # Generate GitHub App token for PR commenting
     - name: Generate GitHub App Token
       id: app-token
       uses: actions/create-github-app-token@v1
@@ -141,6 +144,7 @@ jobs:
         app-id: ${{ secrets.HARPER_BOT_APP_ID }}
         private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
 
+    # Run HarperBot to analyze PR with Gemini AI
     - name: Run Gemini PR Bot
       env:
         GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
