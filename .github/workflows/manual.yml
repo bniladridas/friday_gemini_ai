@@ -1,5 +1,7 @@
 name: Release
 
+name: Manual Release
+
 permissions:
   contents: write
 
