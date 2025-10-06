@@ -42,12 +42,7 @@ image_client = GeminiAI::Client.new(model: :pro_1_5)  # For image analysis
 GeminiAI::Client.new(model: :pro)    # Gemini 2.5 Pro
 GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
 
-# Image analysis
-GeminiAI::Client.new(model: :pro_1_5)  # Gemini 1.5 Pro
-
 # Lightweight options
-GeminiAI::Client.new(model: :flash_1_5)  # Gemini 1.5 Flash
-GeminiAI::Client.new(model: :flash_8b)   # Compact model
 
 # Legacy options
 GeminiAI::Client.new(model: :flash_2_0)  # Gemini 2.0 Flash
@@ -60,9 +55,6 @@ GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
 | ------------ | ---------------------- | ------------------------------- |
 | `:pro`        | `gemini-2.5-pro`        | Most capable, complex reasoning |
 | `:flash`      | `gemini-2.5-flash`      | Fast, general-purpose           |
-| `:pro_1_5`    | `gemini-1.5-pro`        | Image-to-text                   |
-| `:flash_1_5`  | `gemini-1.5-flash`      | Lightweight tasks               |
-| `:flash_8b`   | `gemini-1.5-flash-8b`   | Compact, efficient              |
 | `:flash_2_0`  | `gemini-2.0-flash`      | Legacy support                  |
 | `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight legacy              |
 
@@ -76,7 +68,7 @@ GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
 ## Features
 
 * **Multiple Model Support**
-  - Gemini 2.5, 2.0, and 1.5 families
+  - Gemini 2.5 and 2.0 families
   - Automatic model selection based on task
   - Backward compatibility with legacy models
 
