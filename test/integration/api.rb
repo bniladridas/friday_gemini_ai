@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'minitest/autorun'
-require 'webmock/minitest'
+# require 'webmock/minitest'
 require 'mocha/minitest'
 require_relative '../../lib/gemini'
 
