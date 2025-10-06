@@ -18,9 +18,10 @@ Test Environment: Local development with live API
 | **Advanced Examples** | 3 | - | 0 | 0 | PASS |
 | **Unit Tests** | 8 | 9 | 0 | 0 | PASS |
 | **Integration Tests** | 4 | 14 | 0 | 0 | PASS |
-| **Complete Suite** | 12 | 23 | 0 | 0 | PASS |
+| **E2E Tests** | 3 | 17 | 0 | 0 | PASS |
+| **Complete Suite** | 15 | 40 | 0 | 0 | PASS |
 
-**Total: 32 test scenarios, 0 failures, 0 errors**
+**Total: 35 test scenarios, 0 failures, 0 errors**
 
 ---
 
@@ -89,6 +90,32 @@ Bugs squashed, peace restored.
 - **Chat Functionality:** Multi-turn conversation working
 - **Model Comparison:** Both Flash and Flash Lite responding
 - **Custom Parameters:** Temperature and token limits working
+
+----
+
+## E2E Tests
+
+### Overview
+End-to-end tests validate the complete API integration with real Gemini AI calls. These tests run with live API keys and verify actual request/response cycles.
+
+### Test Cases
+- **Basic Text Generation**: Tests simple text generation with real API
+- **Chat Functionality**: Validates multi-turn conversations
+- **Model Switching**: Ensures different models (pro/flash) work correctly
+
+### Running E2E Tests
+```bash
+# Locally (requires GEMINI_API_KEY)
+bundle exec rake e2e_test
+
+# In CI (runs automatically when API key is set)
+# Triggered by .github/workflows/e2e.yml
+```
+
+### Prerequisites
+- Valid `GEMINI_API_KEY` environment variable
+- Internet connection for API calls
+- Tests include rate limiting and retries
 
 ----
 
