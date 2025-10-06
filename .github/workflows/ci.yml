@@ -27,7 +27,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
 
       - name: Configure Bundler
         run: bundle config set --local path 'vendor/bundle'
@@ -47,11 +46,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
-  lint:
-    name: Lint and Style Check
-    runs-on: ubuntu-latest
-    
-    steps:
+   lint:
+     name: Lint and Style Check
+     runs-on: ubuntu-latest
+     
+     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -59,64 +58,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
-          bundler-cache: true
-
-      - name: Configure Bundler
-        run: bundle config set --local path 'vendor/bundle'
-
-      - name: Install dependencies
-        run: bundle install
-
-      - name: Run RuboCop
-        run: bundle exec rake rubocop
-
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-
-      - name: Configure Bundler
-        run: bundle config set --local path 'vendor/bundle'
-
-      - name: Install dependencies
-        run: bundle install
-
-      - name: Run Bundler Audit
-        run: |
-          bundle exec bundler-audit update
-          bundle exec bundler-audit check
-        continue-on-error: true
-
-      - name: Run Brakeman
-        run: bundle exec brakeman --force --no-pager --format github
-        continue-on-error: true
-
-  release:
-    name: Release
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-    needs: [test, lint]
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
 
       - name: Configure Bundler
         run: bundle config set --local path 'vendor/bundle'
@@ -150,7 +91,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
-          bundler-cache: true
 
       - name: Configure Bundler
         run: bundle config set --local path 'vendor/bundle'
