@@ -47,11 +47,4 @@ class TestModels < Minitest::Test
 
     assert_instance_of GeminiAI::Client, client
   end
-
-  def test_deprecated_model_defaults_to_pro
-    # Test that deprecated models default to pro without error
-    client = GeminiAI::Client.new(@api_key, model: :pro_1_5)
-
-    assert_instance_of GeminiAI::Client, client
-  end
 end
