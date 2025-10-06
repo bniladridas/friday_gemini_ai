@@ -38,9 +38,9 @@ jobs:
         run: bundle config set frozen false
 
       - name: Update dependencies
-         run: |
-           bundle update --conservative
-           bundle clean
+        run: |
+          bundle update --conservative
+          bundle clean
 
       - name: Run tests
         run: |
