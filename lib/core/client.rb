@@ -217,7 +217,7 @@ module GeminiAI
           wait_time = (2**retry_count) * 5 # 5, 10, 20 seconds
           self.class.logger.warn("Rate limit hit (429). Retrying in #{wait_time}s (attempt #{retry_count + 1}/#{max_retries})")
           sleep(wait_time)
-          send_request(body, model:, retry_count: retry_count + 1)
+          send_request(body, model: model, retry_count: retry_count + 1)
         else
           self.class.logger.error("Rate limit exceeded after #{max_retries} retries")
           raise Error, 'Rate limit exceeded. Please check your quota and billing details.'
