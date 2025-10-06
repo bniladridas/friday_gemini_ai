@@ -62,16 +62,7 @@ module GeminiAI
       puts "About to validate API key: #{@api_key.inspect}"
       validate_api_key!
 
-      if DEPRECATED_MODELS.key?(model)
-        self.class.logger.warn("Model #{model} (#{DEPRECATED_MODELS[model]}) is deprecated and has been removed. " \
-                               'Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.')
-        @model = MODELS[:pro]
-      else
-        @model = MODELS.fetch(model) do
-          self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
-          MODELS[:pro]
-        end
-      end
+      @model = resolve_model(model)
 
       self.class.logger.debug("Selected model: #{@model}")
     end
@@ -134,7 +125,18 @@ module GeminiAI
 
     private
 
-
+    def resolve_model(model)
+      if DEPRECATED_MODELS.key?(model)
+        self.class.logger.warn("Model #{model} (#{DEPRECATED_MODELS[model]}) is deprecated and has been removed. " \
+                               'Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.')
+        MODELS[:pro]
+      else
+        MODELS.fetch(model) do
+          self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
+          MODELS[:pro]
+        end
+      end
+    end
 
     def validate_api_key!
       puts "Validating API key: #{@api_key.inspect}"
