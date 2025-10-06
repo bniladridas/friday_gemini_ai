@@ -34,7 +34,7 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
         token: ${{ github.token }}
@@ -103,7 +103,7 @@ jobs:
         
     # Checkout PR code for analysis
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 1
@@ -121,7 +121,7 @@ jobs:
     # Generate GitHub App token for PR commenting
     - name: Generate GitHub App Token
       id: app-token
-      uses: actions/create-github-app-token@v1
+      uses: actions/create-github-app-token@v2
       with:
         app-id: ${{ secrets.HARPER_BOT_APP_ID }}
         private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
