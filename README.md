@@ -100,7 +100,7 @@ Gemini 1.5 models (`gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-1.5-flash-8b`) 
 - **General text generation**: Use `:pro` (gemini-2.5-pro) or `:flash` (gemini-2.5-flash) instead of 1.5 variants.
 - **Legacy support**: If you need 2.0 models, use `:flash_2_0` or `:flash_lite`.
 
-If your code attempts to use a deprecated model, it will log a deprecation warning and default to `:pro`.
+If your code attempts to use a deprecated model, it will log a deprecation warning and default to `:pro` (gemini-2.5-pro).
 
 ## Environment Variables
 ```bash
