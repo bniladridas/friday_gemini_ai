@@ -14,7 +14,7 @@ group :development, :test do
   
   # Security and development tools
   gem 'bundler-audit', '~> 0.9', require: false
-  gem 'brakeman', '~> 7.1', require: false
+  gem 'rubocop', '~> 1.72.1', require: false
 end
 
 gem "minitest-reporters", "~> 1.7"
