@@ -320,6 +320,18 @@ Lint & fix:
 bundle exec rake rubocop  # Skipped (removed to fix CI bundler issues)
 ```
 
+### Local Release Verification
+
+To verify the release workflow locally before pushing tags:
+
+```bash
+bundle install
+bundle exec rake test
+gem build *.gemspec
+```
+
+This ensures dependencies install, tests pass, and the gem builds successfully.
+
 ## Contributing
 
 Fork → branch → commit → PR.
