@@ -17,13 +17,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        ruby: ['3.2', '3.3']
-    
+         ruby: ['3.2', '3.3']
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+     - name: Checkout code
+       uses: actions/checkout@v5
 
-       - name: Set up Ruby
+     - name: Set up Ruby
          uses: ruby/setup-ruby@v1
         with:
            ruby-version: ${{ matrix.ruby }}
@@ -47,136 +46,136 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
+           fail_ci_if_error: false
 
-   lint:
-     name: Lint and Style Check
-     runs-on: ubuntu-latest
-     
-     steps:
-       - name: Checkout code
-         uses: actions/checkout@v5
+  lint:
+    name: Lint and Style Check
+    runs-on: ubuntu-latest
+    
+    steps:
+     - name: Checkout code
+       uses: actions/checkout@v5
 
-       - name: Set up Ruby
+     - name: Set up Ruby
+       uses: ruby/setup-ruby@v1
+       with:
+         ruby-version: '3.2'
+         bundler-cache: false
+
+     - name: Configure Bundler
+       run: bundle config set path 'vendor/bundle'
+       working-directory: ${{ github.workspace }}
+
+     - name: Install dependencies
+       run: bundle install
+       working-directory: ${{ github.workspace }}
+
+     - name: Run RuboCop
+       run: bundle exec rake rubocop
+       working-directory: ${{ github.workspace }}
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+     - name: Checkout code
+       uses: actions/checkout@v5
+
+     - name: Set up Ruby
          uses: ruby/setup-ruby@v1
          with:
            ruby-version: '3.2'
            bundler-cache: false
 
-       - name: Configure Bundler
-          run: bundle config set path 'vendor/bundle'
-          working-directory: ${{ github.workspace }}
+     - name: Configure Bundler
+       run: bundle config set path 'vendor/bundle'
+       working-directory: ${{ github.workspace }}
 
-       - name: Install dependencies
-          run: bundle install
-          working-directory: ${{ github.workspace }}
+     - name: Install dependencies
+       run: bundle install
+       working-directory: ${{ github.workspace }}
 
-       - name: Run RuboCop
-          run: bundle exec rake rubocop
-          working-directory: ${{ github.workspace }}
+     - name: Run Bundler Audit
+       run: |
+         bundle exec bundler-audit update
+         bundle exec bundler-audit check
+       continue-on-error: true
+       working-directory: ${{ github.workspace }}
 
-   security:
-     name: Security Scan
-     runs-on: ubuntu-latest
-     
-     steps:
-       - name: Checkout code
-         uses: actions/checkout@v5
+     - name: Run Brakeman
+       run: bundle exec brakeman --force --no-pager --format github
+       continue-on-error: true
+       working-directory: ${{ github.workspace }}
 
-       - name: Set up Ruby
+  release:
+    name: Release
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    
+    steps:
+     - name: Checkout code
+       uses: actions/checkout@v5
+       with:
+         fetch-depth: 0
+
+     - name: Set up Ruby
          uses: ruby/setup-ruby@v1
          with:
            ruby-version: '3.2'
            bundler-cache: false
 
-       - name: Configure Bundler
-          run: bundle config set path 'vendor/bundle'
-          working-directory: ${{ github.workspace }}
+     - name: Configure Bundler
+       run: bundle config set path 'vendor/bundle'
+       working-directory: ${{ github.workspace }}
 
-       - name: Install dependencies
-          run: bundle install
-          working-directory: ${{ github.workspace }}
+     - name: Build gem
+       run: |
+         mkdir -p pkg
+         gem build -o pkg/gemini-ai.gem *.gemspec
+       working-directory: ${{ github.workspace }}
 
-       - name: Run Bundler Audit
-          run: |
-            bundle exec bundler-audit update
-            bundle exec bundler-audit check
-          continue-on-error: true
-          working-directory: ${{ github.workspace }}
+     - name: Publish to RubyGems
+       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+       run: |
+         mkdir -p $HOME/.gem
+         touch $HOME/.gem/credentials
+         chmod 0600 $HOME/.gem/credentials
+         printf ":rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
+         gem push pkg/*.gem --verbose
+       env:
+         RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+       working-directory: ${{ github.workspace }}
 
-       - name: Run Brakeman
-          run: bundle exec brakeman --force --no-pager --format github
-          continue-on-error: true
-          working-directory: ${{ github.workspace }}
+  build:
+    name: Build Gem
+    runs-on: ubuntu-latest
+    needs: [test, lint, security]
+    
+    steps:
+     - name: Checkout code
+       uses: actions/checkout@v5
 
-   release:
-     name: Release
-     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-     needs: [test, lint]
-     runs-on: ubuntu-latest
-     
-     steps:
-       - name: Checkout code
-         uses: actions/checkout@v5
-         with:
-           fetch-depth: 0
-
-       - name: Set up Ruby
+     - name: Set up Ruby
          uses: ruby/setup-ruby@v1
          with:
            ruby-version: '3.2'
            bundler-cache: false
 
-       - name: Configure Bundler
-          run: bundle config set path 'vendor/bundle'
-          working-directory: ${{ github.workspace }}
+     - name: Configure Bundler
+       run: bundle config set path 'vendor/bundle'
+       working-directory: ${{ github.workspace }}
 
-       - name: Build gem
-          run: |
-            mkdir -p pkg
-            gem build -o pkg/gemini-ai.gem *.gemspec
-          working-directory: ${{ github.workspace }}
+     - name: Build gem package
+       run: |
+         mkdir -p pkg
+         gem build -o pkg/gemini-ai.gem *.gemspec
+       working-directory: ${{ github.workspace }}
 
-       - name: Publish to RubyGems
-          if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-          run: |
-            mkdir -p $HOME/.gem
-            touch $HOME/.gem/credentials
-            chmod 0600 $HOME/.gem/credentials
-            printf ":rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
-            gem push pkg/*.gem --verbose
-          env:
-            RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-          working-directory: ${{ github.workspace }}
-
-   build:
-     name: Build Gem
-     runs-on: ubuntu-latest
-     needs: [test, lint, security]
-     
-     steps:
-       - name: Checkout code
-         uses: actions/checkout@v5
-
-       - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: '3.2'
-           bundler-cache: false
-
-       - name: Configure Bundler
-          run: bundle config set path 'vendor/bundle'
-          working-directory: ${{ github.workspace }}
-
-       - name: Build gem package
-          run: |
-            mkdir -p pkg
-            gem build -o pkg/gemini-ai.gem *.gemspec
-          working-directory: ${{ github.workspace }}
-
-       - name: Upload artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: gem-package
-            path: pkg/*.gem
-            retention-days: 17
+     - name: Upload artifact
+       uses: actions/upload-artifact@v4
+       with:
+         name: gem-package
+         path: pkg/*.gem
+         retention-days: 17
