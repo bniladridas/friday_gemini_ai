@@ -11,6 +11,8 @@ module GeminiAI
   # Core client class for Gemini AI API communication
   class Client
     BASE_URL = 'https://generativelanguage.googleapis.com/v1/models'
+    # Model mappings
+    # Current supported models
     MODELS = {
       # Gemini 2.5 models (latest)
       pro: 'gemini-2.5-pro',
@@ -21,9 +23,11 @@ module GeminiAI
       flash_lite: 'gemini-2.0-flash-lite',
 
       # Legacy aliases for backward compatibility
-      pro_2_0: 'gemini-2.0-flash',
+      pro_2_0: 'gemini-2.0-flash'
+    }.freeze
 
-      # Gemini 1.5 models (for specific use cases)
+    # Deprecated models removed in this version (log warning and default to :pro)
+    DEPRECATED_MODELS = {
       pro_1_5: 'gemini-1.5-pro',
       flash_1_5: 'gemini-1.5-flash',
       flash_8b: 'gemini-1.5-flash-8b'
@@ -60,10 +64,7 @@ module GeminiAI
       puts "About to validate API key: #{@api_key.inspect}"
       validate_api_key!
 
-      @model = MODELS.fetch(model) do
-        self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
-        MODELS[:pro]
-      end
+      @model = resolve_model(model)
 
       self.class.logger.debug("Selected model: #{@model}")
     end
@@ -102,8 +103,8 @@ module GeminiAI
         generationConfig: build_generation_config(options)
       }
 
-      # Use the pro_1_5 model for image-to-text tasks
-      send_request(request_body, model: :pro_1_5)
+      # Use the pro model for image-to-text tasks
+      send_request(request_body, model: :pro)
     end
 
     def chat(messages, options = {})
@@ -125,6 +126,19 @@ module GeminiAI
     end
 
     private
+
+    def resolve_model(model)
+      if DEPRECATED_MODELS.key?(model)
+        self.class.logger.warn("Model #{model} (#{DEPRECATED_MODELS[model]}) is deprecated and has been removed. " \
+                               'Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.')
+        MODELS[:pro]
+      else
+        MODELS.fetch(model) do
+          self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
+          MODELS[:pro]
+        end
+      end
+    end
 
     def validate_api_key!
       puts "Validating API key: #{@api_key.inspect}"
@@ -220,7 +234,7 @@ module GeminiAI
           wait_time = (2**retry_count) * 5 # 5, 10, 20 seconds
           self.class.logger.warn("Rate limit hit (429). Retrying in #{wait_time}s (attempt #{retry_count + 1}/#{max_retries})")
           sleep(wait_time)
-          send_request(body, model:, retry_count: retry_count + 1)
+          send_request(body, model: model, retry_count: retry_count + 1)
         else
           self.class.logger.error("Rate limit exceeded after #{max_retries} retries")
           raise Error, 'Rate limit exceeded. Please check your quota and billing details.'

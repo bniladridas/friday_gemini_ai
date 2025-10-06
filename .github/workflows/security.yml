@@ -76,14 +76,12 @@ jobs:
           echo "PATH=$HOME/.gem/bin:$PATH" >> $GITHUB_ENV
           echo "GITLEAKS_VERSION=8.28.0" >> $GITHUB_ENV
 
-       # Install and run Gitleaks for secret scanning
+      # Install and run Gitleaks for secret scanning
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          version: latest
+        uses: gitleaks/gitleaks-action@v2.0.0
         continue-on-error: true
 
-        # Run bundle audit for Ruby dependency vulnerabilities
+      # Run bundle audit for Ruby dependency vulnerabilities
       - name: Run security audit
         run: |
           echo "Running bundle audit..."

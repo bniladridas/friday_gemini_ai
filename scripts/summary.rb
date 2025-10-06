@@ -36,7 +36,7 @@ puts <<~RUBY
 
   # Use specific versions
   client = GeminiAI::Client.new(model: :flash_2_0)  # Gemini 2.0 Flash
-  client = GeminiAI::Client.new(model: :pro_1_5)    # Gemini 1.5 Pro
+  client = GeminiAI::Client.new(model: :pro)    # Gemini 2.5 Pro
 RUBY
 
 puts "\nAvailable Scripts:"
