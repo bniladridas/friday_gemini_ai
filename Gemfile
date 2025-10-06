@@ -16,4 +16,3 @@ end
 gem "minitest-reporters", "~> 1.7"
 
 gem "mocha", "~> 2.7", :groups => [:development, :test]
-gem "webmock", "~> 3.19", :groups => [:test]
