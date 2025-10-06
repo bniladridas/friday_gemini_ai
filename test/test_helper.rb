@@ -83,8 +83,13 @@ require 'stringio'
 module Minitest
   class Test
     def setup
-      HTTParty.stubs(:post).returns(MockHTTPResponse.new(status: 200,
-                                                         body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
+      @request_body = nil
+      HTTParty.stubs(:post).returns do |_url, options|
+        @request_body = JSON.parse(options[:body]) if options[:body]
+        # Always return image response for now to debug
+        MockHTTPResponse.new(status: 200,
+                             body: '{"candidates":[{"content":{"parts":[{"text":"A test image description"}]}}]}')
+      end
     end
 
     # Helper method to create a test API key

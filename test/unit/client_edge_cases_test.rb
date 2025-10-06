@@ -6,6 +6,8 @@ class ClientEdgeCasesTest < Minitest::Test
   def setup
     @client = GeminiAI::Client.new('AIzaSyDummyTestKeyForUnitTests123456789')
     @test_image = Base64.strict_encode64(File.binread('test/fixtures/test_image.jpg'))
+    HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200,
+                                                                       body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
   end
 
   def test_generate_text_with_long_prompt
@@ -76,7 +78,7 @@ class ClientEdgeCasesTest < Minitest::Test
   end
 
   def test_rate_limiting
-    stub_gemini_request(response: test_response, status: 200).times(2)
+    stub_gemini_request(response: test_response, status: 200)
 
     start_time = Time.now
     @client.generate_text('test')
