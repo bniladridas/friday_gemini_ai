@@ -28,6 +28,6 @@ jobs:
         run: bundle install
 
       - name: Run e2e tests
-        run: bundle exec ruby -I test -I lib test/e2e/api_e2e.rb
+        run: bundle exec rake e2e_test
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
