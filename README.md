@@ -332,6 +332,27 @@ gem build *.gemspec
 
 This ensures dependencies install, tests pass, and the gem builds successfully.
 
+### Local CI Testing with Act
+
+You can run GitHub Actions workflows locally using [act](https://github.com/nektos/act):
+
+```bash
+# Install act (requires Docker)
+brew install act  # macOS
+# or download from https://github.com/nektos/act/releases
+
+# List available workflows
+act -l
+
+# Run specific jobs (e.g., lint)
+act -j lint
+
+# Run tests (may require --container-architecture linux/amd64 on M-series Macs)
+act -j test --container-architecture linux/amd64
+```
+
+This allows you to validate CI changes locally before pushing.
+
 ## Contributing
 
 Fork → branch → commit → PR.
