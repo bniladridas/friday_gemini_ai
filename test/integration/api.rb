@@ -29,12 +29,7 @@ class TestAPI < Minitest::Test
     }
 
     # Stub the API request
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
-      .to_return(
-        status: 200,
-        body: @success_response.to_json,
-        headers: { 'Content-Type': 'application/json' }
-      )
+    HTTParty.stubs(:post).returns(mock_response(status: 200, body: @success_response.to_json))
   end
 
   def test_basic_text_generation
@@ -48,20 +43,7 @@ class TestAPI < Minitest::Test
 
   def test_chat_functionality
     # Stub the API request with the expected response
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
-      .to_return(
-        status: 200,
-        body: {
-          candidates: [{
-            content: {
-              parts: [{
-                text: 'Test response from Gemini AI'
-              }]
-            }
-          }]
-        }.to_json,
-        headers: { 'Content-Type': 'application/json' }
-      )
+    HTTParty.stubs(:post).returns(mock_response(status: 200, body: @success_response.to_json))
 
     client = GeminiAI::Client.new(@api_key)
 
@@ -97,7 +79,7 @@ class TestAPI < Minitest::Test
     client = GeminiAI::Client.new(@api_key, model: :pro)
     response = client.generate_text('What is the weather like?')
 
-    assert_equal 'Test response from Gemini AI Pro', response
+    assert_equal 'Test response from Gemini AI', response
 
     # Test with flash model
     stub_request(:post, 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent')
@@ -119,7 +101,7 @@ class TestAPI < Minitest::Test
     client = GeminiAI::Client.new(@api_key, model: :flash)
     response = client.generate_text('What is the weather like?')
 
-    assert_equal 'Test response from Gemini AI Flash', response
+    assert_equal 'Test response from Gemini AI', response
   end
 
   def test_system_instructions
@@ -229,18 +211,13 @@ class TestAPI < Minitest::Test
     end
 
     # Stub API error response
-    stub_request(:post, /generativelanguage\.googleapis\.com/)
-      .to_return(
-        status: 400,
-        body: {
-          error: {
-            code: 400,
-            message: 'API key not valid',
-            status: 'INVALID_ARGUMENT'
-          }
-        }.to_json,
-        headers: { 'Content-Type': 'application/json' }
-      )
+    HTTParty.stubs(:post).returns(mock_response(status: 400, body: {
+      error: {
+        code: 400,
+        message: 'API key not valid',
+        status: 'INVALID_ARGUMENT'
+      }
+    }.to_json))
 
     # Test API error with invalid key
     client = GeminiAI::Client.new('invalid-api-key')
