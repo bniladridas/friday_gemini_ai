@@ -8,10 +8,6 @@ gem 'bigdecimal', '~> 3.2'
 
 # Development and test dependencies
 group :development, :test do
-  # Test coverage
-  gem 'simplecov', '~> 0.21.0', require: false
-  gem 'simplecov-lcov', '~> 0.8.0', require: false
-  
   # Security and development tools
   gem 'bundler-audit', '~> 0.9', require: false
   gem 'rubocop', '~> 1.72.1', require: false
