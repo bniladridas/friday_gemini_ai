@@ -18,6 +18,11 @@ class TestAPIe2e < Minitest::Test
     refute_empty response.strip
     assert_instance_of String, response
     assert_includes response.downcase, 'hello'
+  rescue GeminiAI::Error => e
+    if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED')
+      skip "Rate limit exceeded: #{e.message}"
+    end
+    raise
   end
 
   def test_chat_functionality
@@ -33,6 +38,11 @@ class TestAPIe2e < Minitest::Test
     refute_empty response.strip
     assert_instance_of String, response
     assert_includes response, '6'
+  rescue GeminiAI::Error => e
+    if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED')
+      skip "Rate limit exceeded: #{e.message}"
+    end
+    raise
   end
 
   def test_different_models
@@ -43,5 +53,10 @@ class TestAPIe2e < Minitest::Test
     refute_nil response
     refute_empty response.strip
     assert_includes response.downcase, 'paris'
+  rescue GeminiAI::Error => e
+    if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED')
+      skip "Rate limit exceeded: #{e.message}"
+    end
+    raise
   end
 end
