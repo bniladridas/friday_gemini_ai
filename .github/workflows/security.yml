@@ -15,7 +15,7 @@ permissions:
   security-events: write
 
 env:
-  GITLEAKS_VERSION: "8.28.0"
+  GITLEAKS_VERSION: "8.27.0"
   GEM_HOME: /usr/local/bundle
   BUNDLE_PATH: vendor/bundle
   BUNDLE_JOBS: 4
