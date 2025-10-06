@@ -11,6 +11,8 @@ module GeminiAI
   # Core client class for Gemini AI API communication
   class Client
     BASE_URL = 'https://generativelanguage.googleapis.com/v1/models'
+    # Model mappings
+    # Current supported models
     MODELS = {
       # Gemini 2.5 models (latest)
       pro: 'gemini-2.5-pro',
@@ -24,7 +26,7 @@ module GeminiAI
       pro_2_0: 'gemini-2.0-flash'
     }.freeze
 
-    # Deprecated models removed in this version
+    # Deprecated models removed in this version (log warning and default to :pro)
     DEPRECATED_MODELS = {
       pro_1_5: 'gemini-1.5-pro',
       flash_1_5: 'gemini-1.5-flash',
