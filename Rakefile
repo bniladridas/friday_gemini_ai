@@ -31,7 +31,8 @@ def configure_test_task(task, with_coverage: true)
   # Find all test files
   test_files = FileList[
     'test/unit/**/*.rb',
-    'test/integration/**/*.rb'
+    'test/integration/**/*.rb',
+    'test/e2e/**/*.rb'
   ].exclude('test/unit/test_helper.rb', 'test/integration/test_helper.rb')
   
   task.test_files = test_files
