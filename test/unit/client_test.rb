@@ -2,7 +2,7 @@
 
 require_relative '../test_helper'
 require 'minitest/autorun'
-require 'webmock/minitest'
+# require 'webmock/minitest'
 require 'mocha/minitest'
 
 # Include the necessary assertion methods
