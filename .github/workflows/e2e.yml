@@ -22,7 +22,10 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
-          bundler-cache: true
+          bundler-cache: false
+
+      - name: Configure Bundler
+        run: bundle config set path 'vendor/bundle'
 
       - name: Install dependencies
         run: bundle install
