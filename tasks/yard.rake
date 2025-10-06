@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'yard'
+# require 'yard'
 
 namespace :docs do
   desc 'Generate YARD documentation'
