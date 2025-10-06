@@ -11,18 +11,18 @@ module GeminiAI
   # Core client class for Gemini AI API communication
   class Client
     BASE_URL = 'https://generativelanguage.googleapis.com/v1/models'
-     MODELS = {
-       # Gemini 2.5 models (latest)
-       pro: 'gemini-2.5-pro',
-       flash: 'gemini-2.5-flash',
+    MODELS = {
+      # Gemini 2.5 models (latest)
+      pro: 'gemini-2.5-pro',
+      flash: 'gemini-2.5-flash',
 
-       # Gemini 2.0 models
-       flash_2_0: 'gemini-2.0-flash',
-       flash_lite: 'gemini-2.0-flash-lite',
+      # Gemini 2.0 models
+      flash_2_0: 'gemini-2.0-flash',
+      flash_lite: 'gemini-2.0-flash-lite',
 
-       # Legacy aliases for backward compatibility
-       pro_2_0: 'gemini-2.0-flash'
-     }.freeze
+      # Legacy aliases for backward compatibility
+      pro_2_0: 'gemini-2.0-flash'
+    }.freeze
 
     # Configure logging
     def self.logger
@@ -87,13 +87,13 @@ module GeminiAI
     def generate_image_text(image_base64, prompt, options = {})
       raise Error, 'Image is required' if image_base64.nil? || image_base64.empty?
 
-      request_body = {
-        contents: [
-          { parts: [
-            { inline_data: { mime_type: 'image/jpeg', data: image_base64 } },
-            { text: prompt }
-          ] }
-        ],
+       request_body = {
+         contents: [
+           { parts: [
+             { inline_data: { mime_type: 'image/jpeg', data: image_base64 } },
+             { text: prompt }
+           ] }
+         ],
          generationConfig: build_generation_config(options)
        }
 

@@ -31,9 +31,9 @@ class TestModels < Minitest::Test
     assert_instance_of GeminiAI::Client, flash_2_0_client
     assert_instance_of GeminiAI::Client, pro_2_0_client
     assert_instance_of GeminiAI::Client, lite_client
-   end
+  end
 
-   def test_all_supported_models
+  def test_all_supported_models
     GeminiAI::Client::MODELS.each do |model_key, model_id|
       client = GeminiAI::Client.new(@api_key, model: model_key)
 
