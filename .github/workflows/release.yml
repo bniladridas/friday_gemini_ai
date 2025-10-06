@@ -34,7 +34,7 @@ jobs:
         if [ -z "$GEMINI_API_KEY" ]; then
           echo "::warning::GEMINI_API_KEY is not set. Some tests may be skipped."
         fi
-        bundle exec rspec
+        bundle exec rake test
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
