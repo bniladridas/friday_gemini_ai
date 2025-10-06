@@ -39,8 +39,8 @@ class TestRunner
 
       puts "\nTest coverage: #{covered_percent}%"
 
-       if covered_percent < SimpleCov.minimum_coverage[:line]
-         puts "\nWARNING: Test coverage is below the minimum threshold of #{SimpleCov.minimum_coverage[:line]}%"
+      if covered_percent < SimpleCov.minimum_coverage[:line]
+        puts "\nWARNING: Test coverage is below the minimum threshold of #{SimpleCov.minimum_coverage[:line]}%"
       end
 
       underperforming = result.files.select { |f| f.covered_percent < 90 }
