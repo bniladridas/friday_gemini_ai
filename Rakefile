@@ -3,7 +3,7 @@
 require 'bundler/gem_tasks'
 require 'rake/testtask'
 require 'rubocop/rake_task'
-require 'simplecov'
+# require 'simplecov'
 require 'pathname'
 
 # Configure SimpleCov before requiring test files
