@@ -41,8 +41,6 @@ fast_client = GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
 GeminiAI::Client.new(model: :pro)    # Gemini 2.5 Pro
 GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
 
-# Lightweight options
-
 # Legacy options
 GeminiAI::Client.new(model: :flash_2_0)  # Gemini 2.0 Flash
 GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite

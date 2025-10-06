@@ -20,11 +20,9 @@ module GeminiAI
       flash_2_0: 'gemini-2.0-flash',
       flash_lite: 'gemini-2.0-flash-lite',
 
-      # Legacy aliases for backward compatibility
-      pro_2_0: 'gemini-2.0-flash',
-
-
-    }.freeze
+       # Legacy aliases for backward compatibility
+       pro_2_0: 'gemini-2.0-flash'
+     }.freeze
 
     # Configure logging
     def self.logger
@@ -97,10 +95,10 @@ module GeminiAI
           ] }
         ],
         generationConfig: build_generation_config(options)
-      }
+       }
 
-       # Use the pro model for image-to-text tasks
-       send_request(request_body, model: :pro)
+      # Use the pro model for image-to-text tasks
+      send_request(request_body, model: :pro)
     end
 
     def chat(messages, options = {})
