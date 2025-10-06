@@ -88,14 +88,14 @@ module GeminiAI
       raise Error, 'Image is required' if image_base64.nil? || image_base64.empty?
 
       request_body = {
-         contents: [
-           { parts: [
-             { inline_data: { mime_type: 'image/jpeg', data: image_base64 } },
-             { text: prompt }
-           ] }
-         ],
-         generationConfig: build_generation_config(options)
-       }
+        contents: [
+          { parts: [
+            { inline_data: { mime_type: 'image/jpeg', data: image_base64 } },
+            { text: prompt }
+          ] }
+        ],
+        generationConfig: build_generation_config(options)
+      }
 
       # Use the pro model for image-to-text tasks
       send_request(request_body, model: :pro)
