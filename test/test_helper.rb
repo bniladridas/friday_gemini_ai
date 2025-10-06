@@ -3,8 +3,7 @@
 require 'json'
 # require 'simplecov'
 # require 'simplecov-lcov'
-# require 'webmock/minitest'
-# require 'webmock/minitest'
+require 'webmock/minitest'
 
 # Configure SimpleCov formatters
 # SimpleCov::Formatter::LcovFormatter.config do |c|
@@ -314,7 +313,7 @@ end
 # configure_simplecov
 
 # Configure WebMock
-# WebMock.disable_net_connect!(allow_localhost: true)
+WebMock.disable_net_connect!(allow_localhost: true)
 
 # Use spec-style reporting
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
