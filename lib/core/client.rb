@@ -60,7 +60,7 @@ module GeminiAI
 
       # Validate API key before proceeding
       puts "About to validate API key: #{@api_key.inspect}"
-       validate_api_key!
+      validate_api_key!
 
       @model = select_model(model)
 
@@ -129,7 +129,7 @@ module GeminiAI
       MODELS.fetch(model) do
         if DEPRECATED_MODELS.key?(model)
           self.class.logger.warn("Model #{model} (#{DEPRECATED_MODELS[model]}) is deprecated and has been removed. " \
-                                 "Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.")
+                                 'Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.')
         else
           self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
         end
