@@ -220,8 +220,8 @@ module Minitest
     end
   end
 
-  # Global HTTParty stub for all tests
-  HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
+# Global HTTParty stub for all tests
+HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
 
     # Helper method to compare hashes and show differences
     def compare_hashes(expected, actual, path)
