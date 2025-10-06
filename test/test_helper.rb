@@ -218,7 +218,6 @@ module Minitest
     def mock_response(status: 200, body: nil)
       MockHTTPResponse.new(status: status, body: body)
     end
-  end
 
     # Helper method to compare hashes and show differences
     def compare_hashes(expected, actual, path)
@@ -376,7 +375,8 @@ class MockRequestStub
 end
 
 # Global HTTParty stub for all tests
-HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
+HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200,
+                                                                   body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
 
 # Use spec-style reporting
 # Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
