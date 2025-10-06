@@ -195,21 +195,24 @@ module Minitest
 
     # Mock HTTP response for testing
     class MockHTTPResponse
-      def code
-        200
+      def initialize(status: 200, body: nil)
+        @status = status
+        @body = body || '{"candidates":[{"content":{"parts":[{"text":"Test response"}]}}]}'
       end
 
-      def body
-        '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'
+      def code
+        @status
       end
+
+      attr_reader :body
 
       def success?
-        true
+        @status >= 200 && @status < 300
       end
     end
 
-    def mock_response
-      MockHTTPResponse.new
+    def mock_response(status: 200, body: nil)
+      MockHTTPResponse.new(status: status, body: body)
     end
 
     # Helper method to compare hashes and show differences
