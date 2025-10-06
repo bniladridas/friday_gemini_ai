@@ -2,9 +2,8 @@
 
 require 'bundler/gem_tasks'
 require 'rake/testtask'
-# require 'rubocop/rake_task'
-# require 'rubocop/rake_task'
-# require 'simplecov'
+require 'rubocop/rake_task'
+require 'simplecov'
 require 'pathname'
 
 # Configure SimpleCov before requiring test files
@@ -78,11 +77,8 @@ task :coverage do
   Rake::Task['test'].invoke
 end
 
-# Dummy rubocop task since rubocop is removed
-desc 'Run rubocop (skipped)'
-task :rubocop do
-  puts 'RuboCop skipped (removed to fix CI bundler issues)'
-end
+# RuboCop task
+RuboCop::RakeTask.new
 
 # Default task
 task default: %i[test rubocop]
