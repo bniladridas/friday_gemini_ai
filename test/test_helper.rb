@@ -209,6 +209,10 @@ module Minitest
       def success?
         @status >= 200 && @status < 300
       end
+
+      def parsed_response
+        JSON.parse(@body)
+      end
     end
 
     def mock_response(status: 200, body: nil)
