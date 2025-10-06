@@ -24,6 +24,13 @@ module GeminiAI
       pro_2_0: 'gemini-2.0-flash'
     }.freeze
 
+    # Deprecated models removed in this version
+    DEPRECATED_MODELS = {
+      pro_1_5: 'gemini-1.5-pro',
+      flash_1_5: 'gemini-1.5-flash',
+      flash_8b: 'gemini-1.5-flash-8b'
+    }.freeze
+
     # Configure logging
     def self.logger
       @logger ||= Logger.new($stdout).tap do |log|
@@ -55,10 +62,14 @@ module GeminiAI
       puts "About to validate API key: #{@api_key.inspect}"
       validate_api_key!
 
-      @model = MODELS.fetch(model) do
-        self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
-        MODELS[:pro]
-      end
+       @model = MODELS.fetch(model) do
+         if DEPRECATED_MODELS.key?(model)
+           self.class.logger.warn("Model #{model} (#{DEPRECATED_MODELS[model]}) is deprecated and has been removed. Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.")
+         else
+           self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
+         end
+         MODELS[:pro]
+       end
 
       self.class.logger.debug("Selected model: #{@model}")
     end

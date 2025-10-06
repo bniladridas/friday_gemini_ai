@@ -77,7 +77,7 @@ GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
 * **Image Analysis**
   - Image-to-text generation
   - Support for base64-encoded images
-  - Automatic model selection for image tasks
+  - Uses gemini-2.5-pro for optimal performance
 
 * **Chat & Conversations**
   - Multi-turn conversations
@@ -89,6 +89,18 @@ GeminiAI::Client.new(model: :flash_lite) # Gemini 2.0 Flash Lite
   - Rate limiting (1s default, 3s in CI)
   - Comprehensive error handling
   - Request retries with exponential backoff
+
+## Migration Guide
+
+### From Gemini 1.5 Models
+
+Gemini 1.5 models (`gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-1.5-flash-8b`) have been removed in this version due to deprecation by Google. If you were using these models, here's how to migrate:
+
+- **Image-to-text tasks**: The `generate_image_text` method now uses `gemini-2.5-pro` by default, which provides better performance and capabilities.
+- **General text generation**: Use `:pro` (gemini-2.5-pro) or `:flash` (gemini-2.5-flash) instead of 1.5 variants.
+- **Legacy support**: If you need 2.0 models, use `:flash_2_0` or `:flash_lite`.
+
+If your code attempts to use a deprecated model, it will log a deprecation warning and default to `:pro`.
 
 ## Environment Variables
 ```bash
