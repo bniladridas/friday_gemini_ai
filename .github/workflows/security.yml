@@ -78,7 +78,7 @@ jobs:
 
         # Install and run Gitleaks for secret scanning
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@2b9a8c6a6c9e4b5c8e7f2a3b4c5d6e7f8a9b0c1
+        uses: gitleaks/gitleaks-action@v2.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
