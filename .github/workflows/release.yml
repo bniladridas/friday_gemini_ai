@@ -22,6 +22,7 @@ jobs:
         sudo apt-get install -y ruby-full ruby-bundler
         ruby --version
         bundle config set --local path 'vendor/bundle'
+        bundle config set --local frozen false
         bundle install
 
     - name: Run tests
