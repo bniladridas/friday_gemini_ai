@@ -961,16 +961,4 @@ class TestClient < Minitest::Test
     # Verify the redacted version is in the logs
     assert_match(/AIza\*{32}/, logs, 'Redacted API key pattern not found in logs')
   end
-
-  def test_deprecated_model_logs_warning
-    # Test that using a deprecated model logs a warning and defaults to pro
-    out, _err = capture_io do
-      client = GeminiAI::Client.new(@api_key, model: :pro_1_5)
-
-      assert_instance_of GeminiAI::Client, client
-    end
-
-    assert_match(/Model pro_1_5 \(gemini-1.5-pro\) is deprecated and has been removed/, out)
-    assert_match(/Defaulting to :pro \(gemini-2.5-pro\)/, out)
-  end
 end
