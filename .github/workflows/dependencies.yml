@@ -14,6 +14,8 @@ jobs:
   # Update Ruby gem dependencies weekly
   update:
     name: Update
+    # The lockfile is temporarily unfrozen to allow bundle update to modify Gemfile.lock,
+    # then refrozen to prevent accidental modifications outside of this update process
     permissions:
       contents: write
       pull-requests: write
