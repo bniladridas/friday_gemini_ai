@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'json'
-# require 'simplecov'
-# require 'simplecov-lcov'
+require 'simplecov'
+require 'simplecov-lcov'
 require 'webmock/minitest'
 
 # Configure SimpleCov formatters
@@ -310,7 +310,7 @@ module Minitest
 end
 
 # Initialize SimpleCov
-# configure_simplecov
+configure_simplecov
 
 # Configure WebMock
 WebMock.disable_net_connect!(allow_localhost: true)
