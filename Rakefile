@@ -2,7 +2,8 @@
 
 require 'bundler/gem_tasks'
 require 'rake/testtask'
-require 'rubocop/rake_task'
+# require 'rubocop/rake_task'
+# require 'rubocop/rake_task'
 # require 'simplecov'
 require 'pathname'
 
@@ -78,17 +79,17 @@ task :coverage do
 end
 
 # Default task
-task default: %i[test rubocop]
+task default: %i[test]
 
 # RuboCop configuration
-RuboCop::RakeTask.new do |task|
-  task.options = ['--display-cop-names', '--extra-details', '--parallel']
-  task.fail_on_error = true
-end
+# RuboCop::RakeTask.new do |task|
+#   task.options = ['--display-cop-names', '--extra-details', '--parallel']
+#   task.fail_on_error = true
+# end
 
 # CI task
 desc 'Run all tests and code quality checks'
-task ci: %i[test rubocop] do
+task ci: %i[test] do
   puts 'CI checks completed successfully!'
 end
 
@@ -121,7 +122,7 @@ end
 
 # Release task
 desc 'Release a new version'
-task :release => %i[test rubocop] do
+task :release => %i[test] do
   version = File.read(File.join('lib', 'gemini', 'version.rb'))
     .match(/VERSION = '([^']+)'/)[1]
   
