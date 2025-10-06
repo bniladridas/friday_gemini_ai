@@ -39,8 +39,8 @@ jobs:
 
       - name: Update dependencies
          run: |
-            bundle update --conservative
-            bundle clean
+           bundle update --conservative
+           bundle clean
 
       - name: Run tests
         run: |
