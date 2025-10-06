@@ -4,6 +4,7 @@ require 'minitest/autorun'
 # require 'webmock/minitest'
 require 'mocha/minitest'
 require_relative '../../lib/gemini'
+require_relative '../test_helper'
 
 class TestAPI < Minitest::Test
   def setup
@@ -29,7 +30,7 @@ class TestAPI < Minitest::Test
     }
 
     # Stub the API request
-    HTTParty.stubs(:post).returns(mock_response(status: 200, body: @success_response.to_json))
+    HTTParty.stubs(:post).returns(MockHTTPResponse.new(status: 200, body: @success_response.to_json))
   end
 
   def test_basic_text_generation
