@@ -5,9 +5,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added
+
+- End-to-end tests with real API integration
+- Dedicated e2e CI workflow
+- Windows CI support
+- E2E tests documentation
+
 ### Fixed
 
 - HarperBot model updated to gemini-2.5-flash for compatibility
+- Security workflow gitleaks license requirement removed
 
 ## [0.1.6] - 2025-09-15
 
