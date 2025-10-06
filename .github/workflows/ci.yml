@@ -28,14 +28,17 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
 
-      - name: Configure Bundler
-        run: bundle config set path 'vendor/bundle'
+       - name: Configure Bundler
+         run: bundle config set path 'vendor/bundle'
+         working-directory: ${{ github.workspace }}
 
-      - name: Install dependencies
-        run: bundle install
+       - name: Install dependencies
+         run: bundle install
+         working-directory: ${{ github.workspace }}
 
-      - name: Run tests with coverage
-        run: bundle exec rake test
+       - name: Run tests with coverage
+         run: bundle exec rake test
+         working-directory: ${{ github.workspace }}
         env:
           COVERAGE: 'true'
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-key-for-ci' }}
@@ -60,14 +63,17 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: false
 
-      - name: Configure Bundler
-        run: bundle config set path 'vendor/bundle'
+       - name: Configure Bundler
+         run: bundle config set path 'vendor/bundle'
+         working-directory: ${{ github.workspace }}
 
-      - name: Install dependencies
-        run: bundle install
+       - name: Install dependencies
+         run: bundle install
+         working-directory: ${{ github.workspace }}
 
-      - name: Run RuboCop
-        run: bundle exec rake rubocop
+       - name: Run RuboCop
+         run: bundle exec rake rubocop
+         working-directory: ${{ github.workspace }}
 
   security:
     name: Security Scan
@@ -83,21 +89,25 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: false
 
-      - name: Configure Bundler
-        run: bundle config set path 'vendor/bundle'
+       - name: Configure Bundler
+         run: bundle config set path 'vendor/bundle'
+         working-directory: ${{ github.workspace }}
 
-      - name: Install dependencies
-        run: bundle install
+       - name: Install dependencies
+         run: bundle install
+         working-directory: ${{ github.workspace }}
 
-      - name: Run Bundler Audit
-        run: |
-          bundle exec bundler-audit update
-          bundle exec bundler-audit check
-        continue-on-error: true
+       - name: Run Bundler Audit
+         run: |
+           bundle exec bundler-audit update
+           bundle exec bundler-audit check
+         continue-on-error: true
+         working-directory: ${{ github.workspace }}
 
-      - name: Run Brakeman
-        run: bundle exec brakeman --force --no-pager --format github
-        continue-on-error: true
+       - name: Run Brakeman
+         run: bundle exec brakeman --force --no-pager --format github
+         continue-on-error: true
+         working-directory: ${{ github.workspace }}
 
   release:
     name: Release
@@ -117,24 +127,27 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: false
 
-      - name: Configure Bundler
-        run: bundle config set path 'vendor/bundle'
+       - name: Configure Bundler
+         run: bundle config set path 'vendor/bundle'
+         working-directory: ${{ github.workspace }}
 
-      - name: Build gem
-        run: |
-          mkdir -p pkg
-          gem build -o pkg/gemini-ai.gem *.gemspec
+       - name: Build gem
+         run: |
+           mkdir -p pkg
+           gem build -o pkg/gemini-ai.gem *.gemspec
+         working-directory: ${{ github.workspace }}
 
-      - name: Publish to RubyGems
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf ":rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
-          gem push pkg/*.gem --verbose
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+       - name: Publish to RubyGems
+         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+         run: |
+           mkdir -p $HOME/.gem
+           touch $HOME/.gem/credentials
+           chmod 0600 $HOME/.gem/credentials
+           printf ":rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
+           gem push pkg/*.gem --verbose
+         env:
+           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+         working-directory: ${{ github.workspace }}
 
   build:
     name: Build Gem
@@ -151,17 +164,19 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: false
 
-      - name: Configure Bundler
-        run: bundle config set path 'vendor/bundle'
+       - name: Configure Bundler
+         run: bundle config set path 'vendor/bundle'
+         working-directory: ${{ github.workspace }}
 
-      - name: Build gem package
-        run: |
-          mkdir -p pkg
-          gem build -o pkg/gemini-ai.gem *.gemspec
+       - name: Build gem package
+         run: |
+           mkdir -p pkg
+           gem build -o pkg/gemini-ai.gem *.gemspec
+         working-directory: ${{ github.workspace }}
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: gem-package
-          path: pkg/*.gem
-          retention-days: 17
+       - name: Upload artifact
+         uses: actions/upload-artifact@v4
+         with:
+           name: gem-package
+           path: pkg/*.gem
+           retention-days: 17
