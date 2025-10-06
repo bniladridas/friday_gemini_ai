@@ -371,4 +371,4 @@ class MockRequestStub
 end
 
 # Use spec-style reporting
-Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+# Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
