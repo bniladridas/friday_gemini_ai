@@ -11,14 +11,14 @@ module GeminiAI
   # Core client class for Gemini AI API communication
   class Client
     BASE_URL = 'https://generativelanguage.googleapis.com/v1/models'
-    MODELS = {
-      # Gemini 2.5 models (latest)
-      pro: 'gemini-2.5-pro',
-      flash: 'gemini-2.5-flash',
+     MODELS = {
+       # Gemini 2.5 models (latest)
+       pro: 'gemini-2.5-pro',
+       flash: 'gemini-2.5-flash',
 
-      # Gemini 2.0 models
-      flash_2_0: 'gemini-2.0-flash',
-      flash_lite: 'gemini-2.0-flash-lite',
+       # Gemini 2.0 models
+       flash_2_0: 'gemini-2.0-flash',
+       flash_lite: 'gemini-2.0-flash-lite',
 
        # Legacy aliases for backward compatibility
        pro_2_0: 'gemini-2.0-flash'
@@ -94,7 +94,7 @@ module GeminiAI
             { text: prompt }
           ] }
         ],
-        generationConfig: build_generation_config(options)
+         generationConfig: build_generation_config(options)
        }
 
       # Use the pro model for image-to-text tasks
