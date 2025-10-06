@@ -38,6 +38,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 - Workflow syntax
 - HarperBot model updated to gemini-2.5-flash for compatibility
 - Security workflow gitleaks license requirement removed
+- CI bundler installation issues resolved by removing problematic dependencies (simplecov, redcarpet, rubocop, github-markup, minitest-reporters)
 
 ### Security
 
