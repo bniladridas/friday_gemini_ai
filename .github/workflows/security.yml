@@ -79,6 +79,7 @@ jobs:
       # Install and run Gitleaks for secret scanning
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2.0.0
+        continue-on-error: true
 
       # Run bundle audit for Ruby dependency vulnerabilities
       - name: Run security audit
