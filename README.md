@@ -317,8 +317,7 @@ bundle exec rake test
 Lint & fix:
 
 ```bash
-bundle exec rubocop
-bundle exec rubocop -a
+bundle exec rake rubocop  # Skipped (removed to fix CI bundler issues)
 ```
 
 ## Contributing
