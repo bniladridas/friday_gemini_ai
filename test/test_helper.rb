@@ -380,3 +380,6 @@ end
 
 # Use spec-style reporting
 # Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+
+# Global HTTParty stub for all tests
+HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
