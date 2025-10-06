@@ -15,7 +15,6 @@ permissions:
   security-events: write
 
 env:
-  GITLEAKS_VERSION: "8.27.0"
   GEM_HOME: /usr/local/bundle
   BUNDLE_PATH: vendor/bundle
   BUNDLE_JOBS: 4
@@ -78,46 +77,10 @@ jobs:
           echo "GITLEAKS_VERSION=8.28.0" >> $GITHUB_ENV
 
        # Install and run Gitleaks for secret scanning
-      - name: Install and run Gitleaks
-        run: |
-          # Install Gitleaks
-          mkdir -p /tmp/gitleaks
-          cd /tmp/gitleaks
-          
-          # Download Gitleaks and checksums
-          echo "Downloading Gitleaks v$GITLEAKS_VERSION..."
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz -o gitleaks.tar.gz
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/checksums.txt -o gitleaks_checksums.txt
-          
-          # Get the expected checksum from the checksums file
-          EXPECTED_CHECKSUM=$(grep "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" gitleaks_checksums.txt | awk '{print $1}')
-          
-          # Verify checksum
-          echo "Verifying checksum..."
-          echo "${EXPECTED_CHECKSUM}  gitleaks.tar.gz" | sha256sum -c --strict - || { echo 'Checksum verification failed' >&2; exit 1; }
-          
-          # Extract and install
-          echo "Installing Gitleaks..."
-          tar -xzf gitleaks.tar.gz gitleaks
-          chmod +x gitleaks
-          sudo mv gitleaks /usr/local/bin/
-          
-          # Verify installation
-          echo "Gitleaks version:"
-          gitleaks version
-          
-          # Run Gitleaks from the workspace directory
-          echo "Running Gitleaks scan..."
-          cd "$GITHUB_WORKSPACE"
-          gitleaks detect --source=. --report-format=sarif --report-path=./gitleaks.sarif --no-git --verbose || true
-          
-          # Upload results as artifact
-          if [ -f "./gitleaks.sarif" ]; then
-            echo "GITLEAKS_RESULTS=$(cat ./gitleaks.sarif | jq -c '.' | base64 -w 0 | tr -d '\n')" >> $GITHUB_ENV
-            echo "Gitleaks scan completed. Results saved to gitleaks.sarif"
-          else
-            echo "No Gitleaks results file was generated."
-          fi
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          version: latest
         continue-on-error: true
 
         # Run bundle audit for Ruby dependency vulnerabilities
