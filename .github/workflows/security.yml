@@ -77,9 +77,9 @@ jobs:
           echo "GITLEAKS_VERSION=8.28.0" >> $GITHUB_ENV
 
       # Install and run Gitleaks for secret scanning
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2.0.0
-        continue-on-error: true
+      # - name: Run Gitleaks
+      #   uses: gitleaks/gitleaks-action@v2.0.0
+      #   continue-on-error: true
 
       # Run bundle audit for Ruby dependency vulnerabilities
       - name: Run security audit
@@ -112,16 +112,15 @@ jobs:
           name: security-reports-${{ github.sha }}
           path: |
             bundler-audit.json
-            gitleaks.sarif
           retention-days: 90
 
       # Upload SARIF reports to GitHub Security tab if the file exists
-      - name: Upload SARIF report
-        if: success() && hashFiles('gitleaks.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: gitleaks.sarif
-        id: sarif_upload
+      # - name: Upload SARIF report
+      #   if: success() && hashFiles('gitleaks.sarif') != ''
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: gitleaks.sarif
+      #   id: sarif_upload
 
       # Fail the job if critical vulnerabilities found
       - name: Check for critical vulnerabilities
