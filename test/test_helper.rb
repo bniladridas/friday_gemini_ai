@@ -316,4 +316,4 @@ end
 WebMock.disable_net_connect!(allow_localhost: true)
 
 # Use spec-style reporting
-Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+# Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
