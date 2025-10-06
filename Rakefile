@@ -33,6 +33,8 @@ def configure_test_task(task, with_coverage: true)
     'test/unit/**/*.rb',
     'test/integration/**/*.rb'
   ].exclude('test/unit/test_helper.rb', 'test/integration/test_helper.rb')
+
+  # E2E tests run in separate workflow
   
   task.test_files = test_files
   task.warning = true
@@ -102,6 +104,13 @@ task :ci_test do
   ENV['CI'] = 'true'
   ENV['COVERAGE'] = 'false'
   Rake::Task['test_no_coverage'].invoke
+end
+
+# E2E test task
+desc 'Run end-to-end tests (requires GEMINI_API_KEY)'
+task :e2e_test do
+  ENV['COVERAGE'] = 'false'
+  ruby 'test/e2e/api_e2e.rb'
 end
 
 # Documentation task
