@@ -43,15 +43,13 @@ bundle exec ruby -Ilib:test test/unit/client_test.rb
 
 ## Linting and Code Style
 
-Check code style:
+Code style checking is currently disabled due to CI bundler issues:
 ```bash
-bundle exec rubocop
+# bundle exec rubocop  # Temporarily disabled
+# bundle exec rubocop -a  # Temporarily disabled
 ```
 
-Auto-correct style issues:
-```bash
-bundle exec rubocop -a
-```
+Note: RuboCop has been temporarily removed from the Gemfile to resolve CI bundler installation issues with native extensions.
 
 ## Development Workflow
 
@@ -77,9 +75,9 @@ bundle exec rubocop -a
 The project uses GitHub Actions for CI/CD. Key workflows:
 
 1. **CI Workflow** (`.github/workflows/ci.yml`):
-    - Runs on push and pull requests
-    - Tests on multiple Ruby versions
-    - Runs linters and security checks
+     - Runs on push and pull requests
+     - Tests on multiple Ruby versions
+     - Runs security checks (linting temporarily disabled due to bundler issues)
 
 2. **HarperBot Workflow** (`.harper/codebot.yml`):
     - Automated PR analysis and code review

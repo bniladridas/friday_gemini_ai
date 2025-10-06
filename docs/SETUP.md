@@ -32,9 +32,9 @@
 
 ### Testing
 
-- **Unit tests** use mock API keys and don't require a real key
-- **Integration tests** require a valid `GEMINI_API_KEY` environment variable
-- Tests will be skipped if no API key is available
+- **All tests** use HTTParty stubbing and don't require a real API key
+- Tests run completely offline with mocked responses
+- No external dependencies or API keys needed for the full test suite
 
 ## Running Tests
 
@@ -43,9 +43,12 @@
 bundle install
 
 # Run all tests
-bundle exec ruby tests/runner.rb
+bundle exec rake test
+
+# Run tests without coverage (faster for development)
+bundle exec rake test_no_coverage
 
 # Run specific test suites
-bundle exec ruby tests/unit/client.rb      # Unit tests (no API key needed)
-bundle exec ruby tests/integration/api.rb # Integration tests (API key required)
+bundle exec ruby -Ilib:test test/unit/client_test.rb      # Unit tests
+bundle exec ruby -Ilib:test test/integration/api.rb      # Integration tests
 ```
