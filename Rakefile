@@ -31,9 +31,11 @@ def configure_test_task(task, with_coverage: true)
   # Find all test files
   test_files = FileList[
     'test/unit/**/*.rb',
-    'test/integration/**/*.rb',
-    'test/e2e/**/*.rb'
+    'test/integration/**/*.rb'
   ].exclude('test/unit/test_helper.rb', 'test/integration/test_helper.rb')
+
+  # Include e2e tests only if API key is available (not in CI without key)
+  test_files += FileList['test/e2e/**/*.rb'] unless ENV['CI'] && !ENV['GEMINI_API_KEY']
   
   task.test_files = test_files
   task.warning = true
