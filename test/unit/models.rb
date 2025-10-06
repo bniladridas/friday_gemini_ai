@@ -54,10 +54,10 @@ class TestModels < Minitest::Test
     logger.expects(:warn).with('Model pro_1_5 (gemini-1.5-pro) is deprecated and has been removed. ' \
                                'Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.')
 
-    GeminiAI::Client.stubs(:logger).returns(logger)
+    GeminiAI::Client.stub :logger, logger do
+      client = GeminiAI::Client.new(@api_key, model: :pro_1_5)
 
-    client = GeminiAI::Client.new(@api_key, model: :pro_1_5)
-
-    assert_instance_of GeminiAI::Client, client
+      assert_instance_of GeminiAI::Client, client
+    end
   end
 end
