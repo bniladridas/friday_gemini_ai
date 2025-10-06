@@ -33,15 +33,7 @@ class TestModels < Minitest::Test
     assert_instance_of GeminiAI::Client, lite_client
   end
 
-  def test_gemini_1_5_models
-    pro_1_5_client = GeminiAI::Client.new(@api_key, model: :pro_1_5)
-    flash_1_5_client = GeminiAI::Client.new(@api_key, model: :flash_1_5)
-    flash_8b_client = GeminiAI::Client.new(@api_key, model: :flash_8b)
 
-    assert_instance_of GeminiAI::Client, pro_1_5_client
-    assert_instance_of GeminiAI::Client, flash_1_5_client
-    assert_instance_of GeminiAI::Client, flash_8b_client
-  end
 
   def test_all_supported_models
     GeminiAI::Client::MODELS.each do |model_key, model_id|
