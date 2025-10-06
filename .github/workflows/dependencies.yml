@@ -31,13 +31,16 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
 
-      - name: Update Bundler
-        run: gem update bundler
+       - name: Update Bundler
+         run: gem update bundler
 
-      - name: Update dependencies
-        run: |
-          bundle update --conservative
-          bundle clean
+       - name: Unfreeze lockfile
+         run: bundle config set frozen false
+
+       - name: Update dependencies
+         run: |
+           bundle update --conservative
+           bundle clean
 
       - name: Run tests
         run: |
