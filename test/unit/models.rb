@@ -51,7 +51,8 @@ class TestModels < Minitest::Test
   def test_deprecated_model_warnings
     # Test that deprecated models log a warning and default to pro
     logger = mock('logger')
-    logger.expects(:warn).with("Model pro_1_5 (gemini-1.5-pro) is deprecated and has been removed. Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.")
+    logger.expects(:warn).with('Model pro_1_5 (gemini-1.5-pro) is deprecated and has been removed. ' \
+                               'Defaulting to :pro (gemini-2.5-pro). Please update your code to use supported models.')
 
     GeminiAI::Client.stubs(:logger).returns(logger)
 
