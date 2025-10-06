@@ -83,7 +83,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
-        # Run bundle audit for Ruby dependency vulnerabilities
+      # Run bundle audit for Ruby dependency vulnerabilities
       - name: Run security audit
         run: |
           echo "Running bundle audit..."
