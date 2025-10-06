@@ -76,7 +76,7 @@ jobs:
           echo "PATH=$HOME/.gem/bin:$PATH" >> $GITHUB_ENV
           echo "GITLEAKS_VERSION=8.28.0" >> $GITHUB_ENV
 
-        # Install and run Gitleaks for secret scanning
+      # Install and run Gitleaks for secret scanning
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2.0.0
         with:
