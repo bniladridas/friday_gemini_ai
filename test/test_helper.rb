@@ -332,8 +332,40 @@ end
 # Initialize SimpleCov
 # configure_simplecov
 
-# Configure HTTParty stubbing (replacement for WebMock)
-HTTParty.stubs(:post).returns(mock_response)
+# Replacement for WebMock's stub_request - simple implementation
+def stub_request(_method, _url)
+  MockWebmockStub.new
+end
+
+class MockWebmockStub
+  def to_return(_options = {})
+    self
+  end
+
+  def with(_options = {})
+    self
+  end
+end
+
+class MockRequestStub
+  def initialize(method, url, response)
+    @method = method
+    @url = url
+    @response = response
+  end
+
+  def to_return(options)
+    # Store the response for this stub
+    @response_body = options[:body] || mock_response.body
+    @response_code = options[:status] || 200
+    self
+  end
+
+  def with(_options = {})
+    # For now, ignore the matching criteria
+    self
+  end
+end
 
 # Use spec-style reporting
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
