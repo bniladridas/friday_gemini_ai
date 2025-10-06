@@ -3,25 +3,25 @@
 require 'bundler/gem_tasks'
 require 'rake/testtask'
 require 'rubocop/rake_task'
-require 'simplecov'
+# require 'simplecov'
 require 'pathname'
 
 # Configure SimpleCov before requiring test files
-require 'simplecov-lcov'
+# require 'simplecov-lcov'
 
 # Load Yard tasks
 Dir[File.join(__dir__, 'tasks', '*.rake')].each { |ext| load ext }
 
 # Configure SimpleCov for Rake tasks
-SimpleCov::Formatter::LcovFormatter.config do |c|
-  c.report_with_single_file = true
-  c.single_report_path = 'coverage/lcov.info'
-end
+# SimpleCov::Formatter::LcovFormatter.config do |c|
+#   c.report_with_single_file = true
+#   c.single_report_path = 'coverage/lcov.info'
+# end
 
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
-  SimpleCov::Formatter::HTMLFormatter,
-  SimpleCov::Formatter::LcovFormatter
-])
+# SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
+#   SimpleCov::Formatter::HTMLFormatter,
+#   SimpleCov::Formatter::LcovFormatter
+# ])
 
 # Common test configuration
 def configure_test_task(task, with_coverage: true)
