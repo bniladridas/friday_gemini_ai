@@ -79,8 +79,6 @@ jobs:
       # Install and run Gitleaks for secret scanning
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2.0.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Run bundle audit for Ruby dependency vulnerabilities
       - name: Run security audit
