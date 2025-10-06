@@ -39,9 +39,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 - HarperBot model updated to gemini-2.5-flash for compatibility
 - Security workflow gitleaks license requirement removed
 - CI bundler installation issues resolved by configuring Bundler to use vendor/bundle path
-- Development dependencies restored: rubocop, minitest-reporters
-- simplecov and redcarpet temporarily removed due to native extension compilation issues in CI
-- github-markup temporarily removed as it depends on redcarpet
+- Development dependencies restored: minitest-reporters
+- rubocop, simplecov, redcarpet, github-markup temporarily removed due to native extension compilation issues in CI
 
 ### Security
 
