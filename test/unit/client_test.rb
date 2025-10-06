@@ -412,7 +412,7 @@ class TestClient < Minitest::Test
     # Use the same API key that's used in the test client
     api_key = @client.instance_variable_get('@api_key')
 
-    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=#{api_key}")
+    stub_request(:post, "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=#{api_key}")
       .with(
         headers: {
           'Accept' => '*/*',
@@ -689,7 +689,7 @@ class TestClient < Minitest::Test
 
     response = @client.generate_text(
       'Test prompt',
-      safety_settings:
+      safety_settings: safety_settings
     )
 
     assert_requested :post, %r{generativelanguage\.googleapis\.com/v1/models/gemini-2\.5-pro:generateContent\?key=.*}
@@ -781,7 +781,7 @@ class TestClient < Minitest::Test
     safety_settings = default_safety_settings
     stub_text_safety_settings_request(safety_settings)
 
-    response = @client.generate_text('Hello, Gemini!', safety_settings:)
+    response = @client.generate_text('Hello, Gemini!', safety_settings: safety_settings)
 
     assert_text_safety_settings_request_made
     assert_equal 'Test response from Gemini AI', response
