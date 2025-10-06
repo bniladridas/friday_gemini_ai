@@ -82,6 +82,11 @@ require 'stringio'
 # Add helper methods to Minitest::Test
 module Minitest
   class Test
+    def setup
+      HTTParty.stubs(:post).returns(MockHTTPResponse.new(status: 200,
+                                                         body: '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'))
+    end
+
     # Helper method to create a test API key
     def test_api_key
       "AIzaSyD#{'a' * 35}" # 39 characters total, starting with AIzaSyD
