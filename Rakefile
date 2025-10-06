@@ -79,13 +79,13 @@ task :coverage do
 end
 
 # Default task
-task default: %i[test]
+task default: %i[test rubocop]
 
-# RuboCop configuration
-# RuboCop::RakeTask.new do |task|
-#   task.options = ['--display-cop-names', '--extra-details', '--parallel']
-#   task.fail_on_error = true
-# end
+# CI task
+desc 'Run all tests and code quality checks'
+task ci: %i[test rubocop] do
+  puts 'CI checks completed successfully!'
+end
 
 # CI task
 desc 'Run all tests and code quality checks'
@@ -122,7 +122,7 @@ end
 
 # Release task
 desc 'Release a new version'
-task :release => %i[test] do
+task :release => %i[test rubocop] do
   version = File.read(File.join('lib', 'gemini', 'version.rb'))
     .match(/VERSION = '([^']+)'/)[1]
   
