@@ -182,7 +182,7 @@ module Minitest
       debug_puts "Body: #{response_body}\n\n"
 
       stub.to_return(
-        status:,
+        status: status,
         body: response_body,
         headers: { 'Content-Type' => 'application/json' }
       )
@@ -305,7 +305,7 @@ module Minitest
 
   # Helper method to create a test client
   def create_test_client(model: :pro, **)
-    GeminiAI::Client.new('test_key', model:, **)
+    GeminiAI::Client.new('test_key', model: model)
   end
 end
 
