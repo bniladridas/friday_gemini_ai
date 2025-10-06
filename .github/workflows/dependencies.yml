@@ -43,6 +43,7 @@ jobs:
           bundle update --conservative
           bundle clean
 
+      # Refreeze the lockfile to prevent accidental modifications outside of this update process
       - name: Refreeze lockfile
         run: bundle config set frozen true
 
