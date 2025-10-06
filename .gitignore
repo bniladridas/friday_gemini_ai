@@ -33,6 +33,7 @@
 # Bundle directory (but keep config)
 .bundle/
 !.bundle/config
+vendor/
 
 # Documentation
 index.html
