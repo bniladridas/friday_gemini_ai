@@ -33,7 +33,6 @@ client = GeminiAI::Client.new
 
 # Or specify a different model
 fast_client = GeminiAI::Client.new(model: :flash)  # Gemini 2.5 Flash
-image_client = GeminiAI::Client.new(model: :pro_1_5)  # For image analysis
 ```
 
 ### Available Models
