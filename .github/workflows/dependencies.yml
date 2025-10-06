@@ -49,7 +49,7 @@ jobs:
       - name: Run tests
         run: |
           bundle install
-          bundle exec ruby tests/runner.rb
+          bundle exec ruby test/runner.rb
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
