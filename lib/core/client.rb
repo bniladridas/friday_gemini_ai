@@ -87,7 +87,7 @@ module GeminiAI
     def generate_image_text(image_base64, prompt, options = {})
       raise Error, 'Image is required' if image_base64.nil? || image_base64.empty?
 
-       request_body = {
+      request_body = {
          contents: [
            { parts: [
              { inline_data: { mime_type: 'image/jpeg', data: image_base64 } },
