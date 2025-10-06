@@ -28,6 +28,11 @@ jobs:
         run: bundle install
 
       - name: Run e2e tests
-        run: bundle exec rake e2e_test
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "Skipping e2e tests - no API key set"
+          else
+            bundle exec rake e2e_test
+          fi
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
