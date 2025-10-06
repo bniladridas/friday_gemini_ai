@@ -41,7 +41,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 - CI bundler installation issues resolved by configuring Bundler to use vendor/bundle path
 - Development dependencies restored: minitest-reporters
 - rubocop, simplecov, redcarpet, github-markup, webmock temporarily removed due to native extension compilation issues in CI
-- Tests updated to work without webmock using HTTParty stubbing (123 tests, 114 passing)
+- Tests updated to work without webmock using HTTParty stubbing (123 tests, 165 assertions, all passing)
+- Test infrastructure completely overhauled to prevent real API calls during testing
+- HTTParty stubbing implemented for reliable CI testing without external dependencies
 
 ### Security
 
