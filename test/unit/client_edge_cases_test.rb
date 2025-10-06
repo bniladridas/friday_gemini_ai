@@ -6,7 +6,6 @@ class ClientEdgeCasesTest < Minitest::Test
   def setup
     @client = GeminiAI::Client.new('AIzaSyDummyTestKeyForUnitTests123456789')
     @test_image = Base64.strict_encode64(File.binread('test/fixtures/test_image.jpg'))
-    WebMock.disable_net_connect!(allow_localhost: true)
   end
 
   def test_generate_text_with_long_prompt
