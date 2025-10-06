@@ -192,6 +192,25 @@ module Minitest
       @debug_file ||= File.open('test_debug.log', 'w')
     end
 
+    # Mock HTTP response for testing
+    class MockHTTPResponse
+      def code
+        200
+      end
+
+      def body
+        '{"candidates":[{"content":{"parts":[{"text":"Test response from Gemini AI"}]}}]}'
+      end
+
+      def success?
+        true
+      end
+    end
+
+    def mock_response
+      MockHTTPResponse.new
+    end
+
     # Helper method to compare hashes and show differences
     def compare_hashes(expected, actual, path)
       expected = parse_json_if_needed(expected)
@@ -312,8 +331,8 @@ end
 # Initialize SimpleCov
 # configure_simplecov
 
-# Configure WebMock
-# WebMock.disable_net_connect!(allow_localhost: true)
+# Configure HTTParty stubbing (replacement for WebMock)
+HTTParty.stubs(:post).returns(mock_response)
 
 # Use spec-style reporting
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
