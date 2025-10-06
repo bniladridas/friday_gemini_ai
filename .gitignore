@@ -30,8 +30,9 @@
 .DS_Store
 .env
 
-# Bundle directory
+# Bundle directory (but keep config)
 .bundle/
+!.bundle/config
 
 # Documentation
 index.html
