@@ -27,10 +27,9 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          bundler-cache: false
 
       - name: Configure Bundler
-        run: bundle config set --local path 'vendor/bundle'
+        run: bundle config set path 'vendor/bundle'
 
       - name: Install dependencies
         run: bundle install
@@ -62,7 +61,7 @@ jobs:
           bundler-cache: false
 
       - name: Configure Bundler
-        run: bundle config set --local path 'vendor/bundle'
+        run: bundle config set path 'vendor/bundle'
 
       - name: Install dependencies
         run: bundle install
@@ -85,7 +84,7 @@ jobs:
           bundler-cache: false
 
       - name: Configure Bundler
-        run: bundle config set --local path 'vendor/bundle'
+        run: bundle config set path 'vendor/bundle'
 
       - name: Install dependencies
         run: bundle install
@@ -119,7 +118,7 @@ jobs:
           bundler-cache: false
 
       - name: Configure Bundler
-        run: bundle config set --local path 'vendor/bundle'
+        run: bundle config set path 'vendor/bundle'
 
       - name: Build gem
         run: |
@@ -153,7 +152,7 @@ jobs:
           bundler-cache: false
 
       - name: Configure Bundler
-        run: bundle config set --local path 'vendor/bundle'
+        run: bundle config set path 'vendor/bundle'
 
       - name: Build gem package
         run: |
