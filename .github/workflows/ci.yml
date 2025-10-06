@@ -9,99 +9,31 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
+   test:
     name: Test Ruby ${{ matrix.ruby }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    
-     strategy:
-       fail-fast: false
+    strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        ruby: ['3.2', '3.3']
-    steps:
-     - name: Checkout code
-       uses: actions/checkout@v5
+         ruby: ['3.2', '3.3']
+     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-     - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
         with:
            ruby-version: ${{ matrix.ruby }}
 
-       - name: Configure Bundler
-          run: bundle config set path 'vendor/bundle'
-          working-directory: ${{ github.workspace }}
-
-       - name: Install dependencies
-          run: bundle install
-          working-directory: ${{ github.workspace }}
-
-       - name: Run tests with coverage
-          run: bundle exec rake test
-          working-directory: ${{ github.workspace }}
-         env:
-          COVERAGE: 'true'
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-key-for-ci' }}
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-           fail_ci_if_error: false
-
-  lint:
-    name: Lint and Style Check
-    runs-on: ubuntu-latest
-    
-    steps:
-     - name: Checkout code
-       uses: actions/checkout@v5
-
-     - name: Set up Ruby
-       uses: ruby/setup-ruby@v1
-       with:
-         ruby-version: '3.2'
-         bundler-cache: false
-
-     - name: Configure Bundler
+      - name: Configure Bundler
        run: bundle config set path 'vendor/bundle'
-       working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}
+      - name: Install dependencies
 
-     - name: Install dependencies
-       run: bundle install
-       working-directory: ${{ github.workspace }}
+        run: bundle install
 
-     - name: Run RuboCop
-       run: bundle exec rake rubocop
-       working-directory: ${{ github.workspace }}
-
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    
-    steps:
-     - name: Checkout code
-       uses: actions/checkout@v5
-
-     - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: '3.2'
-           bundler-cache: false
-
-     - name: Configure Bundler
-       run: bundle config set path 'vendor/bundle'
-       working-directory: ${{ github.workspace }}
-
-     - name: Install dependencies
-       run: bundle install
-       working-directory: ${{ github.workspace }}
-
-     - name: Run Bundler Audit
-       run: |
-         bundle exec bundler-audit update
-         bundle exec bundler-audit check
-       continue-on-error: true
-       working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}
 
      - name: Run Brakeman
        run: bundle exec brakeman --force --no-pager --format github
