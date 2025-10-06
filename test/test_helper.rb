@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
 require 'json'
-# require 'simplecov'
-# require 'simplecov-lcov'
+require 'simplecov'
+require 'simplecov-lcov'
 require 'webmock/minitest'
 
 # Configure SimpleCov formatters
-# SimpleCov::Formatter::LcovFormatter.config do |c|
-#   c.report_with_single_file = true
-#   c.single_report_path = 'coverage/lcov.info'
-# end
+SimpleCov::Formatter::LcovFormatter.config do |c|
+  c.report_with_single_file = true
+  c.single_report_path = 'coverage/lcov.info'
+end
 
-# SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
-#                                                                   SimpleCov::Formatter::HTMLFormatter,
-#                                                                   SimpleCov::Formatter::LcovFormatter
-#                                                                 ])
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
+                                                                 SimpleCov::Formatter::HTMLFormatter,
+                                                                 SimpleCov::Formatter::LcovFormatter
+                                                               ])
 
 # Configure SimpleCov coverage settings
 def configure_simplecov
@@ -71,12 +71,12 @@ end
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'gemini'
 require 'minitest/autorun'
-# require 'minitest/reporters'
+require 'minitest/reporters'
 require 'mocha/minitest'
 require 'stringio'
 
 # Configure Minitest
-# Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
 # Add helper methods to Minitest::Test
 module Minitest
@@ -310,10 +310,10 @@ module Minitest
 end
 
 # Initialize SimpleCov
-# configure_simplecov
+configure_simplecov
 
 # Configure WebMock
 WebMock.disable_net_connect!(allow_localhost: true)
 
 # Use spec-style reporting
-# Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
