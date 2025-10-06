@@ -964,8 +964,9 @@ class TestClient < Minitest::Test
 
   def test_deprecated_model_logs_warning
     # Test that using a deprecated model logs a warning and defaults to pro
-    out, err = capture_io do
+    out, _err = capture_io do
       client = GeminiAI::Client.new(@api_key, model: :pro_1_5)
+
       assert_instance_of GeminiAI::Client, client
     end
 
