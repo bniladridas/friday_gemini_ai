@@ -3,6 +3,7 @@
 require 'json'
 # require 'simplecov'
 # require 'simplecov-lcov'
+require 'httparty'
 # require 'webmock/minitest'
 
 # Configure SimpleCov formatters
