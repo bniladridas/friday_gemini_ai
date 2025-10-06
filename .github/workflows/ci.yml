@@ -23,17 +23,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-       - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: ${{ matrix.ruby }}
-           bundler-cache: true
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
 
-       - name: Configure Bundler
-         run: bundle config set --local path 'vendor/bundle'
+      - name: Configure Bundler
+        run: bundle config set --local path 'vendor/bundle'
 
-       - name: Install dependencies
-         run: bundle install
+      - name: Install dependencies
+        run: bundle install
 
       - name: Run tests with coverage
         run: bundle exec rake test
@@ -55,20 +55,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-       - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: '3.2'
-           bundler-cache: true
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
 
-       - name: Configure Bundler
-         run: bundle config set --local path 'vendor/bundle'
+      - name: Configure Bundler
+        run: bundle config set --local path 'vendor/bundle'
 
-       - name: Install dependencies
-         run: bundle install
+      - name: Install dependencies
+        run: bundle install
 
-       - name: Run RuboCop
-         run: bundle exec rake rubocop
+      - name: Run RuboCop
+        run: bundle exec rake rubocop
 
   security:
     name: Security Scan
@@ -78,23 +78,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-       - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: '3.2'
-           bundler-cache: true
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
 
-       - name: Configure Bundler
-         run: bundle config set --local path 'vendor/bundle'
+      - name: Configure Bundler
+        run: bundle config set --local path 'vendor/bundle'
 
-       - name: Install dependencies
-         run: bundle install
+      - name: Install dependencies
+        run: bundle install
 
-       - name: Run Bundler Audit
-         run: |
-           bundle exec bundler-audit update
-           bundle exec bundler-audit check
-         continue-on-error: true
+      - name: Run Bundler Audit
+        run: |
+          bundle exec bundler-audit update
+          bundle exec bundler-audit check
+        continue-on-error: true
 
       - name: Run Brakeman
         run: bundle exec brakeman --force --no-pager --format github
@@ -112,19 +112,19 @@ jobs:
         with:
           fetch-depth: 0
 
-       - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: '3.2'
-           bundler-cache: true
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
 
-       - name: Configure Bundler
-         run: bundle config set --local path 'vendor/bundle'
+      - name: Configure Bundler
+        run: bundle config set --local path 'vendor/bundle'
 
-       - name: Build gem
-         run: |
-           mkdir -p pkg
-           gem build -o pkg/gemini-ai.gem *.gemspec
+      - name: Build gem
+        run: |
+          mkdir -p pkg
+          gem build -o pkg/gemini-ai.gem *.gemspec
 
       - name: Publish to RubyGems
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -146,19 +146,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-       - name: Set up Ruby
-         uses: ruby/setup-ruby@v1
-         with:
-           ruby-version: '3.2'
-           bundler-cache: true
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
 
-       - name: Configure Bundler
-         run: bundle config set --local path 'vendor/bundle'
+      - name: Configure Bundler
+        run: bundle config set --local path 'vendor/bundle'
 
-       - name: Build gem package
-         run: |
-           mkdir -p pkg
-           gem build -o pkg/gemini-ai.gem *.gemspec
+      - name: Build gem package
+        run: |
+          mkdir -p pkg
+          gem build -o pkg/gemini-ai.gem *.gemspec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
