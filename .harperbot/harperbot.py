@@ -7,6 +7,7 @@ import sys
 import argparse
 import textwrap
 import re
+import logging
 from github import Github, Auth, Auth
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -58,15 +59,18 @@ def find_diff_position(diff, file_path, line_number):
 def setup_environment():
     """Load environment variables and configure the Gemini API."""
     load_dotenv()
-    
+
+    # Setup logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
     # Get GitHub token and API key from environment
     github_token = os.getenv('GITHUB_TOKEN')
     gemini_api_key = os.getenv('GEMINI_API_KEY')
-    
+
     if not github_token or not gemini_api_key:
-        print("Error: Missing required environment variables. Ensure GITHUB_TOKEN and GEMINI_API_KEY are set.")
+        logging.error("Missing required environment variables. Ensure GITHUB_TOKEN and GEMINI_API_KEY are set.")
         sys.exit(1)
-    
+
     # Configure Gemini API
     genai.configure(api_key=gemini_api_key)
     return github_token
@@ -217,23 +221,36 @@ def analyze_with_gemini(pr_details):
         
         # Handle different response formats
         def extract_text(resp):
-            """Extract text from Gemini response object."""
+            """
+            Extract text from Gemini API response object.
+
+            Attempts to extract text from various possible response structures:
+            - Direct text attribute
+            - Candidates with content parts
+            - Direct parts array
+
+            Args:
+                resp: The response object from Gemini API
+
+            Returns:
+                str: Sanitized extracted text, or None if extraction fails
+            """
             try:
                 # Try the standard text accessor first
                 if getattr(resp, 'text', None):
-                    print("Extracted text from direct response.text")
+                    logging.debug("Extracted text from direct response.text")
                     return sanitize_text(resp.text.strip())
 
                 # Try candidates structure (most common for Gemini API)
                 candidates = getattr(resp, 'candidates', None)
                 if candidates:
-                    print(f"Found {len(candidates)} candidates")
+                    logging.debug(f"Found {len(candidates)} candidates")
                     for i, candidate in enumerate(candidates):
                         content = getattr(candidate, 'content', None)
                         if content and getattr(content, 'parts', None):
                             parts = [getattr(part, 'text', '') for part in content.parts if getattr(part, 'text', None)]
                             if parts:
-                                print(f"Extracted text from candidate {i}")
+                                logging.debug(f"Extracted text from candidate {i}")
                                 return sanitize_text('\n'.join(parts).strip())
 
                 # Try direct parts access as fallback
@@ -241,12 +258,12 @@ def analyze_with_gemini(pr_details):
                 if parts:
                     parts = [getattr(part, 'text', '') for part in parts if getattr(part, 'text', None)]
                     if parts:
-                        print("Extracted text from direct response.parts")
+                        logging.debug("Extracted text from direct response.parts")
                         return sanitize_text('\n'.join(parts).strip())
 
-                print("No text found in any response structure")
+                logging.warning("No text found in any response structure")
             except Exception as extract_error:
-                print(f"Error during text extraction: {str(extract_error)} (response type: {type(resp)})")
+                logging.error(f"Error during text extraction: {str(extract_error)}")
                 return None
 
             return None
@@ -271,12 +288,12 @@ def analyze_with_gemini(pr_details):
                 return text
 
             # If we get here, no text found - log and return safe message
-            print(f"Warning: No text extracted from response. Response type: {type(response)}")
+            logging.warning(f"No text extracted from response. Response type: {type(response)}")
             raise ValueError("No text could be extracted from the AI response")
 
         except Exception as e:
             # Log the error and return safe info
-            print(f"Error processing Gemini response: {str(e)}")
+            logging.error(f"Error processing Gemini response: {str(e)}")
             return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
 
         except Exception as e:
@@ -287,18 +304,18 @@ def analyze_with_gemini(pr_details):
     except Exception as e:
         error_msg = str(e).lower()
         context = f" (PR: {pr_details.get('title', 'Unknown')}, Model: {model_name}, Diff length: {len(pr_details.get('diff', ''))})"
-        if 'quota' in error_msg or 'rate limit' in error_msg or 'billing' in error_msg:
-            print(f"API quota/rate limit error{context}: {str(e)}")
-            return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
-        elif 'api key' in error_msg or 'authentication' in error_msg or 'unauthorized' in error_msg:
-            print(f"API authentication error{context}: {str(e)}")
-            return f"Error generating analysis: Invalid API key or authentication failed{context}. Please check your GEMINI_API_KEY."
-        elif 'model' in error_msg or 'not found' in error_msg:
-            print(f"Model error{context}: {str(e)}")
-            return f"Error generating analysis: Requested model not available{context}. Please try again later."
-        else:
-            print(f"Unexpected API error{context}: {str(e)}")
-            return f"Error generating analysis: API unavailable{context}. Please try again later."
+                if 'quota' in error_msg or 'rate limit' in error_msg or 'billing' in error_msg:
+                    logging.error(f"API quota/rate limit error{context}: {str(e)}")
+                    return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
+                elif 'api key' in error_msg or 'authentication' in error_msg or 'unauthorized' in error_msg:
+                    logging.error(f"API authentication error{context}: {str(e)}")
+                    return f"Error generating analysis: Invalid API key or authentication failed{context}. Please check your GEMINI_API_KEY."
+                elif 'model' in error_msg or 'not found' in error_msg:
+                    logging.error(f"Model error{context}: {str(e)}")
+                    return f"Error generating analysis: Requested model not available{context}. Please try again later."
+                else:
+                    logging.error(f"Unexpected API error{context}: {str(e)}")
+                    return f"Error generating analysis: API unavailable{context}. Please try again later."
 
 def parse_diff_for_suggestions(diff_text):
     """Parse a diff block to extract file, line, and suggestion code."""
@@ -399,15 +416,15 @@ def main():
     pr_details = get_pr_details(github_token, args.repo, args.pr)
     
     # Analyze PR with Gemini
-    print("Analyzing PR with Gemini...")
+    logging.info("Analyzing PR with Gemini...")
     analysis = analyze_with_gemini(pr_details)
-    print("Analysis response:")
-    print(analysis)
-    
+    logging.debug("Analysis response received")
+    logging.debug(analysis)
+
     # Post the comment with formatted analysis
-    print("Posting analysis to PR...")
+    logging.info("Posting analysis to PR...")
     post_comment(github_token, args.repo, pr_details, analysis)
-    print("Analysis complete!")
+    logging.info("Analysis complete!")
 
 if __name__ == "__main__":
     main()
