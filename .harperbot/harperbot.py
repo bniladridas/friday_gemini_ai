@@ -216,39 +216,43 @@ def analyze_with_gemini(pr_details):
         )
         
         # Handle different response formats
-        try:
+        def extract_text(resp):
+            """Extract text from Gemini response object."""
             # Try the standard text accessor first
-            if hasattr(response, 'text'):
-                return response.text
+            if hasattr(resp, 'text') and resp.text:
+                return resp.text
 
-            # Try to get text from parts
-            if hasattr(response, 'parts'):
-                parts = [part.text for part in response.parts if hasattr(part, 'text')]
-                if parts:
-                    return '\n'.join(parts)
-
-            # Try candidates structure
-            if hasattr(response, 'candidates') and response.candidates:
-                for candidate in response.candidates:
+            # Try candidates structure (most common)
+            if hasattr(resp, 'candidates') and resp.candidates:
+                for candidate in resp.candidates:
                     if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
-                        parts = [part.text for part in candidate.content.parts if hasattr(part, 'text')]
+                        parts = [part.text for part in candidate.content.parts if hasattr(part, 'text') and part.text]
                         if parts:
                             return '\n'.join(parts)
 
-            # Try direct access to the first part's text
-            if hasattr(response, 'parts') and len(response.parts) > 0:
-                part = response.parts[0]
-                if hasattr(part, 'text'):
-                    return part.text
+            # Try direct parts access
+            if hasattr(resp, 'parts') and resp.parts:
+                parts = [part.text for part in resp.parts if hasattr(part, 'text') and part.text]
+                if parts:
+                    return '\n'.join(parts)
 
-            # If we get here, try to stringify the response
-            return str(response)
+            return None
+
+        try:
+            text = extract_text(response)
+            if text:
+                return text
+
+            # If we get here, no text found - log and return safe representation
+            print(f"Warning: No text extracted from response. Response type: {type(response)}")
+            return repr(response)
 
         except Exception as e:
-            # If all else fails, return a detailed error
+            # Log the error and return detailed info
+            print(f"Error processing Gemini response: {str(e)}")
             return f"Error processing response: {str(e)}\n\nResponse structure: {dir(response)}\n" + \
                    f"Response type: {type(response)}\n" + \
-                   f"Response content: {response}"
+                   f"Response content: {repr(response)}"
 
     except Exception as e:
         return "Error generating analysis: API quota exceeded or unavailable. Please try again later."
