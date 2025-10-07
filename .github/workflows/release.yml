@@ -106,7 +106,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y ruby-full ruby-bundler
         ruby --version
-        bundle install
 
     - name: Get gem file
       run: |
@@ -184,7 +183,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y ruby-full ruby-bundler
         ruby --version
-        bundle install
 
     - name: Configure Git
       run: |
