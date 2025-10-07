@@ -256,7 +256,7 @@ def analyze_with_gemini(pr_details):
             if not text:
                 return text
             # Remove potentially dangerous patterns
-            text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.IGNORECASE | re.DOTALL)
+            text = re.sub(r'<script[^>]*>.*?</script\s*>', '', text, flags=re.IGNORECASE | re.DOTALL)
             text = re.sub(r'<[^>]+>', '', text)  # Remove all HTML tags
             text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
             text = re.sub(r'on\w+\s*=', '', text, flags=re.IGNORECASE)  # Remove event handlers
