@@ -218,23 +218,28 @@ def analyze_with_gemini(pr_details):
         # Handle different response formats
         def extract_text(resp):
             """Extract text from Gemini response object."""
-            # Try the standard text accessor first
-            if hasattr(resp, 'text') and resp.text:
-                return resp.text
+            try:
+                # Try the standard text accessor first
+                if hasattr(resp, 'text') and resp.text:
+                    return resp.text.strip()
 
-            # Try candidates structure (most common)
-            if hasattr(resp, 'candidates') and resp.candidates:
-                for candidate in resp.candidates:
-                    if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
-                        parts = [part.text for part in candidate.content.parts if hasattr(part, 'text') and part.text]
-                        if parts:
-                            return '\n'.join(parts)
+                # Try candidates structure (most common for Gemini API)
+                if hasattr(resp, 'candidates') and resp.candidates:
+                    for candidate in resp.candidates:
+                        if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                            parts = [part.text for part in candidate.content.parts if hasattr(part, 'text') and part.text]
+                            if parts:
+                                return '\n'.join(parts).strip()
 
-            # Try direct parts access
-            if hasattr(resp, 'parts') and resp.parts:
-                parts = [part.text for part in resp.parts if hasattr(part, 'text') and part.text]
-                if parts:
-                    return '\n'.join(parts)
+                # Try direct parts access as fallback
+                if hasattr(resp, 'parts') and resp.parts:
+                    parts = [part.text for part in resp.parts if hasattr(part, 'text') and part.text]
+                    if parts:
+                        return '\n'.join(parts).strip()
+
+            except Exception as extract_error:
+                print(f"Error during text extraction: {str(extract_error)}")
+                return None
 
             return None
 
@@ -245,7 +250,7 @@ def analyze_with_gemini(pr_details):
 
             # If we get here, no text found - log and return safe representation
             print(f"Warning: No text extracted from response. Response type: {type(response)}")
-            return repr(response)
+            return f"No response text available. Raw response: {repr(response)}"
 
         except Exception as e:
             # Log the error and return detailed info
@@ -255,7 +260,19 @@ def analyze_with_gemini(pr_details):
                    f"Response content: {repr(response)}"
 
     except Exception as e:
-        return "Error generating analysis: API quota exceeded or unavailable. Please try again later."
+        error_msg = str(e).lower()
+        if 'quota' in error_msg or 'rate limit' in error_msg or 'billing' in error_msg:
+            print(f"API quota/rate limit error: {str(e)}")
+            return "Error generating analysis: API quota exceeded. Please check your billing or try again later."
+        elif 'api key' in error_msg or 'authentication' in error_msg or 'unauthorized' in error_msg:
+            print(f"API authentication error: {str(e)}")
+            return "Error generating analysis: Invalid API key or authentication failed. Please check your GEMINI_API_KEY."
+        elif 'model' in error_msg or 'not found' in error_msg:
+            print(f"Model error: {str(e)}")
+            return "Error generating analysis: Requested model not available. Please try again later."
+        else:
+            print(f"Unexpected API error: {str(e)}")
+            return "Error generating analysis: API unavailable. Please try again later."
 
 def parse_diff_for_suggestions(diff_text):
     """Parse a diff block to extract file, line, and suggestion code."""
