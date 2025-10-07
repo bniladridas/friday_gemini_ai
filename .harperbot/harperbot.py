@@ -256,7 +256,7 @@ def analyze_with_gemini(pr_details):
             if not text:
                 return text
             # Remove potentially dangerous patterns
-            text = re.sub(r'<script[^>]*>.*?</script\s*>', '', text, flags=re.IGNORECASE | re.DOTALL)
+            text = re.sub(r'</?script[^>]*>', '', text, flags=re.IGNORECASE)
             text = re.sub(r'<[^>]+>', '', text)  # Remove all HTML tags
             text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
             text = re.sub(r'on\w+\s*=', '', text, flags=re.IGNORECASE)  # Remove event handlers
@@ -272,7 +272,12 @@ def analyze_with_gemini(pr_details):
 
             # If we get here, no text found - log and return safe message
             print(f"Warning: No text extracted from response. Response type: {type(response)}")
-            return "No response text available from AI analysis."
+            raise ValueError("No text could be extracted from the AI response")
+
+        except Exception as e:
+            # Log the error and return safe info
+            print(f"Error processing Gemini response: {str(e)}")
+            return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
 
         except Exception as e:
             # Log the error and return safe info (avoid leaking sensitive response data)
