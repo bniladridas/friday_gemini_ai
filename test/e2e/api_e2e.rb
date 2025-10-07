@@ -7,6 +7,7 @@ class TestAPIe2e < Minitest::Test
   def setup
     @api_key = ENV.fetch('GEMINI_API_KEY', nil)
     skip 'GEMINI_API_KEY not set, skipping e2e tests' unless @api_key
+    skip 'Using dummy API key, skipping e2e tests' if @api_key == 'dummy-key-for-ci'
 
     @client = GeminiAI::Client.new(@api_key)
   end
