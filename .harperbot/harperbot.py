@@ -221,7 +221,7 @@ def analyze_with_gemini(pr_details):
             try:
                 # Try the standard text accessor first
                 if getattr(resp, 'text', None):
-                    return resp.text.strip()
+                    return sanitize_text(resp.text.strip())
 
                 # Try candidates structure (most common for Gemini API)
                 candidates = getattr(resp, 'candidates', None)
@@ -231,14 +231,14 @@ def analyze_with_gemini(pr_details):
                         if content and getattr(content, 'parts', None):
                             parts = [getattr(part, 'text', '') for part in content.parts if getattr(part, 'text', None)]
                             if parts:
-                                return '\n'.join(parts).strip()
+                                return sanitize_text('\n'.join(parts).strip())
 
                 # Try direct parts access as fallback
                 parts = getattr(resp, 'parts', None)
                 if parts:
                     parts = [getattr(part, 'text', '') for part in parts if getattr(part, 'text', None)]
                     if parts:
-                        return '\n'.join(parts).strip()
+                        return sanitize_text('\n'.join(parts).strip())
 
             except Exception as extract_error:
                 print(f"Error during text extraction: {str(extract_error)}")
@@ -246,21 +246,31 @@ def analyze_with_gemini(pr_details):
 
             return None
 
+        def sanitize_text(text):
+            """Basic sanitization of extracted text for security."""
+            if not text:
+                return text
+            # Remove potentially dangerous patterns (basic protection)
+            text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.IGNORECASE | re.DOTALL)
+            text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
+            # Limit length to prevent abuse
+            if len(text) > 10000:
+                text = text[:10000] + '... (truncated)'
+            return text
+
         try:
             text = extract_text(response)
             if text:
                 return text
 
-            # If we get here, no text found - log and return safe representation
+            # If we get here, no text found - log and return safe message
             print(f"Warning: No text extracted from response. Response type: {type(response)}")
-            return f"No response text available. Raw response: {repr(response)}"
+            return "No response text available from AI analysis."
 
         except Exception as e:
-            # Log the error and return detailed info
+            # Log the error and return safe info (avoid leaking sensitive response data)
             print(f"Error processing Gemini response: {str(e)}")
-            return f"Error processing response: {str(e)}\n\nResponse structure: {dir(response)}\n" + \
-                   f"Response type: {type(response)}\n" + \
-                   f"Response content: {repr(response)}"
+            return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
 
     except Exception as e:
         error_msg = str(e).lower()
