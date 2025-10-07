@@ -220,20 +220,23 @@ def analyze_with_gemini(pr_details):
             """Extract text from Gemini response object."""
             try:
                 # Try the standard text accessor first
-                if hasattr(resp, 'text') and resp.text:
+                if getattr(resp, 'text', None):
                     return resp.text.strip()
 
                 # Try candidates structure (most common for Gemini API)
-                if hasattr(resp, 'candidates') and resp.candidates:
-                    for candidate in resp.candidates:
-                        if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
-                            parts = [part.text for part in candidate.content.parts if hasattr(part, 'text') and part.text]
+                candidates = getattr(resp, 'candidates', None)
+                if candidates:
+                    for candidate in candidates:
+                        content = getattr(candidate, 'content', None)
+                        if content and getattr(content, 'parts', None):
+                            parts = [getattr(part, 'text', '') for part in content.parts if getattr(part, 'text', None)]
                             if parts:
                                 return '\n'.join(parts).strip()
 
                 # Try direct parts access as fallback
-                if hasattr(resp, 'parts') and resp.parts:
-                    parts = [part.text for part in resp.parts if hasattr(part, 'text') and part.text]
+                parts = getattr(resp, 'parts', None)
+                if parts:
+                    parts = [getattr(part, 'text', '') for part in parts if getattr(part, 'text', None)]
                     if parts:
                         return '\n'.join(parts).strip()
 
@@ -261,18 +264,19 @@ def analyze_with_gemini(pr_details):
 
     except Exception as e:
         error_msg = str(e).lower()
+        context = f" (PR: {pr_details.get('title', 'Unknown')}, Model: {model_name}, Diff length: {len(pr_details.get('diff', ''))})"
         if 'quota' in error_msg or 'rate limit' in error_msg or 'billing' in error_msg:
-            print(f"API quota/rate limit error: {str(e)}")
-            return "Error generating analysis: API quota exceeded. Please check your billing or try again later."
+            print(f"API quota/rate limit error{context}: {str(e)}")
+            return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
         elif 'api key' in error_msg or 'authentication' in error_msg or 'unauthorized' in error_msg:
-            print(f"API authentication error: {str(e)}")
-            return "Error generating analysis: Invalid API key or authentication failed. Please check your GEMINI_API_KEY."
+            print(f"API authentication error{context}: {str(e)}")
+            return f"Error generating analysis: Invalid API key or authentication failed{context}. Please check your GEMINI_API_KEY."
         elif 'model' in error_msg or 'not found' in error_msg:
-            print(f"Model error: {str(e)}")
-            return "Error generating analysis: Requested model not available. Please try again later."
+            print(f"Model error{context}: {str(e)}")
+            return f"Error generating analysis: Requested model not available{context}. Please try again later."
         else:
-            print(f"Unexpected API error: {str(e)}")
-            return "Error generating analysis: API unavailable. Please try again later."
+            print(f"Unexpected API error{context}: {str(e)}")
+            return f"Error generating analysis: API unavailable{context}. Please try again later."
 
 def parse_diff_for_suggestions(diff_text):
     """Parse a diff block to extract file, line, and suggestion code."""
