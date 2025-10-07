@@ -135,7 +135,7 @@ def analyze_with_gemini(pr_details):
 
         # Initialize with selected model
         model = genai.GenerativeModel(model_name)
-        
+
         # Prepare the prompt based on focus
         focus_instructions = {
             'security': "Focus primarily on security concerns, authentication, data handling, and potential vulnerabilities.",
@@ -185,7 +185,7 @@ def analyze_with_gemini(pr_details):
                 - [Actionable items for the author]
             """)]
         }
-        
+
         # Generate content with safety settings
         response = model.generate_content(
             contents=[prompt],
@@ -220,13 +220,13 @@ def analyze_with_gemini(pr_details):
             # Try the standard text accessor first
             if hasattr(response, 'text'):
                 return response.text
-                
+
             # Try to get text from parts
             if hasattr(response, 'parts'):
                 parts = [part.text for part in response.parts if hasattr(part, 'text')]
                 if parts:
                     return '\n'.join(parts)
-                    
+
             # Try candidates structure
             if hasattr(response, 'candidates') and response.candidates:
                 for candidate in response.candidates:
@@ -234,22 +234,22 @@ def analyze_with_gemini(pr_details):
                         parts = [part.text for part in candidate.content.parts if hasattr(part, 'text')]
                         if parts:
                             return '\n'.join(parts)
-                            
+
             # Try direct access to the first part's text
             if hasattr(response, 'parts') and len(response.parts) > 0:
                 part = response.parts[0]
                 if hasattr(part, 'text'):
                     return part.text
-                    
+
             # If we get here, try to stringify the response
             return str(response)
-            
+
         except Exception as e:
             # If all else fails, return a detailed error
             return f"Error processing response: {str(e)}\n\nResponse structure: {dir(response)}\n" + \
                    f"Response type: {type(response)}\n" + \
                    f"Response content: {response}"
-        
+
     except Exception as e:
         return "Error generating analysis: API quota exceeded or unavailable. Please try again later."
 
