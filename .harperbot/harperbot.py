@@ -304,18 +304,18 @@ def analyze_with_gemini(pr_details):
     except Exception as e:
         error_msg = str(e).lower()
         context = f" (PR: {pr_details.get('title', 'Unknown')}, Model: {model_name}, Diff length: {len(pr_details.get('diff', ''))})"
-                if 'quota' in error_msg or 'rate limit' in error_msg or 'billing' in error_msg:
-                    logging.error(f"API quota/rate limit error{context}: {str(e)}")
-                    return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
-                elif 'api key' in error_msg or 'authentication' in error_msg or 'unauthorized' in error_msg:
-                    logging.error(f"API authentication error{context}: {str(e)}")
-                    return f"Error generating analysis: Invalid API key or authentication failed{context}. Please check your GEMINI_API_KEY."
-                elif 'model' in error_msg or 'not found' in error_msg:
-                    logging.error(f"Model error{context}: {str(e)}")
-                    return f"Error generating analysis: Requested model not available{context}. Please try again later."
-                else:
-                    logging.error(f"Unexpected API error{context}: {str(e)}")
-                    return f"Error generating analysis: API unavailable{context}. Please try again later."
+        if 'quota' in error_msg or 'rate limit' in error_msg or 'billing' in error_msg:
+            logging.error(f"API quota/rate limit error{context}: {str(e)}")
+            return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
+        elif 'api key' in error_msg or 'authentication' in error_msg or 'unauthorized' in error_msg:
+            logging.error(f"API authentication error{context}: {str(e)}")
+            return f"Error generating analysis: Invalid API key or authentication failed{context}. Please check your GEMINI_API_KEY."
+        elif 'model' in error_msg or 'not found' in error_msg:
+            logging.error(f"Model error{context}: {str(e)}")
+            return f"Error generating analysis: Requested model not available{context}. Please try again later."
+        else:
+            logging.error(f"Unexpected API error{context}: {str(e)}")
+            return f"Error generating analysis: API unavailable{context}. Please try again later."
 
 def parse_diff_for_suggestions(diff_text):
     """Parse a diff block to extract file, line, and suggestion code."""
