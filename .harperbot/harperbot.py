@@ -221,16 +221,19 @@ def analyze_with_gemini(pr_details):
             try:
                 # Try the standard text accessor first
                 if getattr(resp, 'text', None):
+                    print("Extracted text from direct response.text")
                     return sanitize_text(resp.text.strip())
 
                 # Try candidates structure (most common for Gemini API)
                 candidates = getattr(resp, 'candidates', None)
                 if candidates:
-                    for candidate in candidates:
+                    print(f"Found {len(candidates)} candidates")
+                    for i, candidate in enumerate(candidates):
                         content = getattr(candidate, 'content', None)
                         if content and getattr(content, 'parts', None):
                             parts = [getattr(part, 'text', '') for part in content.parts if getattr(part, 'text', None)]
                             if parts:
+                                print(f"Extracted text from candidate {i}")
                                 return sanitize_text('\n'.join(parts).strip())
 
                 # Try direct parts access as fallback
@@ -238,25 +241,29 @@ def analyze_with_gemini(pr_details):
                 if parts:
                     parts = [getattr(part, 'text', '') for part in parts if getattr(part, 'text', None)]
                     if parts:
+                        print("Extracted text from direct response.parts")
                         return sanitize_text('\n'.join(parts).strip())
 
+                print("No text found in any response structure")
             except Exception as extract_error:
-                print(f"Error during text extraction: {str(extract_error)}")
+                print(f"Error during text extraction: {str(extract_error)} (response type: {type(resp)})")
                 return None
 
             return None
 
         def sanitize_text(text):
-            """Basic sanitization of extracted text for security."""
+            """Comprehensive sanitization of extracted text for security."""
             if not text:
                 return text
-            # Remove potentially dangerous patterns (basic protection)
+            # Remove potentially dangerous patterns
             text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.IGNORECASE | re.DOTALL)
+            text = re.sub(r'<[^>]+>', '', text)  # Remove all HTML tags
             text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
+            text = re.sub(r'on\w+\s*=', '', text, flags=re.IGNORECASE)  # Remove event handlers
             # Limit length to prevent abuse
             if len(text) > 10000:
-                text = text[:10000] + '... (truncated)'
-            return text
+                text = text[:10000] + '... (truncated for length)'
+            return text.strip()
 
         try:
             text = extract_text(response)
