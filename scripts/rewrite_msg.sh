@@ -13,4 +13,6 @@ FIRST_LINE=$(echo "$FIRST_LINE" | tr '[:upper:]' '[:lower:]')
 FIRST_LINE=$(echo "$FIRST_LINE" | cut -c1-60)
 
 # Replace first line in MSG
-echo "$MSG" | sed "1s/.*/$FIRST_LINE/"
+readarray -t lines <<< "$MSG"
+lines[0]="$FIRST_LINE"
+printf '%s\n' "${lines[@]}"
