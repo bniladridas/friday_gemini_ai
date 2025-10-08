@@ -353,6 +353,58 @@ act -j test --container-architecture linux/amd64
 
 This allows you to validate CI changes locally before pushing.
 
+## Conventional Commits
+
+This project follows conventional commit standards to ensure consistent and meaningful commit messages.
+
+### Setup
+
+To enable commit message validation:
+
+1. Copy the commit hook to your local `.git/hooks/` directory:
+   ```bash
+   cp scripts/commit-msg .git/hooks/
+   chmod +x .git/hooks/commit-msg
+   ```
+
+The hook will enforce:
+- Commit messages must start with a type (e.g., `feat:`, `fix:`, `docs:`, etc.)
+- First line must be lowercase
+- First line must be 60 characters or less
+
+### Usage
+
+Use conventional commit types:
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation changes
+- `style:` - Code style changes
+- `refactor:` - Code refactoring
+- `test:` - Adding or updating tests
+- `chore:` - Maintenance tasks
+
+Example:
+```bash
+git commit -m "feat: add user authentication"
+git commit -m "fix: resolve login timeout issue"
+```
+
+### History Cleanup
+
+To clean up existing commit messages in the repository history:
+
+1. Run the rewrite script:
+   ```bash
+   git filter-branch --msg-filter 'bash scripts/rewrite_msg.sh' -- --all
+   ```
+
+2. Force push the rewritten history:
+   ```bash
+   git push origin --force --all
+   ```
+
+The `rewrite_msg.sh` script converts the first line to lowercase and truncates it to 60 characters.
+
 ## Contributing
 
 Fork → branch → commit → PR.
