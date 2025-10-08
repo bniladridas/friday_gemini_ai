@@ -13,6 +13,11 @@ FIRST_LINE=$(echo "$FIRST_LINE" | tr '[:upper:]' '[:lower:]')
 FIRST_LINE=$(echo "$FIRST_LINE" | cut -c1-60)
 
 # Replace first line in MSG
-readarray -t lines <<< "$MSG"
+lines=()
+while IFS= read -r line; do
+  lines+=("$line")
+done <<< "$MSG"
 lines[0]="$FIRST_LINE"
-printf '%s\n' "${lines[@]}"
+for line in "${lines[@]}"; do
+  echo "$line"
+done
