@@ -524,18 +524,7 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
         pr = repo.get_pull(pr_details['number'])
 
         # Extract code suggestions from diff blocks in the analysis
-        diff_blocks = []
-        start_pos = 0
-        while True:
-            start_pos = analysis.find('```diff\n', start_pos)
-            if start_pos == -1:
-                break
-            end_pos = analysis.find('\n```', start_pos + 8)
-            if end_pos == -1:
-                break
-            diff_text = analysis[start_pos + 8:end_pos]
-            diff_blocks.append(diff_text)
-            start_pos = end_pos + 4
+        diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
         suggestions = []
         for diff_text in diff_blocks:
             parsed = parse_diff_for_suggestions(diff_text)
