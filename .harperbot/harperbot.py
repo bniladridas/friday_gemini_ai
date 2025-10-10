@@ -113,12 +113,56 @@ def get_pr_details(github_token, repo_name, pr_number):
     }
 
 def load_config():
+    """
+    Load configuration from config.yaml with defaults.
+
+    Supports customization of analysis focus, model, limits, and AI prompt.
+    Users can modify config.yaml to change bot behavior without code changes.
+    """
+    default_prompt = """**Files Changed** ({num_files}):
+{files_list}
+
+```diff
+{diff_content}
+```
+
+{focus_instruction}
+
+Provide a concise code review analysis in this format:
+
+## Summary
+[Brief overview of changes and purpose]
+
+### Scores
+- Code Quality: [score]/10
+- Maintainability: [score]/10
+- Security: [score]/10
+
+### Strengths
+- [Key positives]
+- [What's working well]
+
+### Areas Needing Attention
+- [Potential issues or improvements]
+- [Be specific and constructive]
+
+### Recommendations
+- [Specific suggestions for code, docs, or tests]
+
+### Code Suggestions
+- [Provide specific code changes as diff blocks]
+- [Use ```diff format for each suggestion]
+
+### Next Steps
+- [Actionable items for the author]"""
+
     default_config = {
         'focus': 'all',
         'model': 'gemini-2.0-flash',
         'max_diff_length': 4000,
         'temperature': 0.2,
-        'max_output_tokens': 4096
+        'max_output_tokens': 4096,
+        'prompt': default_prompt
     }
     config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
     if os.path.exists(config_path):
@@ -127,7 +171,7 @@ def load_config():
                 user_config = yaml.safe_load(f) or {}
                 return {**default_config, **user_config}
             except yaml.YAMLError as e:
-                print(f"Error loading config.yaml: {e}")
+                logging.error(f"Error loading config.yaml: {e}")
                 return default_config
     return default_config
 
@@ -159,46 +203,18 @@ def analyze_with_gemini(pr_details):
         }
         focus_instruction = focus_instructions.get(focus, "")
 
+        # Use configurable prompt template
+        prompt_template = config['prompt']
+        formatted_prompt = prompt_template.format(
+            num_files=len(pr_details['files_changed']),
+            files_list=', '.join(pr_details['files_changed']),
+            diff_content=pr_details['diff'][:max_diff],
+            focus_instruction=focus_instruction
+        )
+
         prompt = {
             'role': 'user',
-            'parts': [textwrap.dedent(f"""
-                **Files Changed** ({len(pr_details['files_changed'])}):
-                {', '.join(pr_details['files_changed'])}
-
-                ```diff
-                {pr_details['diff'][:max_diff]}
-                ```
-
-                {focus_instruction}
-
-                Provide a concise code review analysis in this format:
-
-                ## Summary
-                [Brief overview of changes and purpose]
-
-                ### Scores
-                - Code Quality: [score]/10
-                - Maintainability: [score]/10
-                - Security: [score]/10
-
-                ### Strengths
-                - [Key positives]
-                - [What's working well]
-
-                ### Areas Needing Attention
-                - [Potential issues or improvements]
-                - [Be specific and constructive]
-
-                ### Recommendations
-                - [Specific suggestions for code, docs, or tests]
-
-                ### Code Suggestions
-                - [Provide specific code changes as diff blocks]
-                - [Use ```diff format for each suggestion]
-
-                ### Next Steps
-                - [Actionable items for the author]
-            """)]
+            'parts': [formatted_prompt]
         }
 
         # Generate content with safety settings

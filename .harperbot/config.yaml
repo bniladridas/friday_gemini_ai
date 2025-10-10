@@ -15,3 +15,43 @@ temperature: 0.2
 
 # Maximum output tokens
 max_output_tokens: 4096
+
+# AI analysis prompt template
+# Customize the prompt to change how HarperBot analyzes code
+prompt: |
+  **Files Changed** ({num_files}):
+  {files_list}
+
+  ```diff
+  {diff_content}
+  ```
+
+  {focus_instruction}
+
+  Provide a concise code review analysis in this format:
+
+  ## Summary
+  [Brief overview of changes and purpose]
+
+  ### Scores
+  - Code Quality: [score]/10
+  - Maintainability: [score]/10
+  - Security: [score]/10
+
+  ### Strengths
+  - [Key positives]
+  - [What's working well]
+
+  ### Areas Needing Attention
+  - [Potential issues or improvements]
+  - [Be specific and constructive]
+
+  ### Recommendations
+  - [Specific suggestions for code, docs, or tests]
+
+  ### Code Suggestions
+  - [Provide specific code changes as diff blocks]
+  - [Use ```diff format for each suggestion]
+
+  ### Next Steps
+  - [Actionable items for the author]
