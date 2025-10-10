@@ -19,6 +19,8 @@ Set your API key in `.env`:
 GEMINI_API_KEY=your_api_key
 ```
 
+> **With webhook mode, HarperBot can be self-hosted on Vercel and seamlessly integrated into any repository by installing the [HarperBot GitHub App](https://github.com/apps/harperbot).**
+
 ## Usage
 
 ### Basic Setup
