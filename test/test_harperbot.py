@@ -47,26 +47,25 @@ class TestHarperBot(unittest.TestCase):
         """Test loading config with defaults when no config file exists."""
         with patch('os.path.exists', return_value=False):
             config = load_config()
-            expected = {
-                'focus': 'all',
-                'model': 'gemini-2.0-flash',
-                'max_diff_length': 4000,
-                'temperature': 0.2,
-                'max_output_tokens': 4096
-            }
-            self.assertEqual(config, expected)
+            self.assertEqual(config['focus'], 'all')
+            self.assertEqual(config['model'], 'gemini-2.0-flash')
+            self.assertEqual(config['max_diff_length'], 4000)
+            self.assertEqual(config['temperature'], 0.2)
+            self.assertEqual(config['max_output_tokens'], 4096)
+            self.assertIn('prompt', config)  # Should include default prompt
 
     @patch('harperbot.genai.GenerativeModel')
     @patch('harperbot.load_config')
     def test_analyze_with_gemini_success(self, mock_load_config, mock_model_class):
         """Test successful Gemini analysis."""
-        # Mock config
+        # Mock config with all required keys
         mock_load_config.return_value = {
             'model': 'gemini-2.0-flash',
             'focus': 'all',
             'max_diff_length': 4000,
             'temperature': 0.2,
-            'max_output_tokens': 4096
+            'max_output_tokens': 4096,
+            'prompt': 'Test prompt {num_files} {files_list} {diff_content} {focus_instruction}'
         }
 
         # Mock model and response
@@ -114,7 +113,7 @@ class TestHarperBot(unittest.TestCase):
  old line 1
 -old line 2
 +new line 2
- old line 3"""
+ old line 3""".strip()
         position = find_diff_position(diff, 'test.py', 2)
         self.assertIsNotNone(position)
         # Position should be calculated correctly in the hunk
