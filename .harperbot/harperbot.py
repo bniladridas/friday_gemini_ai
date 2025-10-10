@@ -12,7 +12,6 @@ import re
 import sys
 import textwrap
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
 from github import Github, Auth
 import google.generativeai as genai
 import yaml
