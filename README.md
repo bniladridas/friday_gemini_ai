@@ -27,6 +27,7 @@ HarperBot provides automated PR code reviews using Google's Gemini AI. It suppor
 - **Self-hosted on Vercel** for centralized, scalable analysis
 - Install the [HarperBot GitHub App](https://github.com/apps/harperbot) once for all repositories
 - No per-repository setup required
+- **Note:** For self-hosting outside Vercel, use a production WSGI server like Gunicorn instead of Flask's development server for security and performance.
 
 ### Workflow Mode (Legacy)
 - Repository-specific GitHub Actions workflow
