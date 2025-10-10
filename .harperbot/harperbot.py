@@ -394,7 +394,18 @@ def parse_code_suggestions(analysis):
 
     Extracts diff blocks and parses them into (file_path, line, suggestion) tuples.
     """
-    diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
+    diff_blocks = []
+    start_pos = 0
+    while True:
+        start_pos = analysis.find('```diff\n', start_pos)
+        if start_pos == -1:
+            break
+        end_pos = analysis.find('\n```', start_pos + 8)
+        if end_pos == -1:
+            break
+        diff_text = analysis[start_pos + 8:end_pos]
+        diff_blocks.append(diff_text)
+        start_pos = end_pos + 4
     suggestions = []
     for diff_text in diff_blocks:
         parsed = parse_diff_for_suggestions(diff_text)
@@ -408,7 +419,13 @@ def update_main_comment(analysis):
     """
     Update the main comment by replacing the code suggestions section.
     """
-    return re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
+    start_pos = analysis.find('### Code Suggestions\n')
+    if start_pos == -1:
+        return analysis
+    end_pos = analysis.find('###', start_pos + 21)
+    if end_pos == -1:
+        end_pos = len(analysis)
+    return analysis[:start_pos] + '### Code Suggestions\n- Suggestions posted as inline comments below.\n' + analysis[end_pos:]
 
 
 def post_inline_suggestions(pr, pr_details, suggestions):
