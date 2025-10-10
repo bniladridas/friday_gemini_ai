@@ -46,6 +46,8 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 ### CLI Mode
 Run manually: `python .harperbot/harperbot.py --repo owner/repo --pr 123`
 
+*Note: The local webhook server uses Flask's development server, suitable for testing. For production self-hosting outside Vercel, use a WSGI server like Gunicorn.*
+
 ## Migration from Workflow Mode to Webhook Mode
 
 Webhook Mode is recommended for better scalability and ease of management. Benefits include:
@@ -91,17 +93,13 @@ Modify `.harperbot/config.yaml` to adjust:
 3. Ensure PR has write permissions
 
 **Webhook Mode:**
-1. Check Vercel function logs at https://vercel.com/harpertoken/harperbot/functions
-2. Verify GitHub App webhook URL and secret
-3. Confirm app is installed on the repository
+1. Check Vercel function logs at https://vercel.com/[your-account]/[project]/functions
+2. Verify GitHub webhook delivery status in repository settings > webhooks
+3. Ensure environment variables are set correctly in Vercel dashboard
+4. Confirm the GitHub App is installed and has repository access
+5. Verify GitHub App webhook URL and secret match Vercel deployment
 
 **Common Issues:**
 - Invalid Gemini API key: Check quota and key validity
 - Webhook signature errors: Ensure webhook secret matches
 - Permission errors: Verify GitHub App has required permissions
-
-**Webhook Mode:**
-1. Check Vercel function logs at https://vercel.com/[your-account]/[project]/functions
-2. Verify GitHub webhook delivery status in repository settings > webhooks
-3. Ensure environment variables are set correctly in Vercel dashboard
-4. Confirm the GitHub App is installed and has repository access
