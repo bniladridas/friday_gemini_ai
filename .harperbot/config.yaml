@@ -11,9 +11,11 @@ model: gemini-2.0-flash
 max_diff_length: 4000
 
 # Temperature for generation (0.0 to 1.0)
+# Controls randomness in AI responses. Lower values (0.0-0.3) for consistent, focused analysis; higher for more creative suggestions.
 temperature: 0.2
 
 # Maximum output tokens
+# Maximum length of AI response in tokens. Higher allows more detailed analysis but increases cost.
 max_output_tokens: 4096
 
 # AI analysis prompt template
