@@ -108,12 +108,14 @@ class TestHarperBot(unittest.TestCase):
 
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
-        diff = """diff --git a/test.py b/test.py
-@@ -1,3 +1,3 @@
- old line 1
--old line 2
-+new line 2
- old line 3""".strip()
+        import textwrap
+        diff = textwrap.dedent("""\
+            diff --git a/test.py b/test.py
+            @@ -1,3 +1,3 @@
+             old line 1
+            -old line 2
+            +new line 2
+             old line 3""").strip()
         position = find_diff_position(diff, 'test.py', 2)
         self.assertIsNotNone(position)
         # Position should be calculated correctly in the hunk
