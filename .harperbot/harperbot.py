@@ -51,16 +51,21 @@ def find_diff_position(diff, file_path, line_number):
                             hunk_lines.append(lines[i])
                             i += 1
                         # Find the position of the target line in the hunk
+                        # Simulate line numbers in the new file
+                        current_line = hunk_start
                         position = 1
-                        plus_count = 0
                         for line in hunk_lines:
                             line_stripped = line.lstrip()
                             if line_stripped.startswith('+'):
-                                # Calculate the actual line number in the file
-                                current_line = hunk_start + plus_count
-                                plus_count += 1
                                 if current_line == line_number:
                                     return position
+                                current_line += 1
+                            elif line_stripped.startswith('-'):
+                                # Removed line, no change to current_line
+                                pass
+                            else:
+                                # Context line
+                                current_line += 1
                             position += 1
                 elif lines[i].startswith('diff --git'):
                     break
