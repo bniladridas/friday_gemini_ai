@@ -55,12 +55,11 @@ def find_diff_position(diff, file_path, line_number):
                         current_line = hunk_start
                         position = 1
                         for line in hunk_lines:
-                            line_stripped = line.lstrip()
-                            if line_stripped.startswith('+'):
+                            if line.startswith('+'):
                                 if current_line == line_number:
                                     return position
                                 current_line += 1
-                            elif line_stripped.startswith('-'):
+                            elif line.startswith('-'):
                                 # Removed line, no change to current_line
                                 pass
                             else:
