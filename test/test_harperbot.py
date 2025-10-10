@@ -117,8 +117,7 @@ class TestHarperBot(unittest.TestCase):
             +new line 2
              old line 3""").strip()
         position = find_diff_position(diff, 'test.py', 2)
-        self.assertIsNotNone(position)
-        # Position should be calculated correctly in the hunk
+        self.assertEqual(position, 3)
 
 
 if __name__ == '__main__':
