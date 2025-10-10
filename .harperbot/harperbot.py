@@ -616,6 +616,7 @@ def webhook_handler():
 
     # Only process PR events
     if data.get('action') not in ['opened', 'synchronize', 'reopened'] or 'pull_request' not in data:
+        logging.info(f"Ignored webhook event: action={data.get('action', 'unknown')}, has_pr={'pull_request' in data}")
         return jsonify({'status': 'ignored'})
 
     installation_id = data['installation']['id']

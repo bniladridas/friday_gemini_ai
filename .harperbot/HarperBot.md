@@ -21,9 +21,10 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
    - Install the app on your repository
 
 2. **Required Secrets**
-   - `GEMINI_API_KEY`: Your Google Gemini API key
-   - `HARPER_BOT_APP_ID`: The App ID from the GitHub App settings
-   - `HARPER_BOT_PRIVATE_KEY`: The private key content (paste the entire .pem file content)
+    - `GEMINI_API_KEY`: Your Google Gemini API key
+    - `HARPER_BOT_APP_ID`: The App ID from the GitHub App settings
+    - `HARPER_BOT_PRIVATE_KEY`: The private key content (paste the entire .pem file content)
+    - `WEBHOOK_SECRET`: A secret string for webhook signature verification (used in webhook mode)
 
 3. **Installation**
    The bot is automatically set up to run on pull requests. No additional installation is needed.
