@@ -526,7 +526,18 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
         pr = repo.get_pull(pr_details['number'])
 
         # Extract code suggestions from diff blocks in the analysis
-        diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
+        diff_blocks = []
+        start_pos = 0
+        while True:
+            start_pos = analysis.find('```diff\n', start_pos)
+            if start_pos == -1:
+                break
+            end_pos = analysis.find('\n```', start_pos + 8)
+            if end_pos == -1:
+                break
+            diff_text = analysis[start_pos + 8:end_pos]
+            diff_blocks.append(diff_text)
+            start_pos = end_pos + 4
         suggestions = []
         for diff_text in diff_blocks:
             parsed = parse_diff_for_suggestions(diff_text)
@@ -535,7 +546,14 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
                 suggestions.append((file_path, str(line), suggestion))
 
         # Update main comment to indicate suggestions are posted inline
-        main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
+        start_pos = analysis.find('### Code Suggestions\n')
+        if start_pos != -1:
+            end_pos = analysis.find('###', start_pos + 21)
+            if end_pos == -1:
+                end_pos = len(analysis)
+            main_comment = analysis[:start_pos] + '### Code Suggestions\n- Suggestions posted as inline comments below.\n' + analysis[end_pos:]
+        else:
+            main_comment = analysis
 
         # Post main analysis comment
         formatted_comment = format_comment(main_comment)
@@ -654,7 +672,7 @@ if __name__ == "__main__":
                 return webhook_handler()
 
             print("Starting HarperBot in webhook mode...")
-            app.run(debug=True)
+            app.run(debug=False)
         else:
             print("Flask not installed. For webhook mode, install with: pip install flask")
             print("For CLI mode, run: python harperbot.py --repo owner/repo --pr 123")
