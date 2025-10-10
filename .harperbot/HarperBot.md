@@ -26,8 +26,8 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
     - `HARPER_BOT_PRIVATE_KEY`: The private key content (paste the entire .pem file content)
     - `WEBHOOK_SECRET`: A secret string for webhook signature verification (used in webhook mode)
 
-3. **Installation**
-   The bot is automatically set up to run on pull requests. No additional installation is needed.
+3. **GitHub App Installation (for Webhook Mode)**
+   Install the HarperBot GitHub App on your repository. This is required for the recommended Webhook Mode.
 
 ## How It Works
 
@@ -97,3 +97,9 @@ Modify `.harperbot/config.yaml` to adjust:
 - Invalid Gemini API key: Check quota and key validity
 - Webhook signature errors: Ensure webhook secret matches
 - Permission errors: Verify GitHub App has required permissions
+
+**Webhook Mode:**
+1. Check Vercel function logs at https://vercel.com/[your-account]/[project]/functions
+2. Verify GitHub webhook delivery status in repository settings > webhooks
+3. Ensure environment variables are set correctly in Vercel dashboard
+4. Confirm the GitHub App is installed and has repository access
