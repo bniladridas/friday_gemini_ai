@@ -16,6 +16,14 @@ from github import Github, Auth
 import google.generativeai as genai
 import yaml
 
+# Flask imported conditionally for webhook mode
+flask_available = False
+try:
+    from flask import Flask, request, jsonify
+    flask_available = True
+except ImportError:
+    pass
+
 def find_diff_position(diff, file_path, line_number):
     """
     Find the position in the diff hunk for a given file and line number.
@@ -358,7 +366,7 @@ def post_comment(github_token, repo_name, pr_details, analysis):
         g = Github(auth=Auth.Token(github_token))
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_details['number'])
-        
+
         # Parse suggestions from analysis (diff blocks)
         diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
         suggestions = []
@@ -367,14 +375,14 @@ def post_comment(github_token, repo_name, pr_details, analysis):
             if parsed:
                 file_path, line, suggestion = parsed
                 suggestions.append((file_path, str(line), suggestion))
-        
+
         # Remove suggestions from main comment to avoid duplication
         main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
-        
+
         # Format and post main comment
         formatted_comment = format_comment(main_comment)
         pr.create_issue_comment(formatted_comment)
-        
+
         # Post inline suggestions as a review
         if suggestions:
             comments = []
@@ -389,9 +397,9 @@ def post_comment(github_token, repo_name, pr_details, analysis):
                             'body': f"```suggestion\n{suggestion}\n```"
                         })
                     else:
-                        print(f"Could not find diff position for {file_path}:{line}")
-                except ValueError:
-                    print(f"Invalid line number: {line_str}")
+                        logging.warning(f"Could not find diff position for {file_path}:{line}")
+                except ValueError as e:
+                    logging.error(f"Invalid line number '{line_str}': {e}")
             if comments:
                 try:
                     pr.create_review(
@@ -399,12 +407,191 @@ def post_comment(github_token, repo_name, pr_details, analysis):
                         comments=comments,
                         event='COMMENT'
                     )
+                    logging.info(f"Posted {len(comments)} inline suggestions")
                 except Exception as e:
-                    print(f"Error posting review with suggestions: {str(e)}")
-        
+                    logging.error(f"Error posting review with suggestions: {str(e)}")
+
     except Exception as e:
-        print(f"Error posting comment: {str(e)}")
+        logging.error(f"Error posting comment: {str(e)}")
         raise
+
+
+def verify_webhook_signature(payload, signature, secret):
+    """
+    Verify GitHub webhook signature for security.
+
+    Uses HMAC-SHA256 to ensure the webhook payload hasn't been tampered with.
+    This prevents malicious requests from triggering analysis.
+
+    Args:
+        payload: Raw request body bytes
+        signature: GitHub signature header (sha256=...)
+        secret: Webhook secret configured in GitHub App
+
+    Returns:
+        bool: True if signature is valid
+    """
+    if not signature or not secret:
+        return False
+    sha_name, sig = signature.split('=', 1)
+    if sha_name != 'sha256':
+        return False
+    mac = hmac.new(secret.encode(), msg=payload, digestmod=hashlib.sha256)
+    return hmac.compare_digest(mac.hexdigest(), sig)
+
+
+def setup_environment_webhook(installation_id):
+    """
+    Setup environment for webhook mode using GitHub App authentication.
+
+    Generates an installation token for the specific repository installation.
+    This provides secure, scoped access without storing long-lived tokens.
+    """
+    load_dotenv()
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    gemini_api_key = os.getenv('GEMINI_API_KEY')
+    app_id = os.getenv('HARPER_BOT_APP_ID')
+    private_key = os.getenv('HARPER_BOT_PRIVATE_KEY')
+
+    if not gemini_api_key or not app_id or not private_key:
+        logging.error("Missing required environment variables for webhook mode")
+        raise ValueError("Missing required environment variables")
+
+    genai.configure(api_key=gemini_api_key)
+
+    # Generate installation-specific token
+    auth = Auth.AppAuth(app_id, private_key)
+    installation_auth = auth.get_installation_auth(installation_id)
+    return Github(auth=installation_auth)
+
+
+def get_pr_details_webhook(g, repo_name, pr_number):
+    """Fetch PR details using GitHub App authentication."""
+    repo = g.get_repo(repo_name)
+    pr = repo.get_pull(pr_number)
+
+    files_changed = [f.filename for f in pr.get_files()]
+    diff_url = pr.diff_url
+
+    import requests
+    diff_content = requests.get(diff_url).text
+
+    return {
+        'title': pr.title,
+        'body': pr.body or "",
+        'author': pr.user.login,
+        'files_changed': files_changed,
+        'diff': diff_content,
+        'base': pr.base.ref,
+        'head': pr.head.ref,
+        'head_sha': pr.head.sha,
+        'number': pr_number
+    }
+
+
+def post_comment_webhook(g, repo_name, pr_details, analysis):
+    """
+    Post analysis comment and inline suggestions using GitHub App auth.
+
+    Creates a main comment with the analysis summary, and posts
+    code suggestions as inline review comments.
+    """
+    try:
+        repo = g.get_repo(repo_name)
+        pr = repo.get_pull(pr_details['number'])
+
+        # Extract code suggestions from diff blocks in the analysis
+        diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
+        suggestions = []
+        for diff_text in diff_blocks:
+            parsed = parse_diff_for_suggestions(diff_text)
+            if parsed:
+                file_path, line, suggestion = parsed
+                suggestions.append((file_path, str(line), suggestion))
+
+        # Update main comment to indicate suggestions are posted inline
+        main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
+
+        # Post main analysis comment
+        formatted_comment = format_comment(main_comment)
+        pr.create_issue_comment(formatted_comment)
+        logging.info(f"Posted main analysis comment to PR #{pr_details['number']}")
+
+        # Post inline suggestions as review comments
+        if suggestions:
+            comments = []
+            for file_path, line_str, suggestion in suggestions:
+                try:
+                    line = int(line_str)
+                    position = find_diff_position(pr_details['diff'], file_path, line)
+                    if position is not None:
+                        comments.append({
+                            'path': file_path,
+                            'position': position,
+                            'body': f"```suggestion\n{suggestion}\n```"
+                        })
+                    else:
+                        logging.warning(f"Could not find diff position for {file_path}:{line}")
+                except ValueError as e:
+                    logging.error(f"Invalid line number '{line_str}': {e}")
+
+            if comments:
+                try:
+                    pr.create_review(
+                        commit=pr_details['head_sha'],
+                        comments=comments,
+                        event='COMMENT'
+                    )
+                    logging.info(f"Posted {len(comments)} inline suggestions to PR #{pr_details['number']}")
+                except Exception as e:
+                    logging.error(f"Error posting review with suggestions: {str(e)}")
+    except Exception as e:
+        logging.error(f"Error posting comment to PR #{pr_details.get('number', 'unknown')}: {str(e)}")
+        raise
+
+
+def webhook_handler():
+    """
+    Handle incoming GitHub webhooks for PR events.
+
+    Processes webhook payloads for pull request opened/synchronize/reopened events.
+    Verifies signature, extracts PR data, runs analysis, and posts comments.
+    """
+    if not flask_available:
+        logging.error("Flask not available for webhook mode")
+        return {'error': 'Flask not installed'}, 500
+
+    payload = request.get_data()
+    signature = request.headers.get('X-Hub-Signature-256')
+    secret = os.getenv('WEBHOOK_SECRET')
+
+    if not verify_webhook_signature(payload, signature, secret):
+        logging.warning("Invalid webhook signature received")
+        return jsonify({'error': 'Invalid signature'}), 401
+
+    data = request.get_json()
+
+    # Only process PR events
+    if data.get('action') not in ['opened', 'synchronize', 'reopened'] or 'pull_request' not in data:
+        return jsonify({'status': 'ignored'})
+
+    installation_id = data['installation']['id']
+    repo_name = data['repository']['full_name']
+    pr_number = data['pull_request']['number']
+
+    logging.info(f"Processing PR #{pr_number} in {repo_name}")
+
+    try:
+        g = setup_environment_webhook(installation_id)
+        pr_details = get_pr_details_webhook(g, repo_name, pr_number)
+        analysis = analyze_with_gemini(pr_details)
+        post_comment_webhook(g, repo_name, pr_details, analysis)
+        logging.info(f"Successfully processed PR #{pr_number}")
+        return jsonify({'status': 'ok'})
+    except Exception as e:
+        logging.error(f"Error processing webhook: {str(e)}")
+        return jsonify({'error': 'Processing failed'}), 500
 
 def main():
     """Main function to run the PR bot."""
@@ -430,5 +617,22 @@ def main():
     logging.info("Analysis complete!")
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        # CLI mode
+        main()
+    else:
+        # Webhook mode
+        if flask_available:
+            app = Flask(__name__)
+
+            @app.route('/webhook', methods=['POST'])
+            def webhook():
+                return webhook_handler()
+
+            print("Starting HarperBot in webhook mode...")
+            app.run(debug=True)
+        else:
+            print("Flask not installed. For webhook mode, install with: pip install flask")
+            print("For CLI mode, run: python harperbot.py --repo owner/repo --pr 123")
+            sys.exit(1)
 

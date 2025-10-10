@@ -30,24 +30,45 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 
 ## How It Works
 
-1. When a PR is opened or updated, the GitHub Action workflow is triggered
-2. The bot analyzes the code changes using Gemini AI
-3. It posts a detailed comment with:
-   - Summary of changes
-   - Code quality assessment
-   - Potential issues
-   - Suggestions for improvement
+### Workflow Mode (Legacy)
+1. Copy `.harperbot/` and `.github/workflows/codebot.yml` to your repository
+2. Set required secrets: `GEMINI_API_KEY`, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`
+3. When a PR is opened/updated, the workflow runs and posts analysis
+
+### Webhook Mode (Recommended)
+1. Install the GitHub App on your repository
+2. The hosted bot automatically receives webhooks for PR events
+3. Analysis is posted directly without repository-specific setup
+
+### CLI Mode
+Run manually: `python .harperbot/harperbot.py --repo owner/repo --pr 123`
+
+## Security
+
+- **Webhook signature verification**: All webhook requests are validated using HMAC-SHA256
+- **GitHub App authentication**: Uses secure app tokens with minimal required permissions
+- **Environment variables**: Sensitive keys are stored securely in Vercel/env vars
 
 ## Customization
 
-You can modify the analysis prompt in `.harperbot/harperbot.py` to adjust:
-- The type of feedback provided
-- The format of the analysis
-- Specific checks to perform
+Modify `.harperbot/config.yaml` to adjust:
+- Analysis focus: 'all', 'security', 'performance', 'quality'
+- Gemini model: 'gemini-2.0-flash', 'gemini-2.5-pro'
+- Temperature and token limits
 
 ## Troubleshooting
 
-If the bot isn't working:
-1. Check the GitHub Actions workflow runs
-2. Verify that the `GEMINI_API_KEY` secret is set correctly
-3. Ensure the PR has the necessary permissions to post comments
+**Workflow Mode:**
+1. Check GitHub Actions runs for the workflow
+2. Verify secrets are set in repository settings
+3. Ensure PR has write permissions
+
+**Webhook Mode:**
+1. Check Vercel function logs at https://vercel.com/harpertoken/harperbot/functions
+2. Verify GitHub App webhook URL and secret
+3. Confirm app is installed on the repository
+
+**Common Issues:**
+- Invalid Gemini API key: Check quota and key validity
+- Webhook signature errors: Ensure webhook secret matches
+- Permission errors: Verify GitHub App has required permissions
