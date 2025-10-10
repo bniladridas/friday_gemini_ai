@@ -161,6 +161,10 @@ The HarperBot prompt is specifically designed to avoid noise, repetition, and un
 
 ### Setup
 
+HarperBot supports two deployment modes: **Workflow Mode** (repository-specific) and **Webhook Mode** (centralized self-hosting).
+
+#### Workflow Mode (Repository-Specific)
+
 1. Add the following secrets to your repository:
    - `GEMINI_API_KEY`: Your Google Gemini API key
    - `GITHUB_TOKEN` (automatically provided by GitHub)
@@ -168,6 +172,21 @@ The HarperBot prompt is specifically designed to avoid noise, repetition, and un
 2. The workflow is configured in `.github/workflows/codebot.yml` and runs HarperBot automatically on pull requests and pushes to main.
 
 3. Optionally, customize HarperBot analysis in `.harperbot/config.yaml` (focus: all/security/performance/quality, model selection, etc.).
+
+#### Webhook Mode (Centralized Self-Hosting)
+
+1. Deploy HarperBot to Vercel:
+   - Fork this repository
+   - Connect to Vercel and deploy the `webhook-vercel` branch
+   - Set environment variables in Vercel:
+     - `GEMINI_API_KEY`: Your Google Gemini API key
+     - `HARPER_BOT_APP_ID`: GitHub App ID
+     - `HARPER_BOT_PRIVATE_KEY`: GitHub App private key (full PEM content)
+     - `WEBHOOK_SECRET`: Secret for webhook signature verification
+
+2. Install the GitHub App on your repositories
+
+3. Webhooks are automatically processed for PR events, providing analysis without per-repository setup.
 
 ### Local Testing
 
