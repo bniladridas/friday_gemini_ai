@@ -610,7 +610,7 @@ def webhook_handler():
 
     if not verify_webhook_signature(payload, signature, secret):
         logging.warning("Invalid webhook signature received")
-        return jsonify({'error': 'Invalid signature'}), 401
+        return jsonify({'error': 'Invalid signature'}), 403
 
     data = request.get_json()
 
