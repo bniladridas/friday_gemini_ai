@@ -44,6 +44,30 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 ### CLI Mode
 Run manually: `python .harperbot/harperbot.py --repo owner/repo --pr 123`
 
+## Migration from Workflow Mode to Webhook Mode
+
+Webhook Mode is recommended for better scalability and ease of management. Benefits include:
+
+- **Centralized deployment**: One Vercel instance handles all repositories
+- **No per-repository secrets**: API keys and credentials managed in one place
+- **Automatic updates**: Deployments update all connected repositories
+- **Better performance**: Serverless architecture scales automatically
+
+### Migration Steps
+
+1. **Deploy to Vercel**:
+   - Fork this repository
+   - Connect to Vercel and deploy the `webhook-vercel` branch
+   - Set environment variables: `GEMINI_API_KEY`, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`, `WEBHOOK_SECRET`
+
+2. **Install GitHub App**:
+   - Install the HarperBot GitHub App on your repositories
+   - Remove repository-specific secrets and workflow files if desired
+
+3. **Verify**:
+   - Test with a new PR to ensure analysis posts correctly
+   - Workflow Mode can remain as fallback during transition
+
 ## Security
 
 - **Webhook signature verification**: All webhook requests are validated using HMAC-SHA256
