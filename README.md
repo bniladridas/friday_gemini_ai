@@ -19,7 +19,20 @@ Set your API key in `.env`:
 GEMINI_API_KEY=your_api_key
 ```
 
-> **With webhook mode, HarperBot can be self-hosted on Vercel and seamlessly integrated into any repository by installing the [HarperBot GitHub App](https://github.com/apps/harperbot).**
+## HarperBot Integration
+
+HarperBot provides automated PR code reviews using Google's Gemini AI. It supports two deployment modes:
+
+### Webhook Mode (Recommended)
+- **Self-hosted on Vercel** for centralized, scalable analysis
+- Install the [HarperBot GitHub App](https://github.com/apps/harperbot) once for all repositories
+- No per-repository setup required
+
+### Workflow Mode (Legacy)
+- Repository-specific GitHub Actions workflow
+- Requires secrets setup per repository
+
+For detailed setup instructions, see [.harperbot/HarperBot.md](.harperbot/HarperBot.md).
 
 ## Usage
 
