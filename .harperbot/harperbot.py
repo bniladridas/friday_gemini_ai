@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 GitHub PR Bot that analyzes pull requests using Google's Gemini API.
+Supports both CLI and webhook modes.
 """
 import os
 import sys
@@ -8,10 +9,13 @@ import argparse
 import textwrap
 import re
 import logging
-from github import Github, Auth, Auth
+import hmac
+import hashlib
+from github import Github, Auth
 from dotenv import load_dotenv
 import google.generativeai as genai
 import yaml
+from flask import Flask, request, jsonify
 
 def find_diff_position(diff, file_path, line_number):
     """
