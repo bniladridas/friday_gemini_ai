@@ -38,7 +38,7 @@ def find_diff_position(diff, file_path, line_number):
         if lines[i].startswith('diff --git') and f'b/{file_path}' in lines[i]:
             i += 1  # Skip the header
             # Process hunks for this file
-            while i < len(lines) and not lines[i].startswith('diff --git'):
+            while i < len(lines):
                 if lines[i].startswith('@@'):
                     # Parse hunk header to get starting line in new file
                     match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', lines[i])
@@ -62,6 +62,8 @@ def find_diff_position(diff, file_path, line_number):
                                 if current_line == line_number:
                                     return position
                             position += 1
+                elif lines[i].startswith('diff --git'):
+                    break
                 else:
                     i += 1
         else:
