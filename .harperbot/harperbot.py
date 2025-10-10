@@ -21,6 +21,11 @@ flask_available = False
 try:
     from flask import Flask, request, jsonify
     flask_available = True
+    app = Flask(__name__)
+
+    @app.route('/webhook', methods=['POST'])
+    def webhook():
+        return webhook_handler()
 except ImportError:
     pass
 
@@ -383,57 +388,84 @@ def format_comment(analysis):
 
 ---"""
 
+def parse_code_suggestions(analysis):
+    """
+    Parse code suggestions from analysis text.
+
+    Extracts diff blocks and parses them into (file_path, line, suggestion) tuples.
+    """
+    diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
+    suggestions = []
+    for diff_text in diff_blocks:
+        parsed = parse_diff_for_suggestions(diff_text)
+        if parsed:
+            file_path, line, suggestion = parsed
+            suggestions.append((file_path, str(line), suggestion))
+    return suggestions
+
+
+def update_main_comment(analysis):
+    """
+    Update the main comment by replacing the code suggestions section.
+    """
+    return re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
+
+
+def post_inline_suggestions(pr, pr_details, suggestions):
+    """
+    Post inline code suggestions as a pull request review.
+    """
+    if not suggestions:
+        return
+    comments = []
+    for file_path, line_str, suggestion in suggestions:
+        try:
+            line = int(line_str)
+            position = find_diff_position(pr_details['diff'], file_path, line)
+            if position is not None:
+                comments.append({
+                    'path': file_path,
+                    'position': position,
+                    'body': f"```suggestion\n{suggestion}\n```"
+                })
+            else:
+                logging.warning(f"Could not find diff position for {file_path}:{line}")
+        except ValueError as e:
+            logging.error(f"Invalid line number '{line_str}': {e}")
+    if comments:
+        try:
+            pr.create_review(
+                commit=pr_details['head_sha'],
+                comments=comments,
+                event='COMMENT'
+            )
+            logging.info(f"Posted {len(comments)} inline suggestions")
+        except Exception as e:
+            logging.error(f"Error posting review with suggestions: {str(e)}")
+
+
 def post_comment(github_token, repo_name, pr_details, analysis):
-    """Post a comment on the PR with proper formatting and inline suggestions."""
+    """
+    Post analysis comment and inline suggestions.
+
+    Creates a main comment with the analysis summary, and posts
+    code suggestions as inline review comments.
+    """
     try:
         g = Github(auth=Auth.Token(github_token))
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_details['number'])
 
-        # Parse suggestions from analysis (diff blocks)
-        diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
-        suggestions = []
-        for diff_text in diff_blocks:
-            parsed = parse_diff_for_suggestions(diff_text)
-            if parsed:
-                file_path, line, suggestion = parsed
-                suggestions.append((file_path, str(line), suggestion))
-
-        # Remove suggestions from main comment to avoid duplication
-        main_comment = re.sub(r'### Code Suggestions\n.*?(?=###|$)', '### Code Suggestions\n- Suggestions posted as inline comments below.\n', analysis, flags=re.DOTALL)
-
+        suggestions = parse_code_suggestions(analysis)
+        main_comment = update_main_comment(analysis)
+        
         # Format and post main comment
         formatted_comment = format_comment(main_comment)
         pr.create_issue_comment(formatted_comment)
-
-        # Post inline suggestions as a review
-        if suggestions:
-            comments = []
-            for file_path, line_str, suggestion in suggestions:
-                try:
-                    line = int(line_str)
-                    position = find_diff_position(pr_details['diff'], file_path, line)
-                    if position is not None:
-                        comments.append({
-                            'path': file_path,
-                            'position': position,
-                            'body': f"```suggestion\n{suggestion}\n```"
-                        })
-                    else:
-                        logging.warning(f"Could not find diff position for {file_path}:{line}")
-                except ValueError as e:
-                    logging.error(f"Invalid line number '{line_str}': {e}")
-            if comments:
-                try:
-                    pr.create_review(
-                        commit=pr_details['head_sha'],
-                        comments=comments,
-                        event='COMMENT'
-                    )
-                    logging.info(f"Posted {len(comments)} inline suggestions")
-                except Exception as e:
-                    logging.error(f"Error posting review with suggestions: {str(e)}")
-
+        
+        # Post inline suggestions
+        post_inline_suggestions(pr, pr_details, suggestions)
+        
     except Exception as e:
         logging.error(f"Error posting comment: {str(e)}")
         raise
@@ -523,58 +555,16 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_details['number'])
 
-        # Extract code suggestions from diff blocks in the analysis
-        diff_blocks = re.findall(r'```diff\n(.*?)\n```', analysis, re.DOTALL)
-        suggestions = []
-        for diff_text in diff_blocks:
-            parsed = parse_diff_for_suggestions(diff_text)
-            if parsed:
-                file_path, line, suggestion = parsed
-                suggestions.append((file_path, str(line), suggestion))
-
-        # Update main comment to indicate suggestions are posted inline
-        start_pos = analysis.find('### Code Suggestions\n')
-        if start_pos != -1:
-            end_pos = analysis.find('###', start_pos + 21)
-            if end_pos == -1:
-                end_pos = len(analysis)
-            main_comment = analysis[:start_pos] + '### Code Suggestions\n- Suggestions posted as inline comments below.\n' + analysis[end_pos:]
-        else:
-            main_comment = analysis
+        suggestions = parse_code_suggestions(analysis)
+        main_comment = update_main_comment(analysis)
 
         # Post main analysis comment
         formatted_comment = format_comment(main_comment)
         pr.create_issue_comment(formatted_comment)
         logging.info(f"Posted main analysis comment to PR #{pr_details['number']}")
 
-        # Post inline suggestions as review comments
-        if suggestions:
-            comments = []
-            for file_path, line_str, suggestion in suggestions:
-                try:
-                    line = int(line_str)
-                    position = find_diff_position(pr_details['diff'], file_path, line)
-                    if position is not None:
-                        comments.append({
-                            'path': file_path,
-                            'position': position,
-                            'body': f"```suggestion\n{suggestion}\n```"
-                        })
-                    else:
-                        logging.warning(f"Could not find diff position for {file_path}:{line}")
-                except ValueError as e:
-                    logging.error(f"Invalid line number '{line_str}': {e}")
-
-            if comments:
-                try:
-                    pr.create_review(
-                        commit=pr_details['head_sha'],
-                        comments=comments,
-                        event='COMMENT'
-                    )
-                    logging.info(f"Posted {len(comments)} inline suggestions to PR #{pr_details['number']}")
-                except Exception as e:
-                    logging.error(f"Error posting review with suggestions: {str(e)}")
+        # Post inline suggestions
+        post_inline_suggestions(pr, pr_details, suggestions)
     except Exception as e:
         logging.error(f"Error posting comment to PR #{pr_details.get('number', 'unknown')}: {str(e)}")
         raise
@@ -653,12 +643,6 @@ if __name__ == "__main__":
     else:
         # Webhook mode
         if flask_available:
-            app = Flask(__name__)
-
-            @app.route('/webhook', methods=['POST'])
-            def webhook():
-                return webhook_handler()
-
             print("Starting HarperBot in webhook mode...")
             app.run(debug=False)
         else:
