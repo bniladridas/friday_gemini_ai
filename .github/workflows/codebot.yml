@@ -72,7 +72,7 @@ jobs:
 
   bot:
     name: Bot
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     container: python:3.11-slim
     timeout-minutes: 10
