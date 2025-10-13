@@ -12,7 +12,6 @@ class TestRunner
   def self.run
     load_test_files
     run_tests
-    # report_coverage  # Commented out since SimpleCov is not enabled
   end
 
   def self.load_test_files
@@ -31,29 +30,7 @@ class TestRunner
     puts '-' * 50
   end
 
-  def self.report_coverage
-    Minitest.after_run do
-      result = SimpleCov.result
-      covered_percent = result.covered_percent.round(2)
 
-      puts "\nTest coverage: #{covered_percent}%"
-
-      if covered_percent < SimpleCov.minimum_coverage[:line]
-        puts "\nWARNING: Test coverage is below the minimum threshold of #{SimpleCov.minimum_coverage[:line]}%"
-      end
-
-      underperforming = result.files.select { |f| f.covered_percent < 90 }
-
-      unless underperforming.empty?
-        puts "\nFiles with coverage below 90%:"
-        underperforming.sort_by(&:covered_percent).each do |file|
-          puts "  #{file.filename.gsub("#{Dir.pwd}/", '')} (#{file.covered_percent.round(2)}%)"
-        end
-      end
-
-      puts '-' * 50
-    end
-  end
 end
 
 # Run the tests
