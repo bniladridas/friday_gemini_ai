@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
+# SimpleCov is disabled locally; coverage reporting is handled in CI via Codecov
 # require 'simplecov'
 # require 'simplecov-lcov'
 require 'httparty'
