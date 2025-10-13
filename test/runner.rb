@@ -12,7 +12,7 @@ class TestRunner
   def self.run
     load_test_files
     run_tests
-    report_coverage
+    # report_coverage  # Commented out since SimpleCov is not enabled
   end
 
   def self.load_test_files
@@ -28,7 +28,6 @@ class TestRunner
     puts "Ruby version: #{RUBY_VERSION}"
     puts "Test directory: #{File.expand_path(File.join(__dir__, '..'))}"
     puts "Test files: #{Minitest::Runnable.runnables.size} test suites loaded"
-    puts "Coverage threshold: #{SimpleCov.minimum_coverage}%"
     puts '-' * 50
   end
 
