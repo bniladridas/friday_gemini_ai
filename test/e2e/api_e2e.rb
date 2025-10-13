@@ -41,12 +41,12 @@ class TestAPIe2e < Minitest::Test
     refute_empty response.strip
     assert_instance_of String, response
     assert_includes response, '6'
-  rescue GeminiAI::Error => e
-    if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED')
-      skip "Rate limit exceeded: #{e.message}"
-    end
-    raise
-  end
+   rescue GeminiAI::Error => e
+     if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
+       skip "API limit exceeded: #{e.message}"
+     end
+     raise
+   end
 
   def test_different_models
     # Test with flash model for speed
