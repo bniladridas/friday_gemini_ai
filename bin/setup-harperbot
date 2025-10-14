@@ -7,6 +7,9 @@
 
 set -e
 
+# Default source repository
+SOURCE_REPO="${SOURCE_REPO:-https://github.com/bniladridas/friday_gemini_ai.git}"
+
 # Check for required tools
 if ! command -v git >/dev/null 2>&1; then
     echo "Error: git is required but not installed."
