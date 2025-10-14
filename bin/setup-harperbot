@@ -113,7 +113,8 @@ SOURCE_REPO="${SOURCE_REPO:-https://github.com/bniladridas/friday_gemini_ai.git}
 
 # Create temporary directory for cloning
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+# Ensure cleanup on exit, even if script fails
+trap "rm -rf '$TEMP_DIR'" EXIT
 
 echo "Cloning source repository..."
 if ! git clone --depth 1 --progress --sparse $SOURCE_REPO $TEMP_DIR; then
