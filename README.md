@@ -41,6 +41,8 @@ For detailed setup instructions, see [harperbot/HarperBot.md](harperbot/HarperBo
 
 ### Basic Setup
 
+**Security Note for Automated Setup:** The recommended `curl | bash` method downloads and executes code from the internet. For security, review the script at https://github.com/bniladridas/friday_gemini_ai/blob/main/bin/setup-harperbot before running. Alternatively, download first: `curl -O https://raw.githubusercontent.com/bniladridas/friday_gemini_ai/main/bin/setup-harperbot`, inspect, then `bash setup-harperbot`.
+
 ```ruby
 require 'friday_gemini_ai'
 GeminiAI.load_env
