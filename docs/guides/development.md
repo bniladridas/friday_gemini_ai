@@ -79,7 +79,7 @@ The project uses GitHub Actions for CI/CD. Key workflows:
      - Tests on multiple Ruby versions
      - Runs security checks (linting temporarily disabled due to bundler issues)
 
-2. **HarperBot Workflow** (`.harper/codebot.yml`):
+2. **HarperBot Workflow** (`.harper/harperbot.yml`):
     - Automated PR analysis and code review
     - Provides intelligent feedback on code quality, security, and performance
     - Uses Gemini AI for comprehensive analysis

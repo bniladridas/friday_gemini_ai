@@ -48,7 +48,7 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 - Uploads security reports
 - Fails on vulnerabilities
 
-### **HarperBot** (`.harper/codebot.yml`)
+### **HarperBot** (`.harper/harperbot.yml`)
 **Purpose**: Automated PR analysis and code review  
 **Triggers**: Pull requests (opened, synchronize, reopened) + manual  
 **Features**:
@@ -111,5 +111,5 @@ Add to README.md:
 ```markdown
 [![CI](https://github.com/bniladridas/friday_gemini_ai/workflows/CI/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
 [![Security](https://github.com/bniladridas/friday_gemini_ai/workflows/Security/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
-[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml)
 ```

@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if $UPDATE_MODE; then
-    echo "Update mode selected. This will overwrite existing harperbot directory and .github/workflows/codebot.yml."
+    echo "Update mode selected. This will overwrite existing harperbot directory and .github/workflows/harperbot.yml."
     read -p "Are you sure you want to continue? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -102,8 +102,8 @@ if [ -d "harperbot" ] && ! $UPDATE_MODE; then
     exit 1
 fi
 
-if [ -f ".github/workflows/codebot.yml" ] && ! $UPDATE_MODE; then
-    echo "Error: '.github/workflows/codebot.yml' already exists."
+if [ -f ".github/workflows/harperbot.yml" ] && ! $UPDATE_MODE; then
+    echo "Error: '.github/workflows/harperbot.yml' already exists."
     echo "Run with --update to overwrite existing installation, or remove it manually."
     exit 1
 fi
@@ -154,19 +154,19 @@ if ! mkdir -p .github/workflows; then
 fi
 
 if $USE_RSYNC; then
-    if ! rsync -a $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
+    if ! rsync -a $TEMP_DIR/.github/workflows/harperbot.yml .github/workflows/; then
         echo "Error: Failed to copy workflow file with rsync"
         exit 1
     fi
 else
-    if ! cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
+    if ! cp $TEMP_DIR/.github/workflows/harperbot.yml .github/workflows/; then
         echo "Error: Failed to copy workflow file"
         exit 1
     fi
 fi
 else
     echo "Dry-run: Would copy harperbot directory"
-    echo "Dry-run: Would copy .github/workflows/codebot.yml"
+    echo "Dry-run: Would copy .github/workflows/harperbot.yml"
     echo "Dry-run: Would verify file integrity"
 fi
 

@@ -3,7 +3,7 @@
 [![CI](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
 [![Security](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/security.yml)
 [![Dependencies](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/dependencies.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/dependencies.yml)
-[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml)
 
 Ruby gem for integrating with Google’s Gemini AI models.
 
@@ -129,7 +129,7 @@ HarperBot provides AI-driven code review and analysis directly in pull requests.
 
    * `GEMINI_API_KEY`
    * `GITHUB_TOKEN` (auto-provided by GitHub)
-2. Configure `.github/workflows/codebot.yml`
+2. Configure `.github/workflows/harperbot.yml`
 3. Optional: tune behavior via `harperbot/config.yaml`
 
 **Webhook Mode (Recommended)**
