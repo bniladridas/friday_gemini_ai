@@ -18,10 +18,23 @@ if ! command -v curl >/dev/null 2>&1; then
     exit 1
 fi
 
+# Check for rsync (preferred for copying)
+USE_RSYNC=false
+if command -v rsync >/dev/null 2>&1; then
+    USE_RSYNC=true
+fi
+
 # Parse arguments
 UPDATE_MODE=false
 if [ "$1" = "--update" ]; then
     UPDATE_MODE=true
+    echo "Update mode selected. This will overwrite existing files."
+    read -p "Are you sure you want to continue? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Setup cancelled."
+        exit 0
+    fi
 fi
 
 echo "Setting up HarperBot for Workflow Mode..."
@@ -70,9 +83,16 @@ if ! git clone --depth 1 --progress $SOURCE_REPO $TEMP_DIR; then
 fi
 
 echo "Copying harperbot directory..."
-if ! cp -r $TEMP_DIR/harperbot .; then
-    echo "Error: Failed to copy harperbot directory"
-    exit 1
+if $USE_RSYNC; then
+    if ! rsync -a $TEMP_DIR/harperbot/ ./harperbot/; then
+        echo "Error: Failed to copy harperbot directory with rsync"
+        exit 1
+    fi
+else
+    if ! cp -r $TEMP_DIR/harperbot .; then
+        echo "Error: Failed to copy harperbot directory"
+        exit 1
+    fi
 fi
 
 echo "Copying GitHub Actions workflow..."
@@ -81,9 +101,16 @@ if ! mkdir -p .github/workflows; then
     exit 1
 fi
 
-if ! cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
-    echo "Error: Failed to copy workflow file"
-    exit 1
+if $USE_RSYNC; then
+    if ! rsync -a $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
+        echo "Error: Failed to copy workflow file with rsync"
+        exit 1
+    fi
+else
+    if ! cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
+        echo "Error: Failed to copy workflow file"
+        exit 1
+    fi
 fi
 
 echo "Verifying file integrity..."
