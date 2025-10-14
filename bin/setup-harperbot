@@ -13,8 +13,15 @@ if [ "$1" = "--update" ]; then
     UPDATE_MODE=true
 fi
 
+echo "========================================"
+echo "SECURITY WARNING:"
+echo "This script downloads and executes code from the internet."
+echo "Only run if you trust the source: https://github.com/bniladridas/friday_gemini_ai"
+echo "Review the code before execution."
+echo "========================================"
+echo ""
+
 echo "Setting up HarperBot for Workflow Mode..."
-echo "WARNING: This script downloads files from GitHub. Ensure you trust the source."
 if $UPDATE_MODE; then
     echo "Running in update mode: existing files will be overwritten."
 fi
@@ -54,7 +61,7 @@ TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
 echo "Cloning source repository..."
-if ! git clone --depth 1 $SOURCE_REPO $TEMP_DIR; then
+if ! git clone --depth 1 --progress $SOURCE_REPO $TEMP_DIR; then
     echo "Error: Failed to clone source repository"
     exit 1
 fi
@@ -74,6 +81,18 @@ fi
 if ! cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
     echo "Error: Failed to copy workflow file"
     exit 1
+fi
+
+echo "Verifying file integrity..."
+if ! cp $TEMP_DIR/setup-checksums.sha256 .; then
+    echo "Warning: Could not copy checksum file"
+else
+    if ! sha256sum -c setup-checksums.sha256; then
+        echo "Error: File integrity check failed. Downloaded files may be corrupted."
+        exit 1
+    fi
+    rm setup-checksums.sha256
+    echo "Integrity check passed."
 fi
 
 echo "Setup complete!"
