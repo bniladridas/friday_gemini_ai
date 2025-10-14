@@ -25,6 +25,8 @@ class TestAPIe2e < Minitest::Test
     # Allow for "Hello" or "World" since API responses can vary
     assert response.downcase.include?('hello') || response.downcase.include?('world'),
            "Response should contain 'hello' or 'world', got: #{response}"
+  rescue Net::ReadTimeout, Timeout::Error => e
+    skip "API timeout: #{e.message}"
   rescue GeminiAI::Error => e
     if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
       skip "API limit exceeded: #{e.message}"
