@@ -8,8 +8,8 @@ import sys
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 
-# Add the .harperbot directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '.harperbot'))
+# Add the harperbot directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'harperbot'))
 
 from harperbot import (
     verify_webhook_signature,

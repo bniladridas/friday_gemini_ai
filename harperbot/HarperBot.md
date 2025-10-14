@@ -34,7 +34,7 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 ### Workflow Mode (Legacy)
 *This mode is deprecated in favor of Webhook Mode. Support will continue for existing users, but new features and improvements will prioritize Webhook Mode.*
 
-1. Copy `.harperbot/` and `.github/workflows/codebot.yml` to your repository
+1. Copy `harperbot/` and `.github/workflows/codebot.yml` to your repository
 2. Set required secrets: `GEMINI_API_KEY`, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`
 3. When a PR is opened/updated, the workflow runs and posts analysis
 
@@ -44,7 +44,7 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 3. Analysis is posted directly without repository-specific setup
 
 ### CLI Mode
-Run manually: `python .harperbot/harperbot.py --repo owner/repo --pr 123`
+Run manually: `python harperbot/harperbot.py --repo owner/repo --pr 123`
 
 *Note: The local webhook server uses Flask's development server, suitable for testing. For production self-hosting outside Vercel, use a WSGI server like Gunicorn.*
 
@@ -80,7 +80,7 @@ Webhook Mode is recommended for better scalability and ease of management. Benef
 
 ## Customization
 
-Modify `.harperbot/config.yaml` to adjust:
+Modify `harperbot/config.yaml` to adjust:
 - Analysis focus: 'all', 'security', 'performance', 'quality'
 - Gemini model: 'gemini-2.0-flash', 'gemini-2.5-pro'
 - Temperature and token limits

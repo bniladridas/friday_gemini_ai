@@ -33,7 +33,7 @@ HarperBot provides automated PR code reviews using Google's Gemini AI. It suppor
 - Repository-specific GitHub Actions workflow
 - Requires secrets setup per repository
 
-For detailed setup instructions, see [.harperbot/HarperBot.md](.harperbot/HarperBot.md).
+For detailed setup instructions, see [harperbot/HarperBot.md](harperbot/HarperBot.md).
 
 ## Usage
 
@@ -126,7 +126,7 @@ HarperBot provides AI-driven code review and analysis directly in pull requests.
    * `GEMINI_API_KEY`
    * `GITHUB_TOKEN` (auto-provided by GitHub)
 2. Configure `.github/workflows/codebot.yml`
-3. Optional: tune behavior via `.harperbot/config.yaml`
+3. Optional: tune behavior via `harperbot/config.yaml`
 
 **Webhook Mode (centralized hosting)**
 
