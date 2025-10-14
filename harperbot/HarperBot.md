@@ -34,7 +34,8 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 ### Workflow Mode (Legacy)
 *This mode is deprecated in favor of Webhook Mode. Support will continue for existing users, but new features and improvements will prioritize Webhook Mode.*
 
-1. Copy `harperbot/` and `.github/workflows/codebot.yml` to your repository
+1. Run the setup script: `curl -fsSL https://raw.githubusercontent.com/bniladridas/friday_gemini_ai/main/bin/setup-harperbot | bash`
+   Or manually copy `harperbot/` and `.github/workflows/codebot.yml` to your repository
 2. Set required secrets: `GEMINI_API_KEY`, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`
 3. When a PR is opened/updated, the workflow runs and posts analysis
 
