@@ -326,9 +326,22 @@ def analyze_with_gemini(pr_details):
             if text:
                 return text
 
+            # Check for finish reasons that indicate no content
+            candidates = getattr(response, 'candidates', None)
+            if candidates:
+                for candidate in candidates:
+                    finish_reason = getattr(candidate, 'finish_reason', None)
+                    if finish_reason:
+                        if 'MAX_TOKENS' in str(finish_reason):
+                            return "Analysis truncated due to token limit. The code changes are too extensive for a complete analysis. Please review manually or split into smaller PRs."
+                        elif 'SAFETY' in str(finish_reason):
+                            return "Analysis blocked due to content safety filters. Please ensure the PR content complies with usage policies."
+                        elif 'STOP' in str(finish_reason):
+                            return "Analysis completed but no content was generated. This may indicate an issue with the prompt or model."
+
             # If we get here, no text found - log and return safe message
             logging.warning(f"No text extracted from response. Response type: {type(response)}")
-            raise ValueError("No text could be extracted from the AI response")
+            return "Unable to generate analysis due to an unexpected response format. Please try again or review the code manually."
 
         except Exception as e:
             # Log the error and return safe info

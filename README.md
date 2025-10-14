@@ -135,9 +135,12 @@ HarperBot provides AI-driven code review and analysis directly in pull requests.
 **Webhook Mode (Recommended)**
 
 * Deploy `webhook-vercel` branch to Vercel
-* Add required environment variables:
-  `GEMINI_API_KEY`, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`, `WEBHOOK_SECRET`
-* Install the HarperBot GitHub App
+* Create a GitHub App and set environment variables:
+  - `GEMINI_API_KEY`: Your Google Gemini API key
+  - `HARPER_BOT_APP_ID`: App ID from your GitHub App settings (found under "About" section)
+  - `HARPER_BOT_PRIVATE_KEY`: Private key content (paste the entire .pem file)
+  - `WEBHOOK_SECRET`: Random secret string for webhook verification
+* Install the GitHub App on your repositories
 * Webhooks will handle PR events automatically
 * Preferred for scalability and centralized management
 

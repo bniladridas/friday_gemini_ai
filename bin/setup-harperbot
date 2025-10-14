@@ -116,54 +116,56 @@ TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
 echo "Cloning source repository..."
-if ! git clone --depth 1 --progress $SOURCE_REPO $TEMP_DIR; then
+if ! git clone --depth 1 --progress --sparse $SOURCE_REPO $TEMP_DIR; then
     echo "Error: Failed to clone source repository"
     exit 1
 fi
 
-if ! $DRY_RUN; then
-    echo "Copying harperbot directory..."
-    if $USE_RSYNC; then
-        if ! rsync -a $TEMP_DIR/harperbot/ ./harperbot/; then
-            echo "Error: Failed to copy harperbot directory with rsync"
-            exit 1
-        fi
-    else
-        if ! cp -r $TEMP_DIR/harperbot .; then
-            echo "Error: Failed to copy harperbot directory"
-            exit 1
-        fi
-    fi
+# Configure sparse checkout for only needed files
+cd $TEMP_DIR
+if ! git sparse-checkout set harperbot .github/workflows/codebot.yml setup-checksums.sha256; then
+    echo "Warning: Sparse checkout failed, falling back to full clone"
+fi
+cd - > /dev/null
 
-    echo "Copying GitHub Actions workflow..."
-    if ! mkdir -p .github/workflows; then
-        echo "Error: Failed to create .github/workflows directory"
+if ! $DRY_RUN; then
+echo "Verifying file integrity before copying..."
+if ! sha256sum -c $TEMP_DIR/setup-checksums.sha256; then
+    echo "Error: File integrity check failed. Downloaded files may be corrupted or tampered with."
+    exit 1
+fi
+echo "Integrity check passed."
+
+echo "Copying harperbot directory..."
+if $USE_RSYNC; then
+    if ! rsync -a $TEMP_DIR/harperbot/ ./harperbot/; then
+        echo "Error: Failed to copy harperbot directory with rsync"
         exit 1
     fi
-
-    if $USE_RSYNC; then
-        if ! rsync -a $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
-            echo "Error: Failed to copy workflow file with rsync"
-            exit 1
-        fi
-    else
-        if ! cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
-            echo "Error: Failed to copy workflow file"
-            exit 1
-        fi
+else
+    if ! cp -r $TEMP_DIR/harperbot .; then
+        echo "Error: Failed to copy harperbot directory"
+        exit 1
     fi
+fi
 
-    echo "Verifying file integrity..."
-    if ! cp $TEMP_DIR/setup-checksums.sha256 .; then
-        echo "Warning: Could not copy checksum file"
-    else
-        if ! sha256sum -c setup-checksums.sha256; then
-            echo "Error: File integrity check failed. Downloaded files may be corrupted."
-            exit 1
-        fi
-        rm setup-checksums.sha256
-        echo "Integrity check passed."
+echo "Copying GitHub Actions workflow..."
+if ! mkdir -p .github/workflows; then
+    echo "Error: Failed to create .github/workflows directory"
+    exit 1
+fi
+
+if $USE_RSYNC; then
+    if ! rsync -a $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
+        echo "Error: Failed to copy workflow file with rsync"
+        exit 1
     fi
+else
+    if ! cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
+        echo "Error: Failed to copy workflow file"
+        exit 1
+    fi
+fi
 else
     echo "Dry-run: Would copy harperbot directory"
     echo "Dry-run: Would copy .github/workflows/codebot.yml"
