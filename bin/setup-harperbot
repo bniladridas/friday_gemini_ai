@@ -116,18 +116,15 @@ TEMP_DIR=$(mktemp -d)
 # Ensure cleanup on exit, even if script fails
 trap "rm -rf '$TEMP_DIR'" EXIT
 
-echo "Cloning source repository..."
-if ! git clone --depth 1 --progress --sparse $SOURCE_REPO $TEMP_DIR; then
-    echo "Error: Failed to clone source repository"
-    exit 1
+echo "Downloading required files from repository..."
+if ! git archive --remote=$SOURCE_REPO HEAD harperbot .github/workflows/codebot.yml setup-checksums.sha256 | tar -x -C $TEMP_DIR; then
+    echo "Error: Failed to download files from repository. Falling back to clone method."
+    # Fallback to clone method
+    if ! git clone --depth 1 --quiet $SOURCE_REPO $TEMP_DIR; then
+        echo "Error: Failed to clone source repository"
+        exit 1
+    fi
 fi
-
-# Configure sparse checkout for only needed files
-cd $TEMP_DIR
-if ! git sparse-checkout set harperbot .github/workflows/codebot.yml setup-checksums.sha256; then
-    echo "Warning: Sparse checkout failed, falling back to full clone"
-fi
-cd - > /dev/null
 
 if ! $DRY_RUN; then
 echo "Verifying file integrity before copying..."
