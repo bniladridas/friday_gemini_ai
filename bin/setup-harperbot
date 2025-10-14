@@ -117,7 +117,7 @@ TEMP_DIR=$(mktemp -d)
 trap "rm -rf '$TEMP_DIR'" EXIT
 
 echo "Downloading required files from repository..."
-if ! git archive --remote=$SOURCE_REPO HEAD harperbot .github/workflows/codebot.yml setup-checksums.sha256 | tar -x -C $TEMP_DIR; then
+if ! git archive --remote=$SOURCE_REPO HEAD harperbot .github/workflows/harperbot.yml setup-checksums.sha256 | tar -x -C $TEMP_DIR; then
     echo "Error: Failed to download files from repository. Falling back to clone method."
     # Fallback to clone method
     if ! git clone --depth 1 --quiet $SOURCE_REPO $TEMP_DIR; then
