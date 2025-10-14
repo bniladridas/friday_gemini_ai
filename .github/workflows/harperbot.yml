@@ -80,6 +80,8 @@ jobs:
     steps:
     - name: Install system dependencies
       run: |
+        # Install git (required for actions/checkout in container)
+        # Note: Node.js removed as the Python bot doesn't require it
         apt-get update && apt-get install -y --no-install-recommends git
 
     - name: Configure Git
