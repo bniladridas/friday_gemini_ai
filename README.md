@@ -33,7 +33,7 @@ HarperBot provides automated PR code reviews using Google's Gemini AI. It suppor
 - Repository-specific GitHub Actions workflow
 - Requires secrets setup per repository
 - Automated setup: `curl -fsSL https://raw.githubusercontent.com/bniladridas/friday_gemini_ai/main/bin/setup-harperbot | bash` (use `--update` to update, `--dry-run` to preview)
-- **Note:** Legacy mode; consider Webhook Mode for better performance
+- **Note:** This is legacy mode for existing users. New installations should use Webhook Mode for better scalability and centralized management
 
 For detailed setup instructions, see [harperbot/HarperBot.md](harperbot/HarperBot.md).
 
