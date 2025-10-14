@@ -2,18 +2,51 @@
 
 # Setup script for HarperBot Workflow Mode
 # Copies required files to the current repository
+# WARNING: This script downloads and executes code from the internet.
+# Review the source at https://github.com/bniladridas/friday_gemini_ai before running.
 
 set -e
 
+# Parse arguments
+UPDATE_MODE=false
+if [ "$1" = "--update" ]; then
+    UPDATE_MODE=true
+fi
+
 echo "Setting up HarperBot for Workflow Mode..."
+echo "WARNING: This script downloads files from GitHub. Ensure you trust the source."
+if $UPDATE_MODE; then
+    echo "Running in update mode: existing files will be overwritten."
+fi
+echo ""
 
 # Check if we're in a git repository
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    echo "Error: Not in a git repository"
+    echo "Error: Not in a git repository. Run this script in the root of your repository."
     exit 1
 fi
 
-# Get the source repository URL (assuming this script is run from the source repo)
+# Check write permissions
+if ! touch .test_write_permission 2>/dev/null; then
+    echo "Error: No write permission in the current directory."
+    exit 1
+fi
+rm .test_write_permission
+
+# Check for existing files
+if [ -d "harperbot" ] && ! $UPDATE_MODE; then
+    echo "Error: 'harperbot' directory already exists."
+    echo "Run with --update to overwrite existing installation, or remove it manually."
+    exit 1
+fi
+
+if [ -f ".github/workflows/codebot.yml" ] && ! $UPDATE_MODE; then
+    echo "Error: '.github/workflows/codebot.yml' already exists."
+    echo "Run with --update to overwrite existing installation, or remove it manually."
+    exit 1
+fi
+
+# Get the source repository URL
 SOURCE_REPO="https://github.com/bniladridas/friday_gemini_ai.git"
 
 # Create temporary directory for cloning
@@ -21,14 +54,27 @@ TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
 echo "Cloning source repository..."
-git clone --depth 1 $SOURCE_REPO $TEMP_DIR
+if ! git clone --depth 1 $SOURCE_REPO $TEMP_DIR; then
+    echo "Error: Failed to clone source repository"
+    exit 1
+fi
 
 echo "Copying harperbot directory..."
-cp -r $TEMP_DIR/harperbot .
+if ! cp -r $TEMP_DIR/harperbot .; then
+    echo "Error: Failed to copy harperbot directory"
+    exit 1
+fi
 
 echo "Copying GitHub Actions workflow..."
-mkdir -p .github/workflows
-cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/
+if ! mkdir -p .github/workflows; then
+    echo "Error: Failed to create .github/workflows directory"
+    exit 1
+fi
+
+if ! cp $TEMP_DIR/.github/workflows/codebot.yml .github/workflows/; then
+    echo "Error: Failed to copy workflow file"
+    exit 1
+fi
 
 echo "Setup complete!"
 echo ""
@@ -38,3 +84,5 @@ echo "2. Optional: Configure harperbot/config.yaml"
 echo "3. Push changes and test with a PR"
 echo ""
 echo "For detailed instructions, see harperbot/HarperBot.md"
+echo ""
+echo "NOTE: Workflow Mode is legacy. Consider Webhook Mode for better scalability."
