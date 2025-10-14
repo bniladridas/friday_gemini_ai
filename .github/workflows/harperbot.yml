@@ -78,6 +78,9 @@ jobs:
     timeout-minutes: 10
 
     steps:
+    - name: Install system dependencies
+      run: |
+        apt-get update && apt-get install -y --no-install-recommends git
 
     - name: Configure Git
       run: |
