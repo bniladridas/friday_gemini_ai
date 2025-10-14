@@ -390,7 +390,7 @@ def parse_diff_for_suggestions(diff_text):
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/codebot.yml)
+    return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml)
 
 <details>
 <summary>HarperBot Analysis</summary>
