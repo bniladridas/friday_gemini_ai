@@ -1,7 +1,22 @@
 #!/usr/bin/env ruby
 
 # CLI interface for GeminiAI gem
-require_relative '../config/environment'
+require 'gemini'
+GeminiAI.load_env
+
+# Configure logging level based on environment
+GeminiAI::Utils::Logger.instance.level = case ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
+                                          when 'production'
+                                            Logger::ERROR
+                                          when 'test'
+                                            Logger::WARN
+                                          else
+                                            Logger::DEBUG
+                                          end
+
+# Validate required environment variables
+missing_vars = GeminiAI.validate_env
+exit 1 unless missing_vars.empty?
 
 def show_help
   puts <<~HELP
@@ -41,7 +56,7 @@ def interactive_chat
   
   loop do
     print "You: "
-    input = gets.chomp
+    input = STDIN.gets.chomp
     break if input.downcase == 'exit'
     
     messages << { role: 'user', content: input }

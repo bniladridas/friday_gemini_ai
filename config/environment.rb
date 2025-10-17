@@ -17,10 +17,4 @@ GeminiAI::Utils::Logger.instance.level = case ENV['RAILS_ENV'] || ENV['RACK_ENV'
                                          end
 
 # Validate required environment variables
-required_vars = ['GEMINI_API_KEY']
-missing_vars = required_vars.select { |var| ENV[var].nil? || ENV[var].empty? }
-
-unless missing_vars.empty?
-  puts "Warning: Missing required environment variables: #{missing_vars.join(', ')}"
-  puts 'Please set them in your .env file or environment'
-end
+GeminiAI.validate_env

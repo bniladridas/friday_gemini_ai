@@ -9,12 +9,16 @@ Gem::Specification.new do |spec|
   spec.license     = 'MIT'
   spec.required_ruby_version = '>= 3.1.0'
 
-  spec.files = Dir['lib/**/*', 'LICENSE', 'README.md']
+  spec.files = Dir['lib/**/*', 'bin/**/*', 'config/**/*', 'LICENSE', 'README.md']
   spec.require_paths = ['lib']
+  spec.executables = ['gemini']
 
   spec.add_dependency 'httparty', '>= 0.21', '< 0.24'
+  spec.add_dependency 'base64'
+  spec.add_dependency 'dotenv', '~> 2.8'
+
   # Testing
-  spec.add_development_dependency 'dotenv', '~> 2.8'
+  # spec.add_development_dependency 'dotenv', '~> 2.8'
   spec.add_development_dependency 'minitest', '~> 5.0' # Required for E2E tests
   spec.add_development_dependency 'rake', '~> 13.0.6'
   # spec.add_development_dependency 'simplecov', '~> 0.22.0'
