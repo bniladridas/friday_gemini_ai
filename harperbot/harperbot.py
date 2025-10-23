@@ -531,12 +531,19 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
         suggestions: List of (file_path, line, suggestion) tuples
     """
     try:
+        from collections import defaultdict
+
         # Get PR head branch
         head_ref = repo.get_git_ref(f"heads/{pr.head.ref}")
 
-        # Convert suggestions to file changes
-        changes = {}
+        # Group suggestions by file
+        suggestion_groups = defaultdict(list)
         for file_path, line, suggestion in suggestions:
+            suggestion_groups[file_path].append((int(line), suggestion))
+
+        # Apply suggestions per file
+        changes = {}
+        for file_path, suggs in suggestion_groups.items():
             # Get current file content
             try:
                 file_content = repo.get_contents(file_path, ref=pr.head.sha)
@@ -545,13 +552,27 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
                 # File doesn't exist, create it
                 current_content = ""
 
-            # Apply suggestion (simplified - replace line)
             lines = current_content.split("\n")
-            line_num = int(line) - 1  # Convert to 0-based
-            if 0 <= line_num < len(lines):
-                lines[line_num] = suggestion
-            else:
-                lines.append(suggestion)
+
+            # Sort suggestions by line number
+            suggs.sort(key=lambda x: x[0])
+
+            offset = 0
+            for line, suggestion in suggs:
+                adjusted_line = line - 1 + offset  # Convert to 0-based and adjust for previous changes
+
+                if not (0 <= adjusted_line < len(lines)):
+                    logging.warning(
+                        f"Suggestion for {file_path}:{line} is out of bounds (adjusted line {adjusted_line}), skipping"
+                    )
+                    continue
+
+                sugg_lines = suggestion.split("\n")
+                num_old = 1  # Assume replacing 1 line (simplified; full diff parsing needed for accurate replacements)
+                num_new = len(sugg_lines)
+
+                lines = lines[:adjusted_line] + sugg_lines + lines[adjusted_line + num_old :]
+                offset += num_new - num_old
 
             changes[file_path] = "\n".join(lines)
 
@@ -562,7 +583,7 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
                 changes,
                 "Apply code suggestions from HarperBot analysis",
             )
-            logging.info(f"Applied {len(changes)} suggestions to PR #{pr.number}")
+            logging.info(f"Applied {len(suggestion_groups)} file changes to PR #{pr.number}")
     except Exception as e:
         logging.error(f"Error applying suggestions to PR: {str(e)}")
 
@@ -588,7 +609,10 @@ def create_improvement_pr_from_analysis(repo, pr_details, analysis, config):
 
         # Create branch from main/master
         base_branch = pr_details.get("base", "main")
-        create_branch(repo, base_branch, branch_name)
+        branch_ref = create_branch(repo, base_branch, branch_name)
+
+        # Create an initial empty commit to allow PR creation
+        create_commit_with_changes(repo, branch_ref, {}, "Initial commit for HarperBot improvements")
 
         # For now, create an empty improvement PR (could be extended to include actual improvements)
         title = f"HarperBot Improvements for PR #{pr_details['number']}"
