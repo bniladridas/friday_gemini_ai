@@ -17,6 +17,7 @@ import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
 from google.generativeai.types import GenerationConfig
+from harperbot_apply import handle_apply_comment
 
 # Flask imported conditionally for webhook mode
 flask_available = False
@@ -846,13 +847,29 @@ def webhook_handler():
 
     data = request.get_json()
 
-    # Only process PR events
-    if data.get("action") not in ["opened", "synchronize", "reopened"] or "pull_request" not in data:
-        logging.info(f"Ignored webhook event: action={data.get('action', 'unknown')}, has_pr={'pull_request' in data}")
-        return jsonify({"status": "ignored"})
+    event_type = data.get("action")
+    has_pr = "pull_request" in data
+    has_comment = "issue" in data and "comment" in data
 
     installation_id = data["installation"]["id"]
     repo_name = data["repository"]["full_name"]
+
+    if event_type == "created" and has_comment:
+        issue = data["issue"]
+        if "pull_request" not in issue:
+            return jsonify({"status": "ignored"})  # Not a PR comment
+        pr_number = issue["number"]
+        comment_body = data["comment"]["body"].strip()
+        if comment_body.lower() == "/apply":
+            return handle_apply_comment(installation_id, repo_name, pr_number)
+        else:
+            return jsonify({"status": "ignored"})
+
+    # Only process PR events
+    if event_type not in ["opened", "synchronize", "reopened"] or not has_pr:
+        logging.info(f"Ignored webhook event: action={event_type}, has_pr={has_pr}")
+        return jsonify({"status": "ignored"})
+
     pr_number = data["pull_request"]["number"]
 
     logging.info(f"Processing PR #{pr_number} in {repo_name}")
