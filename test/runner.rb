@@ -29,8 +29,6 @@ class TestRunner
     puts "Test files: #{Minitest::Runnable.runnables.size} test suites loaded"
     puts '-' * 50
   end
-
-
 end
 
 # Run the tests
