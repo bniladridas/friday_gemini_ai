@@ -17,7 +17,8 @@ import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
 from google.generativeai.types import GenerationConfig
-from harperbot_apply import handle_apply_comment
+
+from .harperbot_apply import handle_apply_comment
 
 # Flask imported conditionally for webhook mode
 flask_available = False

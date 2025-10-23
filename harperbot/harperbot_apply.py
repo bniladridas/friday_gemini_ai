@@ -27,7 +27,7 @@ def handle_apply_comment(installation_id, repo_name, pr_number):
         return {"error": "Flask not installed"}, 500
 
     try:
-        from harperbot.harperbot import (
+        from .harperbot import (
             analyze_with_gemini,
             apply_suggestions_to_pr,
             get_pr_details_webhook,
