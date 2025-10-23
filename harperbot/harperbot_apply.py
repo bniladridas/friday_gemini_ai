@@ -5,7 +5,14 @@ Handles user-approved application of code suggestions, committed as HarperBot.
 
 import logging
 
-from flask import jsonify
+# Flask imported conditionally for webhook mode
+flask_available = False
+try:
+    from flask import jsonify
+
+    flask_available = True
+except ImportError:
+    pass
 
 # Assuming these are imported from harperbot
 # from harperbot.harperbot import setup_environment_webhook, get_pr_details_webhook, analyze_with_gemini, parse_code_suggestions, apply_suggestions_to_pr
@@ -15,6 +22,10 @@ def handle_apply_comment(installation_id, repo_name, pr_number):
     """
     Handle /apply comment on PR: re-analyze and apply suggestions as HarperBot.
     """
+    if not flask_available:
+        logging.error("Flask not available for webhook mode")
+        return {"error": "Flask not installed"}, 500
+
     try:
         from harperbot.harperbot import (
             analyze_with_gemini,
