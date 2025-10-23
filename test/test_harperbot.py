@@ -18,7 +18,7 @@ from harperbot import (  # noqa: E402
     find_diff_position,
     load_config,
     parse_diff_for_suggestions,
-    verify_webhook_signature
+    verify_webhook_signature,
 )
 
 
