@@ -6,16 +6,16 @@ require_relative '../config/environment'
 def show_help
   puts <<~HELP
     GeminiAI CLI Tool
-    
+
     Usage:
       gemini_ai [command] [options]
-    
+
     Commands:
       generate <prompt>     Generate text from prompt
       chat                  Start interactive chat session
       test                  Test API connection
       help                  Show this help message
-    
+
     Examples:
       gemini_ai generate "Write a haiku about Ruby"
       gemini_ai chat
@@ -35,17 +35,17 @@ end
 def interactive_chat
   client = GeminiAI::Client.new
   messages = []
-  
+
   puts "GeminiAI Chat Session (type 'exit' to quit)"
   puts "=" * 40
-  
+
   loop do
     print "You: "
     input = gets.chomp
     break if input.downcase == 'exit'
-    
+
     messages << { role: 'user', content: input }
-    
+
     begin
       response = client.chat(messages)
       puts "AI: #{response}"
@@ -54,16 +54,16 @@ def interactive_chat
       puts "Error: #{e.message}"
     end
   end
-  
+
   puts "Chat session ended."
 end
 
 def test_connection
   puts "Testing GeminiAI connection..."
-  
+
   client = GeminiAI::Client.new
   response = client.generate_text("Say 'Connection successful!'")
-  
+
   puts "[SUCCESS] Test successful!"
   puts "Response: #{response}"
 rescue GeminiAI::Error => e

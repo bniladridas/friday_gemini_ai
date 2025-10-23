@@ -1,3 +1,4 @@
+---
 name: Auto Label
 
 on:
@@ -29,7 +30,7 @@ jobs:
             const labels = [];
 
             // Bug-related keywords
-            if (title.includes('bug') || title.includes('error') || title.includes('fail') || 
+            if (title.includes('bug') || title.includes('error') || title.includes('fail') ||
                 body.includes('error') || body.includes('exception') || body.includes('traceback')) {
               labels.push('bug');
             }

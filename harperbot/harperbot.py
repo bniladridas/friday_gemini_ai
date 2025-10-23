@@ -3,6 +3,7 @@
 GitHub PR Bot that analyzes pull requests using Google's Gemini API.
 Supports both CLI and webhook modes.
 """
+
 import argparse
 import hashlib
 import hmac
@@ -10,24 +11,29 @@ import logging
 import os
 import re
 import sys
-import textwrap
-from dotenv import load_dotenv
-from github import Github, Auth
+
 import google.generativeai as genai
 import yaml
+from dotenv import load_dotenv
+from github import Auth, Github
+from google.generativeai.types import GenerationConfig
+from harperbot_apply import handle_apply_comment
 
 # Flask imported conditionally for webhook mode
 flask_available = False
 try:
-    from flask import Flask, request, jsonify
+    from flask import Flask, jsonify, request
+
     flask_available = True
     app = Flask(__name__)
 
-    @app.route('/webhook', methods=['POST'])
+    @app.route("/webhook", methods=["POST"])
     def webhook():
         return webhook_handler()
+
 except ImportError:
     pass
+
 
 def find_diff_position(diff, file_path, line_number):
     """
@@ -36,23 +42,23 @@ def find_diff_position(diff, file_path, line_number):
     Parses the unified diff to locate the hunk containing the specified line,
     then calculates the position within that hunk for inline comments.
     """
-    lines = diff.split('\n')
+    lines = diff.split("\n")
     i = 0
     while i < len(lines):
         # Look for the diff header for the specific file
-        if lines[i].startswith('diff --git') and f'b/{file_path}' in lines[i]:
+        if lines[i].startswith("diff --git") and f"b/{file_path}" in lines[i]:
             i += 1  # Skip the header
             # Process hunks for this file
             while i < len(lines):
-                if lines[i].startswith('@@'):
+                if lines[i].startswith("@@"):
                     # Parse hunk header to get starting line in new file
-                    match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', lines[i])
+                    match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@", lines[i])
                     if match:
                         hunk_start = int(match.group(1))
                         i += 1  # Move to hunk content
                         # Collect all lines in this hunk
                         hunk_lines = []
-                        while i < len(lines) and not lines[i].startswith('@@') and not lines[i].startswith('diff --git'):
+                        while i < len(lines) and not lines[i].startswith("@@") and not lines[i].startswith("diff --git"):
                             hunk_lines.append(lines[i])
                             i += 1
                         # Find the position of the target line in the hunk
@@ -60,18 +66,18 @@ def find_diff_position(diff, file_path, line_number):
                         current_line = hunk_start
                         position = 1
                         for line in hunk_lines:
-                            if line.startswith('+'):
+                            if line.startswith("+"):
                                 if current_line == line_number:
                                     return position
                                 current_line += 1
-                            elif line.startswith('-'):
+                            elif line.startswith("-"):
                                 # Removed line, no change to current_line
                                 pass
                             else:
                                 # Context line
                                 current_line += 1
                             position += 1
-                elif lines[i].startswith('diff --git'):
+                elif lines[i].startswith("diff --git"):
                     break
                 else:
                     i += 1
@@ -79,16 +85,17 @@ def find_diff_position(diff, file_path, line_number):
             i += 1
     return None  # Line not found in any hunk
 
+
 def setup_environment():
     """Load environment variables and configure the Gemini API."""
     load_dotenv()
 
     # Setup logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
     # Get GitHub token and API key from environment
-    github_token = os.getenv('GITHUB_TOKEN')
-    gemini_api_key = os.getenv('GEMINI_API_KEY')
+    github_token = os.getenv("GITHUB_TOKEN")
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
 
     if not github_token or not gemini_api_key:
         logging.error("Missing required environment variables. Ensure GITHUB_TOKEN and GEMINI_API_KEY are set.")
@@ -98,31 +105,34 @@ def setup_environment():
     genai.configure(api_key=gemini_api_key)
     return github_token
 
+
 def get_pr_details(github_token, repo_name, pr_number):
     """Fetch PR details from GitHub."""
     g = Github(auth=Auth.Token(github_token))
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
-    
+
     # Get PR details
     files_changed = [f.filename for f in pr.get_files()]
     diff_url = pr.diff_url
-    
+
     # Get diff content
     import requests
+
     diff_content = requests.get(diff_url).text
-    
+
     return {
-        'title': pr.title,
-        'body': pr.body or "",
-        'author': pr.user.login,
-        'files_changed': files_changed,
-        'diff': diff_content,
-        'base': pr.base.ref,
-        'head': pr.head.ref,
-        'head_sha': pr.head.sha,
-        'number': pr_number
+        "title": pr.title,
+        "body": pr.body or "",
+        "author": pr.user.login,
+        "files_changed": files_changed,
+        "diff": diff_content,
+        "base": pr.base.ref,
+        "head": pr.head.ref,
+        "head_sha": pr.head.sha,
+        "number": pr_number,
     }
+
 
 def load_config():
     """
@@ -169,16 +179,20 @@ Provide a concise code review analysis in this format:
 - [Actionable items for the author]"""
 
     default_config = {
-        'focus': 'all',
-        'model': 'gemini-2.0-flash',
-        'max_diff_length': 4000,
-        'temperature': 0.2,
-        'max_output_tokens': 4096,
-        'prompt': default_prompt
+        "focus": "all",
+        "model": "gemini-2.0-flash",
+        "max_diff_length": 4000,
+        "temperature": 0.2,
+        "max_output_tokens": 4096,
+        "enable_authoring": False,
+        "auto_commit_suggestions": False,
+        "create_improvement_prs": False,
+        "improvement_branch_pattern": "harperbot-improvements-{timestamp}",
+        "prompt": default_prompt,
     }
-    config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    config_path = os.path.join(os.path.dirname(__file__), "config.yaml")
     if os.path.exists(config_path):
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             try:
                 user_config = yaml.safe_load(f) or {}
                 return {**default_config, **user_config}
@@ -187,21 +201,22 @@ Provide a concise code review analysis in this format:
                 return default_config
     return default_config
 
+
 def analyze_with_gemini(pr_details):
     """Analyze the PR using Gemini API."""
     try:
         config = load_config()
-        model_name = config.get('model', 'gemini-2.0-flash')
-        focus = config.get('focus', 'all')
-        max_diff = config.get('max_diff_length', 4000)
-        temperature = config.get('temperature', 0.2)
-        max_output_tokens = config.get('max_output_tokens', 4096)
+        model_name = config.get("model", "gemini-2.0-flash")
+        focus = config.get("focus", "all")
+        max_diff = config.get("max_diff_length", 4000)
+        temperature = config.get("temperature", 0.2)
+        max_output_tokens = config.get("max_output_tokens", 4096)
 
         # Auto-select model based on PR complexity
-        diff_length = len(pr_details['diff'])
-        num_files = len(pr_details['files_changed'])
+        diff_length = len(pr_details["diff"])
+        num_files = len(pr_details["files_changed"])
         if diff_length > 10000 or num_files > 10:
-            model_name = 'gemini-2.5-flash'  # More powerful model for complex PRs
+            model_name = "gemini-2.5-flash"  # More powerful model for complex PRs
         # For simple PRs, use the configured model (default gemini-2.0-flash)
 
         # Initialize with selected model
@@ -209,55 +224,46 @@ def analyze_with_gemini(pr_details):
 
         # Prepare the prompt based on focus
         focus_instructions = {
-            'security': "Focus primarily on security concerns, authentication, data handling, and potential vulnerabilities.",
-            'performance': "Focus primarily on performance optimizations, efficiency, and potential bottlenecks.",
-            'quality': "Focus primarily on code quality, maintainability, readability, and best practices."
+            "security": "Focus primarily on security concerns, authentication, data handling, and potential vulnerabilities.",
+            "performance": "Focus primarily on performance optimizations, efficiency, and potential bottlenecks.",
+            "quality": "Focus primarily on code quality, maintainability, readability, and best practices.",
         }
         focus_instruction = focus_instructions.get(focus, "")
 
         # Use configurable prompt template
-        prompt_template = config['prompt']
+        prompt_template = config["prompt"]
         formatted_prompt = prompt_template.format(
-            num_files=len(pr_details['files_changed']),
-            files_list=', '.join(pr_details['files_changed']),
-            diff_content=pr_details['diff'][:max_diff],
-            focus_instruction=focus_instruction
+            num_files=len(pr_details["files_changed"]),
+            files_list=", ".join(pr_details["files_changed"]),
+            diff_content=pr_details["diff"][:max_diff],
+            focus_instruction=focus_instruction,
         )
 
-        prompt = {
-            'role': 'user',
-            'parts': [formatted_prompt]
-        }
+        prompt = {"role": "user", "parts": [formatted_prompt]}
 
         # Generate content with safety settings
         response = model.generate_content(
             contents=[prompt],
-            generation_config={
-                'temperature': temperature,
-                'top_p': 0.95,
-                'top_k': 40,
-                'max_output_tokens': max_output_tokens,
-            },
+            generation_config=GenerationConfig(
+                temperature=temperature,
+                top_p=0.95,
+                top_k=40,
+                max_output_tokens=max_output_tokens,
+            ),
             safety_settings=[
-                {
-                    "category": "HARM_CATEGORY_HARASSMENT",
-                    "threshold": "BLOCK_NONE"
-                },
-                {
-                    "category": "HARM_CATEGORY_HATE_SPEECH",
-                    "threshold": "BLOCK_NONE"
-                },
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
                 {
                     "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    "threshold": "BLOCK_NONE"
+                    "threshold": "BLOCK_NONE",
                 },
                 {
                     "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                    "threshold": "BLOCK_NONE"
+                    "threshold": "BLOCK_NONE",
                 },
-            ]
+            ],
         )
-        
+
         # Handle different response formats
         def extract_text(resp):
             """
@@ -276,29 +282,29 @@ def analyze_with_gemini(pr_details):
             """
             try:
                 # Try the standard text accessor first
-                if getattr(resp, 'text', None):
+                if getattr(resp, "text", None):
                     logging.debug("Extracted text from direct response.text")
                     return sanitize_text(resp.text.strip())
 
                 # Try candidates structure (most common for Gemini API)
-                candidates = getattr(resp, 'candidates', None)
+                candidates = getattr(resp, "candidates", None)
                 if candidates:
                     logging.debug(f"Found {len(candidates)} candidates")
                     for i, candidate in enumerate(candidates):
-                        content = getattr(candidate, 'content', None)
-                        if content and getattr(content, 'parts', None):
-                            parts = [getattr(part, 'text', '') for part in content.parts if getattr(part, 'text', None)]
+                        content = getattr(candidate, "content", None)
+                        if content and getattr(content, "parts", None):
+                            parts = [getattr(part, "text", "") for part in content.parts if getattr(part, "text", None)]
                             if parts:
                                 logging.debug(f"Extracted text from candidate {i}")
-                                return sanitize_text('\n'.join(parts).strip())
+                                return sanitize_text("\n".join(parts).strip())
 
                 # Try direct parts access as fallback
-                parts = getattr(resp, 'parts', None)
+                parts = getattr(resp, "parts", None)
                 if parts:
-                    parts = [getattr(part, 'text', '') for part in parts if getattr(part, 'text', None)]
+                    parts = [getattr(part, "text", "") for part in parts if getattr(part, "text", None)]
                     if parts:
                         logging.debug("Extracted text from direct response.parts")
-                        return sanitize_text('\n'.join(parts).strip())
+                        return sanitize_text("\n".join(parts).strip())
 
                 logging.warning("No text found in any response structure")
             except Exception as extract_error:
@@ -312,13 +318,13 @@ def analyze_with_gemini(pr_details):
             if not text:
                 return text
             # Remove potentially dangerous patterns
-            text = re.sub(r'</?script[^>]*>', '', text, flags=re.IGNORECASE)
-            text = re.sub(r'<[^>]+>', '', text)  # Remove all HTML tags
-            text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
-            text = re.sub(r'on\w+\s*=', '', text, flags=re.IGNORECASE)  # Remove event handlers
+            text = re.sub(r"</?script[^>]*>", "", text, flags=re.IGNORECASE)
+            text = re.sub(r"<[^>]+>", "", text)  # Remove all HTML tags
+            text = re.sub(r"javascript:", "", text, flags=re.IGNORECASE)
+            text = re.sub(r"on\w+\s*=", "", text, flags=re.IGNORECASE)  # Remove event handlers
             # Limit length to prevent abuse
             if len(text) > 10000:
-                text = text[:10000] + '... (truncated for length)'
+                text = text[:10000] + "... (truncated for length)"
             return text.strip()
 
         try:
@@ -327,16 +333,16 @@ def analyze_with_gemini(pr_details):
                 return text
 
             # Check for finish reasons that indicate no content
-            candidates = getattr(response, 'candidates', None)
+            candidates = getattr(response, "candidates", None)
             if candidates:
                 for candidate in candidates:
-                    finish_reason = getattr(candidate, 'finish_reason', None)
+                    finish_reason = getattr(candidate, "finish_reason", None)
                     if finish_reason:
-                        if 'MAX_TOKENS' in str(finish_reason):
+                        if "MAX_TOKENS" in str(finish_reason):
                             return "Analysis truncated due to token limit. The code changes are too extensive for a complete analysis. Please review manually or split into smaller PRs."
-                        elif 'SAFETY' in str(finish_reason):
+                        elif "SAFETY" in str(finish_reason):
                             return "Analysis blocked due to content safety filters. Please ensure the PR content complies with usage policies."
-                        elif 'STOP' in str(finish_reason):
+                        elif "STOP" in str(finish_reason):
                             return "Analysis completed but no content was generated. This may indicate an issue with the prompt or model."
 
             # If we get here, no text found - log and return safe message
@@ -348,45 +354,44 @@ def analyze_with_gemini(pr_details):
             logging.error(f"Error processing Gemini response: {str(e)}")
             return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
 
-        except Exception as e:
-            # Log the error and return safe info (avoid leaking sensitive response data)
-            print(f"Error processing Gemini response: {str(e)}")
-            return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
-
     except Exception as e:
         error_msg = str(e).lower()
-        context = f" (PR: {pr_details.get('title', 'Unknown')}, Model: {model_name}, Diff length: {len(pr_details.get('diff', ''))})"
-        if 'quota' in error_msg or 'rate limit' in error_msg or 'billing' in error_msg:
+        context = (
+            f" (PR: {pr_details.get('title', 'Unknown')}, Model: {model_name}, Diff length: {len(pr_details.get('diff', ''))})"
+        )
+        if "quota" in error_msg or "rate limit" in error_msg or "billing" in error_msg:
             logging.error(f"API quota/rate limit error{context}: {str(e)}")
             return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
-        elif 'api key' in error_msg or 'authentication' in error_msg or 'unauthorized' in error_msg:
+        elif "api key" in error_msg or "authentication" in error_msg or "unauthorized" in error_msg:
             logging.error(f"API authentication error{context}: {str(e)}")
             return f"Error generating analysis: Invalid API key or authentication failed{context}. Please check your GEMINI_API_KEY."
-        elif 'model' in error_msg or 'not found' in error_msg:
+        elif "model" in error_msg or "not found" in error_msg:
             logging.error(f"Model error{context}: {str(e)}")
             return f"Error generating analysis: Requested model not available{context}. Please try again later."
         else:
             logging.error(f"Unexpected API error{context}: {str(e)}")
             return f"Error generating analysis: API unavailable{context}. Please try again later."
 
+
 def parse_diff_for_suggestions(diff_text):
     """Parse a diff block to extract file, line, and suggestion code."""
-    lines = diff_text.strip().split('\n')
-    if not lines or not lines[0].startswith('--- a/'):
+    lines = diff_text.strip().split("\n")
+    if not lines or not lines[0].startswith("--- a/"):
         return None
     file_path = lines[0][6:]  # --- a/file
     hunk_start = None
     suggestion_lines = []
     for line in lines:
-        if line.startswith('@@'):
-            match = re.match(r'@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@', line)
+        if line.startswith("@@"):
+            match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
             if match:
                 hunk_start = int(match.group(1))
-        elif line.startswith('+') and hunk_start is not None:
+        elif line.startswith("+") and hunk_start is not None:
             suggestion_lines.append(line[1:])  # remove +
     if hunk_start is not None and suggestion_lines:
-        return file_path, hunk_start, '\n'.join(suggestion_lines)
+        return file_path, hunk_start, "\n".join(suggestion_lines)
     return None
+
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
@@ -401,6 +406,7 @@ def format_comment(analysis):
 
 ---"""
 
+
 def parse_code_suggestions(analysis):
     """
     Parse code suggestions from analysis text.
@@ -410,13 +416,13 @@ def parse_code_suggestions(analysis):
     diff_blocks = []
     start_pos = 0
     while True:
-        start_pos = analysis.find('```diff\n', start_pos)
+        start_pos = analysis.find("```diff\n", start_pos)
         if start_pos == -1:
             break
-        end_pos = analysis.find('\n```', start_pos + 8)
+        end_pos = analysis.find("\n```", start_pos + 8)
         if end_pos == -1:
             break
-        diff_text = analysis[start_pos + 8:end_pos]
+        diff_text = analysis[start_pos + 8 : end_pos]
         diff_blocks.append(diff_text)
         start_pos = end_pos + 4
     suggestions = []
@@ -428,17 +434,220 @@ def parse_code_suggestions(analysis):
     return suggestions
 
 
+def create_branch(repo, base_branch, new_branch_name):
+    """
+    Create a new branch from the base branch.
+
+    Args:
+        repo: GitHub repository object
+        base_branch: Name of the base branch (e.g., 'main')
+        new_branch_name: Name for the new branch
+
+    Returns:
+        The created branch reference
+    """
+    try:
+        # Check if branch already exists
+        try:
+            existing_ref = repo.get_git_ref(f"heads/{new_branch_name}")
+            logging.warning(f"Branch '{new_branch_name}' already exists, using existing")
+            return existing_ref
+        except Exception:
+            pass  # Branch doesn't exist, create it
+
+        base_ref = repo.get_git_ref(f"heads/{base_branch}")
+        repo.create_git_ref(ref=f"refs/heads/{new_branch_name}", sha=base_ref.object.sha)
+        logging.info(f"Created branch '{new_branch_name}' from '{base_branch}'")
+        return repo.get_git_ref(f"heads/{new_branch_name}")
+    except Exception as e:
+        logging.error(f"Error creating branch '{new_branch_name}': {str(e)}")
+        raise
+
+
+def create_commit_with_changes(repo, branch_ref, changes, commit_message):
+    """
+    Create a commit with the given file changes.
+
+    Args:
+        repo: GitHub repository object
+        branch_ref: Branch reference to commit to
+        changes: Dict of {file_path: new_content}
+        commit_message: Commit message
+
+    Returns:
+        The created commit
+    """
+    try:
+        # Get the current tree
+        current_commit = repo.get_git_commit(branch_ref.object.sha)
+        current_tree = repo.get_git_tree(current_commit.sha)
+
+        # Create blobs for new/updated files
+        new_blobs = []
+        for file_path, content in changes.items():
+            blob = repo.create_git_blob(content, "utf-8")
+            new_blobs.append({"path": file_path, "mode": "100644", "type": "blob", "sha": blob.sha})  # Regular file
+
+        # Create new tree
+        tree = repo.create_git_tree(new_blobs, base_tree=current_tree)
+        author = {"name": "HarperBot", "email": "236089746+harper-bot-glitch@users.noreply.github.com"}
+        commit = repo.create_git_commit(commit_message, tree, [current_commit], author=author)
+        branch_ref.edit(commit.sha)
+        logging.info(f"Created commit with {len(changes)} file changes")
+        return commit
+    except Exception as e:
+        logging.error(f"Error creating commit: {str(e)}")
+        raise
+
+
+def create_improvement_pr(repo, head_branch, base_branch, title, body):
+    """
+    Create a pull request with improvements.
+
+    Args:
+        repo: GitHub repository object
+        head_branch: Branch with improvements
+        base_branch: Target branch
+        title: PR title
+        body: PR description
+
+    Returns:
+        The created pull request
+    """
+    try:
+        pr = repo.create_pull(title=title, body=body, head=head_branch, base=base_branch)
+        logging.info(f"Created improvement PR #{pr.number}: {title}")
+        return pr
+    except Exception as e:
+        logging.error(f"Error creating PR: {str(e)}")
+        raise
+
+
+def apply_suggestions_to_pr(repo, pr, suggestions):
+    """
+    Apply code suggestions directly to the PR branch.
+
+    Args:
+        repo: GitHub repository object
+        pr: Pull request object
+        suggestions: List of (file_path, line, suggestion) tuples
+    """
+    try:
+        from collections import defaultdict
+
+        # Get PR head branch
+        head_ref = repo.get_git_ref(f"heads/{pr.head.ref}")
+
+        # Group suggestions by file
+        suggestion_groups = defaultdict(list)
+        for file_path, line, suggestion in suggestions:
+            suggestion_groups[file_path].append((int(line), suggestion))
+
+        # Apply suggestions per file
+        changes = {}
+        for file_path, suggs in suggestion_groups.items():
+            # Get current file content
+            try:
+                file_content = repo.get_contents(file_path, ref=pr.head.sha)
+                current_content = file_content.decoded_content.decode("utf-8")
+            except Exception:
+                # File doesn't exist, create it
+                current_content = ""
+
+            lines = current_content.split("\n")
+
+            # Sort suggestions by line number
+            suggs.sort(key=lambda x: x[0])
+
+            offset = 0
+            applied = False
+            for line, suggestion in suggs:
+                adjusted_line = line - 1 + offset  # Convert to 0-based and adjust for previous changes
+
+                if not (0 <= adjusted_line < len(lines)):
+                    logging.warning(
+                        f"Suggestion for {file_path}:{line} is out of bounds (adjusted line {adjusted_line}), skipping"
+                    )
+                    continue
+
+                sugg_lines = suggestion.split("\n")
+                num_old = 1  # Assume replacing 1 line (simplified; full diff parsing needed for accurate replacements)
+                num_new = len(sugg_lines)
+
+                lines = lines[:adjusted_line] + sugg_lines + lines[adjusted_line + num_old :]
+                offset += num_new - num_old
+                applied = True
+
+            if applied:
+                changes[file_path] = "\n".join(lines)
+
+        if changes:
+            create_commit_with_changes(
+                repo,
+                head_ref,
+                changes,
+                "Apply code suggestions from HarperBot analysis",
+            )
+            logging.info(f"Applied {len(suggestion_groups)} file changes to PR #{pr.number}")
+    except Exception as e:
+        logging.error(f"Error applying suggestions to PR: {str(e)}")
+
+
+def create_improvement_pr_from_analysis(repo, pr_details, analysis, config):
+    """
+    Create an improvement PR with additional suggestions beyond the original PR.
+
+    Args:
+        repo: GitHub repository object
+        pr_details: PR details dict
+        analysis: Full analysis text
+        config: Configuration dict
+    """
+    try:
+        import time
+
+        timestamp = str(int(time.time()))
+
+        # Generate branch name
+        branch_pattern = config.get("improvement_branch_pattern", "harperbot-improvements-{timestamp}")
+        branch_name = branch_pattern.replace("{timestamp}", timestamp).replace("{pr_number}", str(pr_details["number"]))
+
+        # Create branch from main/master
+        base_branch = pr_details.get("base", "main")
+        branch_ref = create_branch(repo, base_branch, branch_name)
+
+        # Create an initial empty commit to allow PR creation
+        create_commit_with_changes(repo, branch_ref, {}, "Initial commit for HarperBot improvements")
+
+        # For now, create an empty improvement PR (could be extended to include actual improvements)
+        title = f"HarperBot Improvements for PR #{pr_details['number']}"
+        body = f"""## HarperBot Improvement Suggestions
+
+This PR contains additional improvements suggested by HarperBot analysis of PR #{pr_details['number']}.
+
+### Analysis Summary
+{analysis[:1000]}...
+
+---
+*Generated by HarperBot*"""
+
+        create_improvement_pr(repo, branch_name, base_branch, title, body)
+
+    except Exception as e:
+        logging.error(f"Error creating improvement PR: {str(e)}")
+
+
 def update_main_comment(analysis):
     """
     Update the main comment by replacing the code suggestions section.
     """
-    start_pos = analysis.find('### Code Suggestions\n')
+    start_pos = analysis.find("### Code Suggestions\n")
     if start_pos == -1:
         return analysis
-    end_pos = analysis.find('###', start_pos + 21)
+    end_pos = analysis.find("###", start_pos + 21)
     if end_pos == -1:
         end_pos = len(analysis)
-    return analysis[:start_pos] + '### Code Suggestions\n- Suggestions posted as inline comments below.\n' + analysis[end_pos:]
+    return analysis[:start_pos] + "### Code Suggestions\n- Suggestions posted as inline comments below.\n" + analysis[end_pos:]
 
 
 def post_inline_suggestions(pr, pr_details, suggestions):
@@ -451,24 +660,22 @@ def post_inline_suggestions(pr, pr_details, suggestions):
     for file_path, line_str, suggestion in suggestions:
         try:
             line = int(line_str)
-            position = find_diff_position(pr_details['diff'], file_path, line)
+            position = find_diff_position(pr_details["diff"], file_path, line)
             if position is not None:
-                comments.append({
-                    'path': file_path,
-                    'position': position,
-                    'body': f"```suggestion\n{suggestion}\n```"
-                })
+                comments.append(
+                    {
+                        "path": file_path,
+                        "position": position,
+                        "body": f"```suggestion\n{suggestion}\n```",
+                    }
+                )
             else:
                 logging.warning(f"Could not find diff position for {file_path}:{line}")
         except ValueError as e:
             logging.error(f"Invalid line number '{line_str}': {e}")
     if comments:
         try:
-            pr.create_review(
-                commit=pr_details['head_sha'],
-                comments=comments,
-                event='COMMENT'
-            )
+            pr.create_review(commit=pr_details["head_sha"], comments=comments, event="COMMENT")
             logging.info(f"Posted {len(comments)} inline suggestions")
         except Exception as e:
             logging.error(f"Error posting review with suggestions: {str(e)}")
@@ -479,23 +686,33 @@ def post_comment(github_token, repo_name, pr_details, analysis):
     Post analysis comment and inline suggestions.
 
     Creates a main comment with the analysis summary, and posts
-    code suggestions as inline review comments.
+    code suggestions as inline review comments. Optionally applies
+    suggestions directly or creates improvement PRs.
     """
     try:
+        config = load_config()
         g = Github(auth=Auth.Token(github_token))
         repo = g.get_repo(repo_name)
-        pr = repo.get_pull(pr_details['number'])
+        pr = repo.get_pull(pr_details["number"])
 
         suggestions = parse_code_suggestions(analysis)
         main_comment = update_main_comment(analysis)
-        
+
         # Format and post main comment
         formatted_comment = format_comment(main_comment)
         pr.create_issue_comment(formatted_comment)
-        
+
         # Post inline suggestions
         post_inline_suggestions(pr, pr_details, suggestions)
-        
+
+        # Apply authoring features if enabled
+        if config.get("enable_authoring", False):
+            if config.get("auto_commit_suggestions", False) and suggestions:
+                apply_suggestions_to_pr(repo, pr, suggestions)
+
+            if config.get("create_improvement_prs", False):
+                create_improvement_pr_from_analysis(repo, pr_details, analysis, config)
+
     except Exception as e:
         logging.error(f"Error posting comment: {str(e)}")
         raise
@@ -518,8 +735,8 @@ def verify_webhook_signature(payload, signature, secret):
     """
     if not signature or not secret:
         return False
-    sha_name, sig = signature.split('=', 1)
-    if sha_name != 'sha256':
+    sha_name, sig = signature.split("=", 1)
+    if sha_name != "sha256":
         return False
     mac = hmac.new(secret.encode(), msg=payload, digestmod=hashlib.sha256)
     return hmac.compare_digest(mac.hexdigest(), sig)
@@ -533,11 +750,11 @@ def setup_environment_webhook(installation_id):
     This provides secure, scoped access without storing long-lived tokens.
     """
     load_dotenv()
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-    gemini_api_key = os.getenv('GEMINI_API_KEY')
-    app_id = os.getenv('HARPER_BOT_APP_ID')
-    private_key = os.getenv('HARPER_BOT_PRIVATE_KEY')
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    app_id = os.getenv("HARPER_BOT_APP_ID")
+    private_key = os.getenv("HARPER_BOT_PRIVATE_KEY")
 
     if not gemini_api_key or not app_id or not private_key:
         logging.error("Missing required environment variables for webhook mode")
@@ -561,18 +778,19 @@ def get_pr_details_webhook(g, repo_name, pr_number):
 
     # Get diff content via HTTP request (pr.get_diff() doesn't exist)
     import requests
+
     diff_content = requests.get(diff_url).text
 
     return {
-        'title': pr.title,
-        'body': pr.body or "",
-        'author': pr.user.login,
-        'files_changed': files_changed,
-        'diff': diff_content,
-        'base': pr.base.ref,
-        'head': pr.head.ref,
-        'head_sha': pr.head.sha,
-        'number': pr_number
+        "title": pr.title,
+        "body": pr.body or "",
+        "author": pr.user.login,
+        "files_changed": files_changed,
+        "diff": diff_content,
+        "base": pr.base.ref,
+        "head": pr.head.ref,
+        "head_sha": pr.head.sha,
+        "number": pr_number,
     }
 
 
@@ -581,11 +799,13 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
     Post analysis comment and inline suggestions using GitHub App auth.
 
     Creates a main comment with the analysis summary, and posts
-    code suggestions as inline review comments.
+    code suggestions as inline review comments. Optionally applies
+    suggestions directly or creates improvement PRs.
     """
     try:
+        config = load_config()
         repo = g.get_repo(repo_name)
-        pr = repo.get_pull(pr_details['number'])
+        pr = repo.get_pull(pr_details["number"])
 
         suggestions = parse_code_suggestions(analysis)
         main_comment = update_main_comment(analysis)
@@ -597,6 +817,15 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
 
         # Post inline suggestions
         post_inline_suggestions(pr, pr_details, suggestions)
+
+        # Apply authoring features if enabled
+        if config.get("enable_authoring", False):
+            if config.get("auto_commit_suggestions", False) and suggestions:
+                apply_suggestions_to_pr(repo, pr, suggestions)
+
+            if config.get("create_improvement_prs", False):
+                create_improvement_pr_from_analysis(repo, pr_details, analysis, config)
+
     except Exception as e:
         logging.error(f"Error posting comment to PR #{pr_details.get('number', 'unknown')}: {str(e)}")
         raise
@@ -611,26 +840,42 @@ def webhook_handler():
     """
     if not flask_available:
         logging.error("Flask not available for webhook mode")
-        return {'error': 'Flask not installed'}, 500
+        return {"error": "Flask not installed"}, 500
 
     payload = request.get_data()
-    signature = request.headers.get('X-Hub-Signature-256')
-    secret = os.getenv('WEBHOOK_SECRET')
+    signature = request.headers.get("X-Hub-Signature-256")
+    secret = os.getenv("WEBHOOK_SECRET")
 
     if not verify_webhook_signature(payload, signature, secret):
         logging.warning("Invalid webhook signature received")
-        return jsonify({'error': 'Invalid signature'}), 403
+        return jsonify({"error": "Invalid signature"}), 403
 
     data = request.get_json()
 
-    # Only process PR events
-    if data.get('action') not in ['opened', 'synchronize', 'reopened'] or 'pull_request' not in data:
-        logging.info(f"Ignored webhook event: action={data.get('action', 'unknown')}, has_pr={'pull_request' in data}")
-        return jsonify({'status': 'ignored'})
+    event_type = data.get("action")
+    has_pr = "pull_request" in data
+    has_comment = "issue" in data and "comment" in data
 
-    installation_id = data['installation']['id']
-    repo_name = data['repository']['full_name']
-    pr_number = data['pull_request']['number']
+    installation_id = data["installation"]["id"]
+    repo_name = data["repository"]["full_name"]
+
+    if event_type == "created" and has_comment:
+        issue = data["issue"]
+        if "pull_request" not in issue:
+            return jsonify({"status": "ignored"})  # Not a PR comment
+        pr_number = issue["number"]
+        comment_body = data["comment"]["body"].strip()
+        if comment_body.lower() == "/apply":
+            return handle_apply_comment(installation_id, repo_name, pr_number)
+        else:
+            return jsonify({"status": "ignored"})
+
+    # Only process PR events
+    if event_type not in ["opened", "synchronize", "reopened"] or not has_pr:
+        logging.info(f"Ignored webhook event: action={event_type}, has_pr={has_pr}")
+        return jsonify({"status": "ignored"})
+
+    pr_number = data["pull_request"]["number"]
 
     logging.info(f"Processing PR #{pr_number} in {repo_name}")
 
@@ -640,23 +885,24 @@ def webhook_handler():
         analysis = analyze_with_gemini(pr_details)
         post_comment_webhook(g, repo_name, pr_details, analysis)
         logging.info(f"Successfully processed PR #{pr_number}")
-        return jsonify({'status': 'ok'})
+        return jsonify({"status": "ok"})
     except Exception as e:
         logging.error(f"Error processing webhook: {str(e)}")
-        return jsonify({'error': 'Processing failed'}), 500
+        return jsonify({"error": "Processing failed"}), 500
+
 
 def main():
     """Main function to run the PR bot."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description='GitHub PR Bot with Gemini AI')
-    parser.add_argument('--repo', required=True, help='GitHub repository in format: owner/repo')
-    parser.add_argument('--pr', type=int, required=True, help='Pull request number')
+    parser = argparse.ArgumentParser(description="GitHub PR Bot with Gemini AI")
+    parser.add_argument("--repo", required=True, help="GitHub repository in format: owner/repo")
+    parser.add_argument("--pr", type=int, required=True, help="Pull request number")
     args = parser.parse_args()
-    
+
     # Setup environment and get PR details
     github_token = setup_environment()
     pr_details = get_pr_details(github_token, args.repo, args.pr)
-    
+
     # Analyze PR with Gemini
     logging.info("Analyzing PR with Gemini...")
     analysis = analyze_with_gemini(pr_details)
@@ -667,6 +913,7 @@ def main():
     logging.info("Posting analysis to PR...")
     post_comment(github_token, args.repo, pr_details, analysis)
     logging.info("Analysis complete!")
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
@@ -683,4 +930,3 @@ if __name__ == "__main__":
             print("Flask not installed. For webhook mode, install with: pip install flask")
             print("For CLI mode, run: python harperbot.py --repo owner/repo --pr 123")
             sys.exit(1)
-

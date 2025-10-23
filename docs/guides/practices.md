@@ -45,13 +45,13 @@ puts "Using API key: #{api_key}"  # Don't do this
 def safe_prompt(user_input)
   # Remove potentially harmful characters
   clean_input = user_input.gsub(/[<>\"']/, '')
-  
+
   # Limit input length
   clean_input = clean_input[0..2000] if clean_input.length > 2000
-  
+
   # Validate input is not empty
   raise ArgumentError, "Input cannot be empty" if clean_input.strip.empty?
-  
+
   clean_input
 end
 
@@ -68,16 +68,16 @@ class RateLimitedClient
     @client = GeminiAI::Client.new
     @requests = []
   end
-  
+
   def generate_text(prompt, options = {})
     # Remove requests older than 1 minute
     @requests.reject! { |time| time < Time.now - 60 }
-    
+
     # Check rate limit (60 requests per minute)
     if @requests.length >= 60
       raise "Rate limit exceeded. Try again later."
     end
-    
+
     @requests << Time.now
     @client.generate_text(prompt, options)
   end
@@ -95,13 +95,13 @@ class CachedGeminiClient
     @client = GeminiAI::Client.new
     @cache = {}
   end
-  
+
   def generate_text(prompt, options = {})
     cache_key = Digest::MD5.hexdigest("#{prompt}:#{options}")
-    
+
     @cache[cache_key] ||= @client.generate_text(prompt, options)
   end
-  
+
   def clear_cache
     @cache.clear
   end
@@ -117,18 +117,18 @@ class RedisGeminiClient
     @client = GeminiAI::Client.new
     @redis = Redis.new
   end
-  
+
   def generate_text(prompt, options = {})
     cache_key = "gemini:#{Digest::MD5.hexdigest("#{prompt}:#{options}")}"
-    
+
     # Try cache first
     cached = @redis.get(cache_key)
     return cached if cached
-    
+
     # Generate and cache
     response = @client.generate_text(prompt, options)
     @redis.setex(cache_key, 3600, response)  # Cache for 1 hour
-    
+
     response
   end
 end
@@ -141,20 +141,20 @@ end
 def process_prompts(prompts)
   client = GeminiAI::Client.new
   results = []
-  
+
   prompts.each_with_index do |prompt, index|
     begin
       response = client.generate_text(prompt)
       results << { index: index, prompt: prompt, response: response }
-      
+
       # Add delay to respect rate limits
       sleep(1) if index < prompts.length - 1
-      
+
     rescue GeminiAI::Error => e
       results << { index: index, prompt: prompt, error: e.message }
     end
   end
-  
+
   results
 end
 ```
@@ -170,7 +170,7 @@ def process_prompts_parallel(prompts, max_threads: 5)
     max_threads: max_threads,
     max_queue: prompts.length
   )
-  
+
   futures = prompts.map.with_index do |prompt, index|
     Concurrent::Future.execute(executor: executor) do
       begin
@@ -181,11 +181,11 @@ def process_prompts_parallel(prompts, max_threads: 5)
       end
     end
   end
-  
+
   # Wait for all to complete
   results = futures.map(&:value)
   executor.shutdown
-  
+
   results
 end
 ```
@@ -196,16 +196,16 @@ end
 ```ruby
 def robust_generate_text(prompt, max_retries: 3)
   retries = 0
-  
+
   begin
     client = GeminiAI::Client.new
     client.generate_text(prompt)
-    
+
   rescue GeminiAI::AuthenticationError => e
     # Don't retry authentication errors
     Rails.logger.error "Authentication failed: #{e.message}"
     raise "AI service authentication failed"
-    
+
   rescue GeminiAI::RateLimitError => e
     retries += 1
     if retries <= max_retries
@@ -217,7 +217,7 @@ def robust_generate_text(prompt, max_retries: 3)
       Rails.logger.error "Rate limit exceeded after #{max_retries} retries"
       raise "AI service temporarily unavailable"
     end
-    
+
   rescue GeminiAI::NetworkError => e
     retries += 1
     if retries <= max_retries
@@ -228,11 +228,11 @@ def robust_generate_text(prompt, max_retries: 3)
       Rails.logger.error "Network error after #{max_retries} retries: #{e.message}"
       raise "AI service connection failed"
     end
-    
+
   rescue GeminiAI::APIError => e
     Rails.logger.error "API error: #{e.message}"
     raise "AI service error: #{e.message}"
-    
+
   rescue GeminiAI::Error => e
     Rails.logger.error "Gemini AI error: #{e.message}"
     raise "AI service error"
@@ -251,7 +251,7 @@ class CircuitBreakerClient
     @last_failure_time = nil
     @state = :closed  # :closed, :open, :half_open
   end
-  
+
   def generate_text(prompt, options = {})
     case @state
     when :open
@@ -261,24 +261,24 @@ class CircuitBreakerClient
         raise "Circuit breaker is open"
       end
     end
-    
+
     begin
       response = @client.generate_text(prompt, options)
-      
+
       # Success - reset failure count
       @failure_count = 0
       @state = :closed if @state == :half_open
-      
+
       response
-      
+
     rescue GeminiAI::Error => e
       @failure_count += 1
       @last_failure_time = Time.now
-      
+
       if @failure_count >= @failure_threshold
         @state = :open
       end
-      
+
       raise e
     end
   end
@@ -303,12 +303,12 @@ prompt = "Write some Ruby code"
 # Good - Provide context and examples
 prompt = <<~PROMPT
   You are a Ruby expert. Write a method to validate email addresses.
-  
+
   Requirements:
   - Must contain @ symbol
   - Must have domain extension
   - Return true/false
-  
+
   Example usage:
   validate_email("user@example.com") # => true
   validate_email("invalid-email") # => false
@@ -369,10 +369,10 @@ class AiContentService
   def initialize
     @client = GeminiAI::Client.new
   end
-  
+
   def generate_blog_post(topic, style: 'professional')
     prompt = build_blog_prompt(topic, style)
-    
+
     @client.generate_text(
       prompt,
       temperature: style == 'creative' ? 0.8 : 0.6,
@@ -382,9 +382,9 @@ class AiContentService
     Rails.logger.error "AI Content Service Error: #{e.message}"
     "Unable to generate content at this time."
   end
-  
+
   private
-  
+
   def build_blog_prompt(topic, style)
     "Write a #{style} blog post about #{topic}. Include an introduction, main points, and conclusion."
   end
@@ -396,13 +396,13 @@ end
 # app/jobs/content_generation_job.rb
 class ContentGenerationJob < ApplicationJob
   queue_as :default
-  
+
   def perform(user_id, prompt, content_type)
     user = User.find(user_id)
     client = GeminiAI::Client.new
-    
+
     response = client.generate_text(prompt)
-    
+
     # Store the generated content
     user.ai_contents.create!(
       prompt: prompt,
@@ -410,10 +410,10 @@ class ContentGenerationJob < ApplicationJob
       content_type: content_type,
       generated_at: Time.current
     )
-    
+
     # Notify user
     ContentGeneratedMailer.notify(user, response).deliver_now
-    
+
   rescue GeminiAI::Error => e
     Rails.logger.error "Content generation failed: #{e.message}"
     # Handle error - maybe retry or notify user
@@ -426,31 +426,31 @@ end
 # app/controllers/api/v1/ai_controller.rb
 class Api::V1::AiController < ApplicationController
   before_action :authenticate_user!
-  
+
   def generate
     prompt = params[:prompt]
     options = extract_options(params)
-    
+
     # Rate limiting per user
     if user_exceeded_rate_limit?
       render json: { error: 'Rate limit exceeded' }, status: 429
       return
     end
-    
+
     client = GeminiAI::Client.new
     response = client.generate_text(prompt, options)
-    
+
     # Log usage
     log_ai_usage(current_user, prompt, response)
-    
+
     render json: { response: response }
-    
+
   rescue GeminiAI::Error => e
     render json: { error: e.message }, status: 500
   end
-  
+
   private
-  
+
   def extract_options(params)
     {
       temperature: params[:temperature]&.to_f || 0.7,
@@ -459,14 +459,14 @@ class Api::V1::AiController < ApplicationController
       top_k: params[:top_k]&.to_i || 40
     }
   end
-  
+
   def user_exceeded_rate_limit?
     # Check user's recent requests
     current_user.ai_requests
                 .where(created_at: 1.hour.ago..Time.current)
                 .count >= 100
   end
-  
+
   def log_ai_usage(user, prompt, response)
     user.ai_requests.create!(
       prompt: prompt[0..100],  # Store first 100 chars
@@ -484,26 +484,26 @@ end
 # spec/services/ai_content_service_spec.rb
 RSpec.describe AiContentService do
   let(:service) { described_class.new }
-  
+
   describe '#generate_blog_post' do
     context 'when API call succeeds' do
       before do
         allow_any_instance_of(GeminiAI::Client).to receive(:generate_text)
           .and_return('Generated blog post content')
       end
-      
+
       it 'returns generated content' do
         result = service.generate_blog_post('Ruby programming')
         expect(result).to eq('Generated blog post content')
       end
     end
-    
+
     context 'when API call fails' do
       before do
         allow_any_instance_of(GeminiAI::Client).to receive(:generate_text)
           .and_raise(GeminiAI::APIError.new('API Error'))
       end
-      
+
       it 'returns fallback message' do
         result = service.generate_blog_post('Ruby programming')
         expect(result).to eq('Unable to generate content at this time.')
@@ -520,31 +520,31 @@ RSpec.describe 'AI Integration', type: :request do
   describe 'POST /api/v1/ai/generate' do
     let(:user) { create(:user) }
     let(:headers) { { 'Authorization' => "Bearer #{user.api_token}" } }
-    
+
     context 'with valid parameters' do
       it 'generates content successfully' do
         VCR.use_cassette('gemini_api_success') do
           post '/api/v1/ai/generate',
                params: { prompt: 'Write a haiku' },
                headers: headers
-          
+
           expect(response).to have_http_status(:success)
           expect(JSON.parse(response.body)).to have_key('response')
         end
       end
     end
-    
+
     context 'with rate limiting' do
       before do
         # Create 100 recent requests for user
         create_list(:ai_request, 100, user: user, created_at: 30.minutes.ago)
       end
-      
+
       it 'returns rate limit error' do
         post '/api/v1/ai/generate',
              params: { prompt: 'Write a haiku' },
              headers: headers
-        
+
         expect(response).to have_http_status(:too_many_requests)
       end
     end
@@ -560,36 +560,36 @@ class LoggedGeminiClient
   def initialize
     @client = GeminiAI::Client.new
   end
-  
+
   def generate_text(prompt, options = {})
     start_time = Time.now
-    
+
     Rails.logger.info "Gemini Request Started", {
       prompt_length: prompt.length,
       options: options
     }
-    
+
     response = @client.generate_text(prompt, options)
-    
+
     duration = Time.now - start_time
-    
+
     Rails.logger.info "Gemini Request Completed", {
       duration: duration,
       response_length: response.length,
       success: true
     }
-    
+
     response
-    
+
   rescue GeminiAI::Error => e
     duration = Time.now - start_time
-    
+
     Rails.logger.error "Gemini Request Failed", {
       duration: duration,
       error: e.class.name,
       message: e.message
     }
-    
+
     raise e
   end
 end
@@ -607,11 +607,11 @@ class MetricsGeminiClient
       total_duration: 0
     }
   end
-  
+
   def generate_text(prompt, options = {})
     @metrics[:requests] += 1
     start_time = Time.now
-    
+
     begin
       response = @client.generate_text(prompt, options)
       @metrics[:successes] += 1
@@ -623,7 +623,7 @@ class MetricsGeminiClient
       @metrics[:total_duration] += Time.now - start_time
     end
   end
-  
+
   def stats
     {
       requests: @metrics[:requests],

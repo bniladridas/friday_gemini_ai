@@ -1,5 +1,5 @@
+---
 name: Release
-
 permissions:
   contents: write
 
@@ -25,7 +25,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     if: ${{ !inputs.skip_tests }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -54,7 +54,7 @@ jobs:
     outputs:
       gem-version: ${{ steps.gem-info.outputs.version }}
       gem-name: ${{ steps.gem-info.outputs.name }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -94,7 +94,7 @@ jobs:
     environment: production
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -127,7 +127,7 @@ jobs:
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
           printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
-          
+
           if [ -n "${{ inputs.otp_code }}" ]; then
             echo "Using provided OTP code for MFA"
             gem push *.gem --otp ${{ inputs.otp_code }}
@@ -157,7 +157,7 @@ jobs:
     if: needs.publish.result == 'success'
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5

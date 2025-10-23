@@ -27,7 +27,7 @@ Dir[File.join(__dir__, 'tasks', '*.rake')].each { |ext| load ext }
 def configure_test_task(task, with_coverage: true)
   task.libs << 'test'
   task.libs << 'lib'
-  
+
   # Find all test files
   test_files = FileList[
     'test/unit/**/*.rb',
@@ -35,11 +35,11 @@ def configure_test_task(task, with_coverage: true)
   ].exclude('test/unit/test_helper.rb', 'test/integration/test_helper.rb')
 
   # E2E tests run in separate workflow
-  
+
   task.test_files = test_files
   task.warning = true
   task.verbose = true
-  
+
   # Set up environment
   if with_coverage
     ENV['COVERAGE'] = 'true'
@@ -48,7 +48,7 @@ def configure_test_task(task, with_coverage: true)
     ENV['COVERAGE'] = 'false'
     helper_path = File.expand_path('test/test_helper_no_coverage.rb', __dir__)
   end
-  
+
   task.libs << 'test'
   task.libs << 'lib'
   task.test_files = test_files
@@ -126,7 +126,7 @@ desc 'Release a new version'
 task :release => %i[test rubocop] do
   version = File.read(File.join('lib', 'gemini', 'version.rb'))
     .match(/VERSION = '([^']+)'/)[1]
-  
+
   puts "Releasing version #{version}..."
   sh 'git tag', "v#{version}"
   sh 'git push', '--tags'

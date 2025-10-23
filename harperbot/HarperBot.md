@@ -9,6 +9,7 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 - Identifies potential issues and bugs
 - Suggests improvements
 - Posts detailed analysis as PR comments
+- **NEW**: Can author code changes directly (auto-commit suggestions, create improvement PRs)
 
 ## Setup
 
@@ -83,12 +84,36 @@ Webhook Mode is recommended for better scalability and ease of management. Benef
 - **GitHub App authentication**: Uses secure app tokens with minimal required permissions
 - **Environment variables**: Sensitive keys are stored securely in Vercel/env vars
 
+## Code Authoring Features
+
+HarperBot can now author code changes directly as a contributor to repositories:
+
+### Auto-Commit Suggestions
+- Automatically applies code suggestions to PR branches
+- Creates commits with fixes and improvements
+- Reduces manual work for developers
+
+### Improvement PRs
+- Creates new PRs with additional improvements
+- Generates comprehensive enhancement suggestions
+- Works alongside existing PR review process
+
+### Configuration
+Set `enable_authoring: true` in `harperbot/config.yaml` and configure:
+- `auto_commit_suggestions`: Apply suggestions directly to PRs
+- `create_improvement_prs`: Generate improvement PRs
+- `improvement_branch_pattern`: Naming pattern for improvement branches
+
+### Security Note
+Authoring features require write access to repositories. Ensure proper permissions are granted to the GitHub App or token.
+
 ## Customization
 
 Modify `harperbot/config.yaml` to adjust:
 - Analysis focus: 'all', 'security', 'performance', 'quality'
 - Gemini model: 'gemini-2.0-flash', 'gemini-2.5-pro'
 - Temperature and token limits
+- Authoring features (enable/disable auto-committing and improvement PRs)
 
 ## Troubleshooting
 

@@ -29,16 +29,16 @@ Test Environment: Isolated testing with HTTParty stubbing
 ```bash
 ./bin/gemini test
 ```
-**Result:** SUCCESS  
-**Response:** "Connection successful!"  
+**Result:** SUCCESS
+**Response:** "Connection successful!"
 **API Response Time:** ~1 second
 
 ### Text Generation
 ```bash
 ./bin/gemini generate "Write a haiku about testing software"
 ```
-**Result:** SUCCESS  
-**Response:** 
+**Result:** SUCCESS
+**Response:**
 ```
 Code compiles and runs,
 But the tests reveal the truth,

@@ -1,5 +1,4 @@
-name: HarperBot
-
+---
 on:
   workflow_dispatch:
   pull_request:
@@ -22,7 +21,8 @@ permissions:
 
 # Cancel in-progress runs when new commits are pushed
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number ||
+    github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,44 +31,44 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
-      with:
-        fetch-depth: 0
-        token: ${{ github.token }}
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ github.token }}
 
-    - name: Install Gemini CLI
-      run: |
-        # Install Node.js dependencies with pinned versions from environment
-        npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
-        
-        # Create Gemini CLI wrapper with proper module resolution and version fallback
-        cat > /usr/local/bin/gemini-wrapper << 'EOL'
-        #!/bin/sh
-        NODE_PATH=$(npm root -g) node -e "
-        const fs = require('fs');
-        const path = require('path');
-        const modulePath = require.resolve('@google/generative-ai');
-        const pkgPath = path.join(path.dirname(modulePath), 'package.json');
-        import(modulePath).then(m => {
-          const fallback = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version : 'unknown';
-          console.log(m.GOOGLE_GENERATIVE_AI_VERSION || fallback);
-        }).catch(e => {
-          console.error('Error loading @google/generative-ai:', e);
-          process.exit(1);
-        });"
-        EOL
-        
-        # Make the script executable
-        chmod +x /usr/local/bin/gemini-wrapper
+      - name: Install Gemini CLI
+        run: |
+          # Install Node.js dependencies with pinned versions from environment
+          npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
 
-    - name: Verify installation
-      run: |
-        # Test the installation
-        gemini --version
-        gemini-wrapper
+          # Create Gemini CLI wrapper with proper module resolution and version fallback
+          cat > /usr/local/bin/gemini-wrapper << 'EOL'
+          #!/bin/sh
+          NODE_PATH=$(npm root -g) node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const modulePath = require.resolve('@google/generative-ai');
+          const pkgPath = path.join(path.dirname(modulePath), 'package.json');
+          import(modulePath).then(m => {
+            const fallback = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version : 'unknown';
+            console.log(m.GOOGLE_GENERATIVE_AI_VERSION || fallback);
+          }).catch(e => {
+            console.error('Error loading @google/generative-ai:', e);
+            process.exit(1);
+          });"
+          EOL
+
+          # Make the script executable
+          chmod +x /usr/local/bin/gemini-wrapper
+
+      - name: Verify installation
+        run: |
+          # Test the installation
+          gemini --version
+          gemini-wrapper
 
   bot:
     name: Bot
@@ -78,57 +78,56 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - name: Install system dependencies
-      run: |
-        # Install git (required for actions/checkout in container)
-        # Note: Node.js removed as the Python bot doesn't require it
-        apt-get update && apt-get install -y --no-install-recommends git
+      - name: Install system dependencies
+        run: |
+          # Install git (required for actions/checkout in container)
+          # Note: Node.js removed as the Python bot doesn't require it
+          apt-get update && apt-get install -y --no-install-recommends git
 
-    - name: Configure Git
-      run: |
-        git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        
+      - name: Configure Git
+        run: |
+          git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
     # Checkout PR code for analysis
-    - name: Checkout code
-      uses: actions/checkout@v5
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-        fetch-depth: 1
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
 
     # Install Python dependencies required for HarperBot
-    - name: Install dependencies
-      run: |
-        # Install Python dependencies
-        pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
+      - name: Install dependencies
+        run: |
+          # Install Python dependencies
+          pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
 
-        # Verify installations
-        python --version
-        pip --version
+          # Verify installations
+          python --version
+          pip --version
 
     # Generate GitHub App token for PR commenting
-    - name: Generate GitHub App Token
-      id: app-token
-      uses: actions/create-github-app-token@v2
-      with:
-        app-id: ${{ secrets.HARPER_BOT_APP_ID }}
-        private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.HARPER_BOT_APP_ID }}
+          private-key: ${{ secrets.HARPER_BOT_PRIVATE_KEY }}
 
     # Run HarperBot to analyze PR with Gemini AI
-    - name: Run Gemini PR Bot
-      env:
-        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: |
-        # Verify installations
-        echo "Node.js: $(node --version)"
-        echo "npm: $(npm --version)"
-        echo "Python: $(python --version)"
-        echo "pip: $(pip --version)"
-        
-        # Run the PR bot script with repository and PR number
-        python ./harperbot/harperbot.py \
-          --repo ${{ github.repository }} \
-          --pr ${{ github.event.pull_request.number }}
-        
+      - name: Run Gemini PR Bot
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # Verify installations
+          echo "Node.js: $(node --version)"
+          echo "npm: $(npm --version)"
+          echo "Python: $(python --version)"
+          echo "pip: $(pip --version)"
+
+          # Run the PR bot script with repository and PR number
+          python ./harperbot/harperbot.py \
+            --repo ${{ github.repository }} \
+            --pr ${{ github.event.pull_request.number }}

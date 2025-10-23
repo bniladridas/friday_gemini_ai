@@ -72,9 +72,10 @@ end
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'gemini'
+require 'minitest'
+require 'mocha/minitest'
 require 'minitest/autorun'
 # require 'minitest/reporters'
-require 'mocha/minitest'
 require 'stringio'
 
 # Configure Minitest
