@@ -27,7 +27,7 @@ max_output_tokens: 4096
 
 # Enable code authoring features
 # When enabled, HarperBot can create commits, branches, and PRs with improvements
-enable_authoring: false
+enable_authoring: true
 
 # Auto-commit suggestions to PR branches
 # Applies code suggestions directly to the PR's head branch
@@ -74,9 +74,11 @@ prompt: |
   ### Recommendations
   - [Specific suggestions for code, docs, or tests]
 
-  ### Code Suggestions
-  - [Provide specific code changes as diff blocks]
-  - [Use ```diff format for each suggestion]
+   ### Code Suggestions
+   - [Provide 2-3 specific code improvements as diff blocks]
+   - [Use ```diff format for each suggestion]
+   - [Focus on code quality, best practices, and bug fixes]
+   - [Each suggestion should be a complete, working code change]
 
   ### Next Steps
   - [Actionable items for the author]
