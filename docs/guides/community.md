@@ -33,15 +33,15 @@ class ExampleClass
   def initialize(param)
     @param = param
   end
-  
+
   def public_method
     # Clear, descriptive method names
     # Comprehensive error handling
     # Proper documentation
   end
-  
+
   private
-  
+
   def private_helper
     # Private methods at the bottom
   end
@@ -61,7 +61,7 @@ RSpec.describe GeminiAI::Client do
     it 'generates text successfully' do
       # Test implementation
     end
-    
+
     it 'handles API errors gracefully' do
       # Error handling test
     end
@@ -99,7 +99,7 @@ end
 Clear description of the issue or requested feature
 
 ### Environment
-- Ruby version: 
+- Ruby version:
 - Gem version:
 - Operating system:
 

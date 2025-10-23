@@ -166,7 +166,7 @@ This starts an interactive session where you can have a conversation with the AI
 ### Logging Levels
 
 - **Production**: ERROR only
-- **Test**: WARN and above  
+- **Test**: WARN and above
 - **Development**: DEBUG (all messages)
 
 ### Model Options
@@ -276,7 +276,7 @@ class AiService
   def initialize
     @client = GeminiAI::Client.new
   end
-  
+
   def generate_content(prompt)
     @client.generate_text(prompt)
   rescue GeminiAI::Error => e

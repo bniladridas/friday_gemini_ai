@@ -13,7 +13,7 @@ Common issues and solutions when using Friday Gemini AI.
    ```bash
    echo $GEMINI_API_KEY
    ```
-   
+
 2. **Set environment variable**:
    ```bash
    export GEMINI_API_KEY="your_api_key_here"
@@ -23,7 +23,7 @@ Common issues and solutions when using Friday Gemini AI.
    ```bash
    echo "GEMINI_API_KEY=your_api_key_here" > .env
    ```
-   
+
    Then in your Ruby code:
    ```ruby
    GeminiAI.load_env
@@ -119,7 +119,7 @@ Common issues and solutions when using Friday Gemini AI.
    ```bash
    # macOS
    brew install ca-certificates
-   
+
    # Ubuntu/Debian
    sudo apt-get update && sudo apt-get install ca-certificates
    ```
@@ -192,7 +192,7 @@ Common issues and solutions when using Friday Gemini AI.
      if prompt.nil? || prompt.strip.empty?
        raise ArgumentError, "Prompt cannot be empty"
      end
-     
+
      client.generate_text(prompt)
    end
    ```
@@ -218,7 +218,7 @@ Common issues and solutions when using Friday Gemini AI.
 2. **Truncate long prompts**:
    ```ruby
    MAX_PROMPT_LENGTH = 8000  # Conservative limit
-   
+
    if prompt.length > MAX_PROMPT_LENGTH
      prompt = prompt[0..MAX_PROMPT_LENGTH] + "..."
    end
@@ -228,7 +228,7 @@ Common issues and solutions when using Friday Gemini AI.
    ```ruby
    def process_large_document(document)
      chunks = document.scan(/.{1,2000}/)
-     
+
      chunks.map do |chunk|
        client.generate_text("Summarize this text: #{chunk}")
      end
@@ -245,7 +245,7 @@ Common issues and solutions when using Friday Gemini AI.
 1. **Check response handling**:
    ```ruby
    response = client.generate_text(prompt)
-   
+
    if response.nil? || response.strip.empty?
      puts "Warning: Empty response received"
      response = "No response generated"
@@ -274,11 +274,11 @@ Common issues and solutions when using Friday Gemini AI.
      unless response.is_a?(String)
        raise "Expected string response, got #{response.class}"
      end
-     
+
      if response.length < 10
        puts "Warning: Very short response: #{response}"
      end
-     
+
      response
    end
    ```

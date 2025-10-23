@@ -19,7 +19,7 @@ client = GeminiAI::Client.new(model: :pro)
 ```
 
 ### Gemini 2.0 Flash Lite
-- **Model ID**: `gemini-2.0-flash-lite`  
+- **Model ID**: `gemini-2.0-flash-lite`
 - **Symbol**: `:flash_lite`
 - **Best for**: Quick responses, simple tasks, high-throughput applications
 - **Speed**: Fast
@@ -191,7 +191,7 @@ Switching models is seamless - just change the model parameter:
 # Before
 client = GeminiAI::Client.new(model: :flash_lite)
 
-# After  
+# After
 client = GeminiAI::Client.new(model: :flash)
 
 # Same API, different capabilities

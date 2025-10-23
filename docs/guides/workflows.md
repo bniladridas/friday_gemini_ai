@@ -5,8 +5,8 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 ## Workflows Overview
 
 ### **CI** (`.github/workflows/ci.yml`)
-**Purpose**: Comprehensive testing across platforms  
-**Triggers**: Push/PR to main or develop branches  
+**Purpose**: Comprehensive testing across platforms
+**Triggers**: Push/PR to main or develop branches
 **Features**:
 - Tests on Ubuntu, macOS, Windows
 - Tests Ruby 3.1, 3.2, 3.3
@@ -15,8 +15,8 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 - Builds gem artifact
 
 ### **Release** (`.github/workflows/release.yml`)
-**Purpose**: Automated releases and publishing  
-**Triggers**: Git tags (e.g., `v1.0.0`)  
+**Purpose**: Automated releases and publishing
+**Triggers**: Git tags (e.g., `v1.0.0`)
 **Features**:
 - Pre-release testing
 - Publishes to RubyGems.org
@@ -25,23 +25,23 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 - Attaches gem file to release
 
 ### ⚡ **Quick Check** (`.github/workflows/push.yml`)
-**Purpose**: Fast feedback on main branch  
-**Triggers**: Push to main branch  
+**Purpose**: Fast feedback on main branch
+**Triggers**: Push to main branch
 **Features**:
 - Quick test run for immediate feedback
 - Lightweight validation
 
 ### **Dependencies** (`.github/workflows/dependencies.yml`)
-**Purpose**: Keep dependencies up to date  
-**Triggers**: Weekly (Mondays 9 AM UTC) + manual  
+**Purpose**: Keep dependencies up to date
+**Triggers**: Weekly (Mondays 9 AM UTC) + manual
 **Features**:
 - Updates gems conservatively
 - Runs tests to ensure compatibility
 - Creates PR with dependency updates
 
 ### **Security** (`.github/workflows/security.yml`)
-**Purpose**: Regular security scanning  
-**Triggers**: Daily (2 AM UTC) + push to main + manual  
+**Purpose**: Regular security scanning
+**Triggers**: Daily (2 AM UTC) + push to main + manual
 **Features**:
 - Bundler vulnerability audit
 - Brakeman security analysis
@@ -49,8 +49,8 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 - Fails on vulnerabilities
 
 ### **HarperBot** (`.harper/harperbot.yml`)
-**Purpose**: Automated PR analysis and code review  
-**Triggers**: Pull requests (opened, synchronize, reopened) + manual  
+**Purpose**: Automated PR analysis and code review
+**Triggers**: Pull requests (opened, synchronize, reopened) + manual
 **Features**:
 - Automated code quality assessment
 - Security vulnerability detection
@@ -61,8 +61,8 @@ This repository uses GitHub Actions for automated CI/CD, security, and maintenan
 - Powered by Gemini AI for intelligent analysis
 
 ### **Cleanup** (`.github/workflows/cleanup.yml`)
-**Purpose**: Repository maintenance  
-**Triggers**: Monthly (1st day, 3 AM UTC) + manual  
+**Purpose**: Repository maintenance
+**Triggers**: Monthly (1st day, 3 AM UTC) + manual
 **Features**:
 - Closes stale issues (60 days inactive)
 - Closes stale PRs (30 days inactive)

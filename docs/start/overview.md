@@ -11,7 +11,7 @@ Friday Gemini AI bridges Ruby applications with Google's advanced Gemini AI mode
 ### Text Generation
 Generate high-quality text responses from prompts with customizable parameters for creativity and precision.
 
-### Chat Conversations  
+### Chat Conversations
 Build interactive chat experiences with multi-turn conversation support and context awareness.
 
 ### Multiple Models
@@ -60,7 +60,7 @@ Friday Gemini AI
    ```ruby
    require_relative 'src/gemini_ai'
    GeminiAI.load_env
-   
+
    client = GeminiAI::Client.new
    response = client.generate_text("Hello, AI!")
    puts response
@@ -83,6 +83,6 @@ Transform unstructured text data into structured formats or summaries.
 ## Next Steps
 
 - [Quickstart Guide](quickstart.md) - Get up and running in 5 minutes
-- [API Reference](../reference/api.md) - Complete API documentation  
+- [API Reference](../reference/api.md) - Complete API documentation
 - [Usage Examples](../reference/usage.md) - Comprehensive usage patterns
 - [Best Practices](../guides/practices.md) - Security and performance recommendations

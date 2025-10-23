@@ -37,7 +37,7 @@ jobs:
           for dir in /__w/friday_gemini_ai /__w/friday_gemini_ai/friday_gemini_ai /github/workspace; do
             git config --global --add safe.directory "$dir" || true
           done
-        
+
           # Clone and checkout
           git clone --no-checkout "https://github.com/${{ github.repository }}" .
           git fetch origin "${{ github.event.pull_request.head.sha || github.sha }}"
@@ -62,7 +62,7 @@ jobs:
             ruby-dev \
             ruby-bundler \
             pkg-config
-          
+
           # Install Ruby gems
           gem install bundler
           bundle config set --local path 'vendor/bundle'
@@ -95,13 +95,13 @@ jobs:
         run: |
           # Temporarily unfreeze bundle for updates
           bundle config set --local frozen false
-          
+
           # Update to latest version of thor to fix vulnerability
           bundle update thor
-          
+
           # Run security audit without failing the build
           bundle audit check --update || true
-          
+
           # Re-enable frozen mode
           bundle config set --local frozen true
 
@@ -132,11 +132,11 @@ jobs:
       - name: Check for vulnerabilities
         run: |
           echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f "bundler-audit.json" ]; then
             VULN_COUNT=$(jq '.vulnerabilities | length' bundler-audit.json 2>/dev/null || echo "0")
             echo "### Bundler Audit: $VULN_COUNT vulnerabilities found" >> $GITHUB_STEP_SUMMARY
-            
+
             if [ "$VULN_COUNT" -gt "0" ]; then
               echo "[ERROR] Vulnerabilities detected in dependencies" >> $GITHUB_STEP_SUMMARY
               exit 1
@@ -144,11 +144,11 @@ jobs:
               echo "[SUCCESS] No vulnerabilities found in dependencies" >> $GITHUB_STEP_SUMMARY
             fi
           fi
-          
+
           if [ -f "brakeman.json" ]; then
             WARN_COUNT=$(jq '.warnings | length' brakeman.json 2>/dev/null || echo "0")
             echo "### Brakeman: $WARN_COUNT security warnings found" >> $GITHUB_STEP_SUMMARY
-            
+
             if [ "$WARN_COUNT" -gt "0" ]; then
               echo "[WARNING] Security warnings detected in code" >> $GITHUB_STEP_SUMMARY
             else
