@@ -19,18 +19,14 @@ class TestAPIe2e < Minitest::Test
     refute_empty response.strip
     assert_instance_of String, response
     # Skip if API returned no content (happens with MAX_TOKENS or empty responses)
-    if response == 'No response generated' || response.strip.empty?
-      skip "API returned empty response"
-    end
+    skip 'API returned empty response' if response == 'No response generated' || response.strip.empty?
     # Allow for "Hello" or "World" since API responses can vary
     assert response.downcase.include?('hello') || response.downcase.include?('world'),
            "Response should contain 'hello' or 'world', got: #{response}"
   rescue Net::ReadTimeout, Timeout::Error => e
     skip "API timeout: #{e.message}"
   rescue GeminiAI::Error => e
-    if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
-      skip "API limit exceeded: #{e.message}"
-    end
+    skip "API limit exceeded: #{e.message}" if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
     raise
   end
 
@@ -50,9 +46,7 @@ class TestAPIe2e < Minitest::Test
   rescue Net::ReadTimeout, Timeout::Error => e
     skip "API timeout: #{e.message}"
   rescue GeminiAI::Error => e
-    if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
-      skip "API limit exceeded: #{e.message}"
-    end
+    skip "API limit exceeded: #{e.message}" if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
     raise
   end
 
@@ -65,9 +59,7 @@ class TestAPIe2e < Minitest::Test
     refute_empty response.strip
     assert_includes response.downcase, 'paris'
   rescue GeminiAI::Error => e
-    if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
-      skip "API limit exceeded: #{e.message}"
-    end
+    skip "API limit exceeded: #{e.message}" if e.message.include?('Rate limit exceeded') || e.message.include?('RESOURCE_EXHAUSTED') || e.message.include?('overloaded')
     raise
   end
 end
