@@ -24,6 +24,22 @@ temperature: 0.2
 # Maximum length of AI response in tokens. Higher allows more detailed analysis but increases cost.
 max_output_tokens: 4096
 
+# Enable code authoring features
+# When enabled, HarperBot can create commits, branches, and PRs with improvements
+enable_authoring: false
+
+# Auto-commit suggestions to PR branches
+# Applies code suggestions directly to the PR's head branch
+auto_commit_suggestions: false
+
+# Create improvement PRs
+# Generates new PRs with additional improvements beyond the original changes
+create_improvement_prs: false
+
+# Branch naming pattern for improvement PRs
+# {timestamp} and {pr_number} will be replaced with actual values
+improvement_branch_pattern: "harperbot-improvements-{timestamp}"
+
 # AI analysis prompt template
 # Customize the prompt to change how HarperBot analyzes code
 prompt: |

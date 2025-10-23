@@ -105,7 +105,7 @@ Make sure your `.env` file exists and contains:
 GEMINI_API_KEY=AIza...
 ```
 
-### "Invalid API key format"  
+### "Invalid API key format"
 Ensure your API key starts with `AIza` and has no extra spaces.
 
 ### Permission errors on CLI

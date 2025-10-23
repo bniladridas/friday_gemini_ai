@@ -235,23 +235,23 @@ jobs:
           # Install required tools
           sudo apt-get update
           sudo apt-get install -y curl jq git
-          
+
           # Configure git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          
+
           # Get the gem file from artifacts
           mkdir -p release_assets
           cp $GITHUB_WORKSPACE/artifacts/*.gem release_assets/ 2>/dev/null || echo "No gem file found in artifacts"
-          
+
           # Get the current tag (from the tag that triggered the workflow)
           CURRENT_TAG=${GITHUB_REF#refs/tags/}
           echo "current_tag=$CURRENT_TAG" >> $GITHUB_OUTPUT
-          
+
           # Get the previous tag
           PREV_TAG=$(git describe --tags --abbrev=0 --match 'v*' HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)
           echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
-          
+
           # Get the version from the gem file
           GEM_FILE=$(ls release_assets/*.gem 2>/dev/null | head -1 || true)
           if [ -n "$GEM_FILE" ] && [ -f "$GEM_FILE" ]; then
@@ -270,14 +270,14 @@ jobs:
           # Get current version and previous tag from setup step
           VERSION="${{ steps.setup.outputs.version }}"
           PREV_TAG="${{ steps.setup.outputs.previous_tag }}"
-          
+
           # Generate changelog from git log
           if [ -n "$PREV_TAG" ] && [ "$PREV_TAG" != "null" ]; then
             CHANGELOG=$(git log --pretty=format:"- %s" "$PREV_TAG"..HEAD 2>/dev/null | grep -v '^\s*$' || echo "No changes detected")
           else
             CHANGELOG=$(git log --pretty=format:"- %s" | grep -v '^\s*$' || echo "Initial release")
           fi
-          
+
           # Set outputs
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "# Release v$VERSION" >> $GITHUB_OUTPUT
@@ -290,30 +290,30 @@ jobs:
           echo "gem install $GEM_NAME -v $VERSION" >> $GITHUB_OUTPUT
           echo '```' >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
+
           # Also set as environment variable for next steps
           echo "CHANGELOG=$CHANGELOG" >> $GITHUB_ENV
-          
+
           # Create release notes header
           echo "# Release $VERSION" > release_notes.md
           echo "" >> release_notes.md
-          
+
           # Get all commits since last tag
           echo "## 🚀 Changes" >> release_notes.md
           echo "" >> release_notes.md
-          
+
           # Get conventional commits since last tag
           if [ -n "$PREV_TAG" ] && [ "$PREV_TAG" != "null" ]; then
             git log --pretty=format:"- %s (%h)" --no-merges "$PREV_TAG"..HEAD 2>/dev/null | \
               grep -v '^\- chore' | \
               sort >> release_notes.md || \
               echo "- No notable changes" >> release_notes.md
-            
+
             # Get contributors
             echo "" >> release_notes.md
             echo "## 👥 Contributors" >> release_notes.md
             echo "" >> release_notes.md
-            
+
             # Get unique contributors with their commit counts
             git shortlog -sne --no-merges "$PREV_TAG"..HEAD 2>/dev/null | \
               cut -f 2- | \
@@ -326,18 +326,18 @@ jobs:
               grep -v '^\- chore' | \
               sort >> release_notes.md || \
               echo "- Initial release" >> release_notes.md
-            
+
             echo "" >> release_notes.md
             echo "## 👥 Contributors" >> release_notes.md
             echo "" >> release_notes.md
-            
+
             git shortlog -sne --no-merges | \
               cut -f 2- | \
               sort -u | \
               sed 's/^/- /' >> release_notes.md || \
               echo "- No contributors found" >> release_notes.md
           fi
-          
+
           # Add link to full changelog if it exists
           if [ -f "CHANGELOG.md" ]; then
             echo "" >> release_notes.md
@@ -352,22 +352,22 @@ jobs:
           # Get the release notes
           RELEASE_NOTES=$(cat release_notes.md)
           TAG_NAME="${{ github.ref_name }}"
-          
+
           # Create the release using GitHub API
           RELEASE_RESPONSE=$(curl -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/releases" \
             -d "{\"tag_name\":\"$TAG_NAME\",\"name\":\"Release $TAG_NAME\",\"body\":$(jq -Rs '.' <<< "$RELEASE_NOTES"),\"draft\":false,\"prerelease\":false}")
-          
+
           # Extract the upload URL
           UPLOAD_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.upload_url' | sed 's/{?name,label}//')
-          
+
           if [ -z "$UPLOAD_URL" ] || [ "$UPLOAD_URL" = "null" ]; then
             echo "::error::Failed to create release: $RELEASE_RESPONSE"
             exit 1
           fi
-          
+
           # Upload gem file if it exists
           GEM_FILE=$(ls release_assets/*.gem 2>/dev/null | head -1)
           if [ -n "$GEM_FILE" ]; then
@@ -378,14 +378,14 @@ jobs:
               -H "Content-Type: application/octet-stream" \
               --data-binary "@$GEM_FILE" \
               "${UPLOAD_URL}?name=$GEM_NAME")
-            
+
             if [ "$(echo "$UPLOAD_RESPONSE" | jq -r '.message' 2>/dev/null)" != "null" ]; then
               echo "::warning::Failed to upload asset: $UPLOAD_RESPONSE"
             else
               echo "Successfully uploaded $GEM_NAME"
             fi
           fi
-          
+
           # Set output with release URL
           RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT

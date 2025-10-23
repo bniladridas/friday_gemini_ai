@@ -31,7 +31,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
@@ -43,7 +43,7 @@ jobs:
       run: |
         # Install Node.js dependencies with pinned versions from environment
         npm install -g @google/generative-ai@${{ env.GENERATIVE_AI_VERSION }} @google/gemini-cli@${{ env.GEMINI_CLI_VERSION }}
-        
+
         # Create Gemini CLI wrapper with proper module resolution and version fallback
         cat > /usr/local/bin/gemini-wrapper << 'EOL'
         #!/bin/sh
@@ -60,7 +60,7 @@ jobs:
           process.exit(1);
         });"
         EOL
-        
+
         # Make the script executable
         chmod +x /usr/local/bin/gemini-wrapper
 
@@ -89,7 +89,7 @@ jobs:
         git config --global --add safe.directory /__w/friday_gemini_ai/friday_gemini_ai
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-        
+
     # Checkout PR code for analysis
     - name: Checkout code
       uses: actions/checkout@v5
@@ -126,9 +126,8 @@ jobs:
         echo "npm: $(npm --version)"
         echo "Python: $(python --version)"
         echo "pip: $(pip --version)"
-        
+
         # Run the PR bot script with repository and PR number
         python ./harperbot/harperbot.py \
           --repo ${{ github.repository }} \
           --pr ${{ github.event.pull_request.number }}
-        

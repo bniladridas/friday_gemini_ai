@@ -76,7 +76,7 @@ tech_messages = [
   { role: 'user', content: 'Here\'s my code: [code snippet]' }
 ]
 
-# Creative writing assistant  
+# Creative writing assistant
 creative_messages = [
   { role: 'user', content: 'You are a creative writing coach. Help me improve my story.' },
   { role: 'model', content: 'I\'m excited to help with your creative writing!' },
@@ -164,7 +164,7 @@ creative_response = creative_client.generate_text(
 ```ruby
 prompts = [
   "Explain Ruby blocks",
-  "What are Ruby gems?", 
+  "What are Ruby gems?",
   "How does Ruby garbage collection work?"
 ]
 
@@ -200,7 +200,7 @@ class CachedClient
     @client = GeminiAI::Client.new
     @cache = {}
   end
-  
+
   def generate_text(prompt, options = {})
     cache_key = "#{prompt}:#{options.hash}"
     @cache[cache_key] ||= @client.generate_text(prompt, options)
@@ -213,7 +213,7 @@ end
 # For long responses, process in chunks
 def process_long_response(prompt)
   response = client.generate_text(prompt, max_tokens: 1000)
-  
+
   # Process response in chunks
   response.scan(/.{1,100}/).each do |chunk|
     yield chunk if block_given?
@@ -247,7 +247,7 @@ class AiGenerationJob < ApplicationJob
   def perform(prompt, user_id)
     client = GeminiAI::Client.new
     response = client.generate_text(prompt)
-    
+
     # Store result
     AiResponse.create!(
       user_id: user_id,
@@ -263,12 +263,12 @@ end
 class WebhookProcessor
   def process_content(webhook_data)
     client = GeminiAI::Client.new
-    
+
     analysis = client.generate_text(
       "Analyze this webhook data: #{webhook_data}",
       temperature: 0.2
     )
-    
+
     # Process analysis result
     handle_analysis(analysis)
   end
@@ -282,10 +282,10 @@ end
 def safe_generate(user_input)
   # Sanitize input
   clean_input = user_input.gsub(/[<>]/, '')
-  
+
   # Limit length
   clean_input = clean_input[0..1000] if clean_input.length > 1000
-  
+
   client.generate_text(clean_input)
 end
 ```
@@ -316,16 +316,16 @@ class TrackedClient
     @client = GeminiAI::Client.new
     @request_count = 0
   end
-  
+
   def generate_text(prompt, options = {})
     @request_count += 1
     start_time = Time.now
-    
+
     response = @client.generate_text(prompt, options)
-    
+
     duration = Time.now - start_time
     Rails.logger.info "AI Request ##{@request_count}: #{duration}s"
-    
+
     response
   end
 end

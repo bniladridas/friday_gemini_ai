@@ -204,7 +204,7 @@ prompt = <<~PROMPT
   You are a Ruby expert specializing in Rails applications.
   Always provide code examples and explain best practices.
   Format your response with clear sections.
-  
+
   Question: #{user_question}
 PROMPT
 
@@ -333,11 +333,11 @@ class UserRateLimiter
     @window = window
     @requests = []
   end
-  
+
   def allow_request?
     now = Time.now.to_i
     @requests.reject! { |time| time < now - @window }
-    
+
     if @requests.length < @limit
       @requests << now
       true
@@ -378,16 +378,16 @@ class CachedGeminiClient
     @client = GeminiAI::Client.new
     @redis = Redis.new
   end
-  
+
   def generate_text(prompt, options = {})
     cache_key = "gemini:#{Digest::MD5.hexdigest("#{prompt}:#{options}")}"
-    
+
     cached = @redis.get(cache_key)
     return cached if cached
-    
+
     response = @client.generate_text(prompt, options)
     @redis.setex(cache_key, 3600, response) # Cache for 1 hour
-    
+
     response
   end
 end
@@ -405,11 +405,11 @@ class MonitoredGeminiClient
       total_time: 0
     }
   end
-  
+
   def generate_text(prompt, options = {})
     @metrics[:requests] += 1
     start_time = Time.now
-    
+
     begin
       @client.generate_text(prompt, options)
     rescue => e
@@ -419,7 +419,7 @@ class MonitoredGeminiClient
       @metrics[:total_time] += Time.now - start_time
     end
   end
-  
+
   def stats
     {
       success_rate: (@metrics[:requests] - @metrics[:errors]).to_f / @metrics[:requests],

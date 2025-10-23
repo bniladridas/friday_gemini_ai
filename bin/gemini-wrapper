@@ -9,7 +9,7 @@ function getGeminiVersion() {
   if (process.env.GOOGLE_GENERATIVE_AI_VERSION) {
     return process.env.GOOGLE_GENERATIVE_AI_VERSION;
   }
-  
+
   // Fall back to package.json
   try {
     const pkg = require('@google/generative-ai/package.json');
@@ -19,7 +19,7 @@ function getGeminiVersion() {
   } catch (error) {
     console.warn('Warning: Could not determine @google/generative-ai version from package.json');
   }
-  
+
   // Default fallback version
   return '0.1.0';
 }
