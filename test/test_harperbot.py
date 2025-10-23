@@ -167,8 +167,9 @@ class TestHarperBot(unittest.TestCase):
         # Should create commit with changes
         self.assertTrue(mock_repo.create_git_commit.called)
 
-    def test_apply_suggestions_single_line(self, mock_repo):
+    def test_apply_suggestions_single_line(self):
         """Test applying a single-line suggestion and verify content transformation."""
+        mock_repo = Mock()
         mock_pr = Mock()
         mock_pr.number = 123
         mock_pr.head.ref = "feature-branch"
@@ -194,8 +195,9 @@ class TestHarperBot(unittest.TestCase):
         expected_content = "new line content\nline 2\nline 3"
         mock_repo.create_git_blob.assert_called_with(expected_content, "utf-8")
 
-    def test_apply_suggestions_multi_line(self, mock_repo):
+    def test_apply_suggestions_multi_line(self):
         """Test applying a multi-line suggestion."""
+        mock_repo = Mock()
         mock_pr = Mock()
         mock_pr.number = 123
         mock_pr.head.ref = "feature-branch"
@@ -217,8 +219,9 @@ class TestHarperBot(unittest.TestCase):
         expected_content = "line 1\nnew line 1\nnew line 2\nnew line 3\nline 3"
         mock_repo.create_git_blob.assert_called_with(expected_content, "utf-8")
 
-    def test_apply_suggestions_out_of_bounds(self, mock_repo):
+    def test_apply_suggestions_out_of_bounds(self):
         """Test applying a suggestion with out-of-bounds line number."""
+        mock_repo = Mock()
         mock_pr = Mock()
         mock_pr.number = 123
         mock_pr.head.ref = "feature-branch"
