@@ -7,6 +7,8 @@
 
 Ruby gem for integrating with Google’s Gemini AI models.
 
+<!-- Test webhook functionality -->
+
 ## Installation
 
 ```bash
