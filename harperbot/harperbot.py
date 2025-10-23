@@ -18,7 +18,12 @@ from dotenv import load_dotenv
 from github import Auth, Github
 from google.generativeai.types import GenerationConfig
 
-from .harperbot_apply import handle_apply_comment
+try:
+    # Try relative import (works when run as module)
+    from .harperbot_apply import handle_apply_comment
+except ImportError:
+    # Fall back to absolute import (works when run as script)
+    from harperbot_apply import handle_apply_comment
 
 # Flask imported conditionally for webhook mode
 flask_available = False
