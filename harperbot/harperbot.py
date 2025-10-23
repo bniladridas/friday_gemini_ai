@@ -15,6 +15,7 @@ import google.generativeai as genai
 import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
+from google.generativeai.types import GenerationConfig
 
 # Flask imported conditionally for webhook mode
 flask_available = False
@@ -241,17 +242,23 @@ def analyze_with_gemini(pr_details):
         # Generate content with safety settings
         response = model.generate_content(
             contents=[prompt],
-            generation_config={
-                "temperature": temperature,
-                "top_p": 0.95,
-                "top_k": 40,
-                "max_output_tokens": max_output_tokens,
-            },
+            generation_config=GenerationConfig(
+                temperature=temperature,
+                top_p=0.95,
+                top_k=40,
+                max_output_tokens=max_output_tokens,
+            ),
             safety_settings=[
                 {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
                 {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_NONE",
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_NONE",
+                },
             ],
         )
 
@@ -343,11 +350,6 @@ def analyze_with_gemini(pr_details):
         except Exception as e:
             # Log the error and return safe info
             logging.error(f"Error processing Gemini response: {str(e)}")
-            return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
-
-        except Exception as e:
-            # Log the error and return safe info (avoid leaking sensitive response data)
-            print(f"Error processing Gemini response: {str(e)}")
             return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
 
     except Exception as e:
@@ -553,7 +555,12 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
             changes[file_path] = "\n".join(lines)
 
         if changes:
-            create_commit_with_changes(repo, head_ref, changes, "Apply code suggestions from HarperBot analysis")
+            create_commit_with_changes(
+                repo,
+                head_ref,
+                changes,
+                "Apply code suggestions from HarperBot analysis",
+            )
             logging.info(f"Applied {len(changes)} suggestions to PR #{pr.number}")
     except Exception as e:
         logging.error(f"Error applying suggestions to PR: {str(e)}")
@@ -625,7 +632,13 @@ def post_inline_suggestions(pr, pr_details, suggestions):
             line = int(line_str)
             position = find_diff_position(pr_details["diff"], file_path, line)
             if position is not None:
-                comments.append({"path": file_path, "position": position, "body": f"```suggestion\n{suggestion}\n```"})
+                comments.append(
+                    {
+                        "path": file_path,
+                        "position": position,
+                        "body": f"```suggestion\n{suggestion}\n```",
+                    }
+                )
             else:
                 logging.warning(f"Could not find diff position for {file_path}:{line}")
         except ValueError as e:
