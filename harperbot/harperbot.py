@@ -490,7 +490,8 @@ def create_commit_with_changes(repo, branch_ref, changes, commit_message):
 
         # Create new tree
         tree = repo.create_git_tree(new_blobs, base_tree=current_tree)
-        commit = repo.create_git_commit(commit_message, tree, [current_commit])
+        author = {"name": "HarperBot", "email": "236089746+harper-bot-glitch@users.noreply.github.com"}
+        commit = repo.create_git_commit(commit_message, tree, [current_commit], author=author)
         branch_ref.edit(commit.sha)
         logging.info(f"Created commit with {len(changes)} file changes")
         return commit
