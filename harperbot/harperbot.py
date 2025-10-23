@@ -558,6 +558,7 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
             suggs.sort(key=lambda x: x[0])
 
             offset = 0
+            applied = False
             for line, suggestion in suggs:
                 adjusted_line = line - 1 + offset  # Convert to 0-based and adjust for previous changes
 
@@ -573,8 +574,10 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
 
                 lines = lines[:adjusted_line] + sugg_lines + lines[adjusted_line + num_old :]
                 offset += num_new - num_old
+                applied = True
 
-            changes[file_path] = "\n".join(lines)
+            if applied:
+                changes[file_path] = "\n".join(lines)
 
         if changes:
             create_commit_with_changes(
