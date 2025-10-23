@@ -3,6 +3,7 @@
 Unit tests for HarperBot core functionality.
 Run with: python -m pytest test/test_harperbot.py
 """
+
 import os
 import sys
 import unittest
