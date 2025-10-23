@@ -1,5 +1,4 @@
-name: Release
-
+---
 on:
   push:
     tags:
@@ -13,36 +12,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-    - name: Set up Ruby
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ruby-full ruby-bundler
-        ruby --version
-        bundle config set --local path 'vendor/bundle'
-        bundle config set --local frozen false
-        bundle install
+      - name: Set up Ruby
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby-full ruby-bundler
+          ruby --version
+          bundle config set --local path 'vendor/bundle'
+          bundle config set --local frozen false
+          bundle install
 
-    - name: Run tests
-      run: |
-        if [ -z "$GEMINI_API_KEY" ]; then
-          echo "::warning::GEMINI_API_KEY is not set. Some tests may be skipped."
-        fi
-        bundle exec rake test
-      env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Run tests
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::warning::GEMINI_API_KEY is not set. Some tests may be skipped."
+          fi
+          bundle exec rake test
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-    - name: Run integration tests
-      run: |
-        if [ -z "$GEMINI_API_KEY" ]; then
-          echo "::warning::GEMINI_API_KEY is not set. Integration tests will be skipped."
-          exit 0
-        fi
-        bundle exec ruby test/integration/api.rb
-      env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Run integration tests
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::warning::GEMINI_API_KEY is not set. Integration tests will be skipped."
+            exit 0
+          fi
+          bundle exec ruby test/integration/api.rb
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
   build:
     name: Build and Package
@@ -55,42 +54,42 @@ jobs:
       gem-name: ${{ steps.gem-info.outputs.name }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-    - name: Set up Ruby
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ruby-full ruby-bundler
-        ruby --version
-        bundle install
+      - name: Set up Ruby
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby-full ruby-bundler
+          ruby --version
+          bundle install
 
-    - name: Build gem
-      run: gem build *.gemspec
+      - name: Build gem
+        run: gem build *.gemspec
 
-    - name: Get gem info
-      id: gem-info
-      run: |
-        GEM_FILE=$(ls *.gem)
-        GEM_NAME=$(basename "$GEM_FILE" .gem)
-        GEM_VERSION=$(echo "$GEM_NAME" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
-        echo "version=$GEM_VERSION" >> $GITHUB_OUTPUT
-        echo "name=$GEM_NAME" >> $GITHUB_OUTPUT
-        echo "file=$GEM_FILE" >> $GITHUB_OUTPUT
+      - name: Get gem info
+        id: gem-info
+        run: |
+          GEM_FILE=$(ls *.gem)
+          GEM_NAME=$(basename "$GEM_FILE" .gem)
+          GEM_VERSION=$(echo "$GEM_NAME" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          echo "version=$GEM_VERSION" >> $GITHUB_OUTPUT
+          echo "name=$GEM_NAME" >> $GITHUB_OUTPUT
+          echo "file=$GEM_FILE" >> $GITHUB_OUTPUT
 
-    - name: Upload gem artifact
-      run: |
-        # Create artifacts directory if it doesn't exist
-        mkdir -p $GITHUB_WORKSPACE/artifacts
-        # Copy gem file to artifacts directory
-        cp *.gem $GITHUB_WORKSPACE/artifacts/
-        echo "Gem file saved to $GITHUB_WORKSPACE/artifacts/"
+      - name: Upload gem artifact
+        run: |
+          # Create artifacts directory if it doesn't exist
+          mkdir -p $GITHUB_WORKSPACE/artifacts
+          # Copy gem file to artifacts directory
+          cp *.gem $GITHUB_WORKSPACE/artifacts/
+          echo "Gem file saved to $GITHUB_WORKSPACE/artifacts/"
 
-    - name: Upload gem to artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: gem-file
-        path: "*.gem"
+      - name: Upload gem to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gem-file
+          path: "*.gem"
 
   publish-gems:
     name: Publish Gems
@@ -101,73 +100,73 @@ jobs:
       contents: read
 
     steps:
-    - name: Set up Ruby
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ruby-full ruby-bundler
-        ruby --version
+      - name: Set up Ruby
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby-full ruby-bundler
+          ruby --version
 
-    - name: Get gem file
-      run: |
-        # Find the gem file in the artifacts directory
-        GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
-        if [ -z "$GEM_FILE" ]; then
-          echo "No gem file found in artifacts directory"
-          exit 1
-        fi
-        # Copy gem file to current directory
-        cp "$GEM_FILE" .
-        GEM_FILE=$(basename "$GEM_FILE")
-        GEM_NAME=$(basename "$GEM_FILE" .gem)
-        # Extract version using a more robust method
-        GEM_VERSION=$(echo "$GEM_NAME" | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?)$/\1/')
-        echo "version=$GEM_VERSION" >> $GITHUB_OUTPUT
-        echo "name=$GEM_NAME" >> $GITHUB_OUTPUT
-        echo "file=$GEM_FILE" >> $GITHUB_OUTPUT
-      id: gem-info
+      - name: Get gem file
+        run: |
+          # Find the gem file in the artifacts directory
+          GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
+          if [ -z "$GEM_FILE" ]; then
+            echo "No gem file found in artifacts directory"
+            exit 1
+          fi
+          # Copy gem file to current directory
+          cp "$GEM_FILE" .
+          GEM_FILE=$(basename "$GEM_FILE")
+          GEM_NAME=$(basename "$GEM_FILE" .gem)
+          # Extract version using a more robust method
+          GEM_VERSION=$(echo "$GEM_NAME" | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?)$/\1/')
+          echo "version=$GEM_VERSION" >> $GITHUB_OUTPUT
+          echo "name=$GEM_NAME" >> $GITHUB_OUTPUT
+          echo "file=$GEM_FILE" >> $GITHUB_OUTPUT
+        id: gem-info
 
-    - name: Check if version exists on RubyGems
-      id: check-rubygems
-      continue-on-error: true
-      run: |
-        if gem list -r -e friday_gemini_ai | grep -q "${{ steps.gem-info.outputs.version }}"; then
-          echo "exists=true" >> $GITHUB_OUTPUT
-          echo "::notice::Version ${{ steps.gem-info.outputs.version }} already exists on RubyGems, skipping publish"
-        else
-          echo "exists=false" >> $GITHUB_OUTPUT
-        fi
+      - name: Check if version exists on RubyGems
+        id: check-rubygems
+        continue-on-error: true
+        run: |
+          if gem list -r -e friday_gemini_ai | grep -q "${{ steps.gem-info.outputs.version }}"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::Version ${{ steps.gem-info.outputs.version }} already exists on RubyGems, skipping publish"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Publish to RubyGems
-      if: steps.check-rubygems.outputs.exists == 'false'
-      run: |
-        # Check if RubyGems API key is available
-        if [ -z "$RUBYGEMS_API_KEY" ]; then
-          echo "::warning::RUBYGEMS_API_KEY is not set. Skipping RubyGems publish."
-          exit 0
-        fi
+      - name: Publish to RubyGems
+        if: steps.check-rubygems.outputs.exists == 'false'
+        run: |
+          # Check if RubyGems API key is available
+          if [ -z "$RUBYGEMS_API_KEY" ]; then
+            echo "::warning::RUBYGEMS_API_KEY is not set. Skipping RubyGems publish."
+            exit 0
+          fi
 
-        # Set up RubyGems credentials
-        mkdir -p $HOME/.gem
-        touch $HOME/.gem/credentials
-        chmod 0600 $HOME/.gem/credentials
-        echo ":rubygems_api_key: $RUBYGEMS_API_KEY" > $HOME/.gem/credentials
+          # Set up RubyGems credentials
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          echo ":rubygems_api_key: $RUBYGEMS_API_KEY" > $HOME/.gem/credentials
 
-        # Build gem push command
-        PUSH_CMD="gem push *.gem"
+          # Build gem push command
+          PUSH_CMD="gem push *.gem"
 
-        # Add OTP if provided
-        if [ -n "$RUBYGEMS_OTP" ]; then
-          PUSH_CMD="$PUSH_CMD --otp $RUBYGEMS_OTP"
-        fi
+          # Add OTP if provided
+          if [ -n "$RUBYGEMS_OTP" ]; then
+            PUSH_CMD="$PUSH_CMD --otp $RUBYGEMS_OTP"
+          fi
 
-        # Execute the push command
-        echo "Publishing gem to RubyGems..."
-        if $PUSH_CMD; then
-          echo "::notice::Successfully published $GEM_FILE to RubyGems"
-        else
-          echo "::error::Failed to publish to RubyGems"
-          exit 1
-        fi
+          # Execute the push command
+          echo "Publishing gem to RubyGems..."
+          if $PUSH_CMD; then
+            echo "::notice::Successfully published $GEM_FILE to RubyGems"
+          else
+            echo "::error::Failed to publish to RubyGems"
+            exit 1
+          fi
 
   publish-gh:
     name: Publish GH
@@ -178,40 +177,40 @@ jobs:
       packages: write
 
     steps:
-    - name: Set up Ruby
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ruby-full ruby-bundler
-        ruby --version
+      - name: Set up Ruby
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby-full ruby-bundler
+          ruby --version
 
-    - name: Configure Git
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
 
-    - name: Get gem file
-      run: |
-        # Find the gem file in the artifacts directory
-        GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
-        if [ -z "$GEM_FILE" ]; then
-          echo "No gem file found in artifacts directory"
-          exit 1
-        fi
-        # Copy gem file to current directory
-        cp "$GEM_FILE" .
+      - name: Get gem file
+        run: |
+          # Find the gem file in the artifacts directory
+          GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
+          if [ -z "$GEM_FILE" ]; then
+            echo "No gem file found in artifacts directory"
+            exit 1
+          fi
+          # Copy gem file to current directory
+          cp "$GEM_FILE" .
 
-    - name: Publish to GitHub Packages
-      run: |
-        mkdir -p $HOME/.gem
-        touch $HOME/.gem/credentials
-        chmod 0600 $HOME/.gem/credentials
-        printf -- ":github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+      - name: Publish to GitHub Packages
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- ":github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
 
-        # Push to GitHub Packages
-        gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem || \
-          echo "::warning::Failed to publish to GitHub Packages (this might be expected if the package already exists)"
-      env:
-        GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+          # Push to GitHub Packages
+          gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem || \
+            echo "::warning::Failed to publish to GitHub Packages (this might be expected if the package already exists)"
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     name: Release
@@ -221,17 +220,17 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-    - name: Download gem
-      uses: actions/download-artifact@v5
-      with:
-        name: gem-file
+      - name: Download gem
+        uses: actions/download-artifact@v5
+        with:
+          name: gem-file
 
-    - name: Set up environment
-      id: setup
-      run: |
+      - name: Set up environment
+        id: setup
+        run: |
           # Install required tools
           sudo apt-get update
           sudo apt-get install -y curl jq git
@@ -264,9 +263,9 @@ jobs:
             echo "gem_name=friday_gemini_ai" >> $GITHUB_OUTPUT
           fi
 
-    - name: Generate changelog
-      id: changelog
-      run: |
+      - name: Generate changelog
+        id: changelog
+        run: |
           # Get current version and previous tag from setup step
           VERSION="${{ steps.setup.outputs.version }}"
           PREV_TAG="${{ steps.setup.outputs.previous_tag }}"
@@ -346,9 +345,9 @@ jobs:
             echo "For a detailed list of all changes, see the [full changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)." >> release_notes.md
           fi
 
-    - name: Create GitHub Release
-      id: create_release
-      run: |
+      - name: Create GitHub Release
+        id: create_release
+        run: |
           # Get the release notes
           RELEASE_NOTES=$(cat release_notes.md)
           TAG_NAME="${{ github.ref_name }}"
@@ -389,5 +388,5 @@ jobs:
           # Set output with release URL
           RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

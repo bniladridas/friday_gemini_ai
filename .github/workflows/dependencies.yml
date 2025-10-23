@@ -1,5 +1,5 @@
+---
 name: Dependencies
-
 on:
   schedule:
     # Run weekly on Mondays at 9 AM UTC
