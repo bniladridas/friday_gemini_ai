@@ -131,22 +131,21 @@ class TestHarperBot(unittest.TestCase):
             self.assertFalse(config["create_improvement_prs"])
             self.assertEqual(config["improvement_branch_pattern"], "harperbot-improvements-{timestamp}")
 
-    @patch("harperbot.repo")
-    def test_create_branch_success(self, mock_repo):
+    def test_create_branch_success(self):
         """Test successful branch creation."""
+        mock_repo = Mock()
         mock_base_ref = Mock()
         mock_base_ref.object.sha = "abc123"
-        mock_repo.get_git_ref.return_value = mock_base_ref
         mock_new_ref = Mock()
-        mock_repo.get_git_ref.return_value = mock_new_ref
+        mock_repo.get_git_ref.side_effect = [Exception(), mock_base_ref, mock_new_ref]
 
         result = create_branch(mock_repo, "main", "feature-branch")
         mock_repo.create_git_ref.assert_called_once()
         self.assertEqual(result, mock_new_ref)
 
-    @patch("harperbot.repo")
-    def test_apply_suggestions_to_pr(self, mock_repo):
+    def test_apply_suggestions_to_pr(self):
         """Test applying suggestions to PR."""
+        mock_repo = Mock()
         mock_pr = Mock()
         mock_pr.number = 123
         mock_pr.head.ref = "feature-branch"
