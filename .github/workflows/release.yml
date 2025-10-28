@@ -86,7 +86,7 @@ jobs:
           echo "Gem file saved to $GITHUB_WORKSPACE/artifacts/"
 
       - name: Upload gem to artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: gem-file
           path: "*.gem"
@@ -224,7 +224,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download gem
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: gem-file
 

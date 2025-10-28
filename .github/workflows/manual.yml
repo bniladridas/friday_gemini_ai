@@ -82,7 +82,7 @@ jobs:
           echo "file=$GEM_FILE" >> $GITHUB_OUTPUT
 
       - name: Upload gem artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: gem-release
           path: "*.gem"
@@ -105,7 +105,7 @@ jobs:
           ruby-version: '3.3'
 
       - name: Download gem artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: gem-release
 
@@ -163,7 +163,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download gem artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: gem-release
 
