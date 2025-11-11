@@ -103,15 +103,12 @@ jobs:
 
       - name: Get gem file
         run: |
-          # Find the gem file in the artifacts directory
-          GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
+          # Find the downloaded gem file
+          GEM_FILE=$(ls *.gem | head -1)
           if [ -z "$GEM_FILE" ]; then
-            echo "No gem file found in artifacts directory"
+            echo "No gem file found"
             exit 1
           fi
-          # Copy gem file to current directory
-          cp "$GEM_FILE" .
-          GEM_FILE=$(basename "$GEM_FILE")
           GEM_NAME=$(basename "$GEM_FILE" .gem)
           # Extract version using a more robust method
           GEM_VERSION=$(echo "$GEM_NAME" | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?)$/\1/')
@@ -190,14 +187,12 @@ jobs:
 
       - name: Get gem file
         run: |
-          # Find the gem file in the artifacts directory
-          GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
+          # Find the downloaded gem file
+          GEM_FILE=$(ls *.gem | head -1)
           if [ -z "$GEM_FILE" ]; then
-            echo "No gem file found in artifacts directory"
+            echo "No gem file found"
             exit 1
           fi
-          # Copy gem file to current directory
-          cp "$GEM_FILE" .
 
       - name: Publish to GitHub Packages
         run: |
@@ -239,9 +234,9 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-          # Get the gem file from artifacts
+          # Get the downloaded gem file
           mkdir -p release_assets
-          cp $GITHUB_WORKSPACE/artifacts/*.gem release_assets/ 2>/dev/null || echo "No gem file found in artifacts"
+          cp *.gem release_assets/ 2>/dev/null || echo "No gem file found"
 
           # Get the current tag (from the tag that triggered the workflow)
           CURRENT_TAG=${GITHUB_REF#refs/tags/}
