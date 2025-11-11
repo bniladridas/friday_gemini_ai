@@ -1,6 +1,9 @@
-# Guides
+# Best Practices
 
 Comprehensive guides for getting the most out of Friday Gemini AI.
+
+> [!IMPORTANT]
+> Following these practices ensures secure, efficient, and reliable use of the Gemini AI API.
 
 ## Security Best Practices
 
@@ -27,16 +30,12 @@ client = GeminiAI::Client.new
 ```
 
 #### What to Avoid
-```ruby
-# Bad - Hardcoded API keys
-client = GeminiAI::Client.new('AIza...')
 
-# Bad - API keys in version control
-# Never commit .env files or hardcoded keys
-
-# Bad - API keys in logs
-puts "Using API key: #{api_key}"  # Don't do this
-```
+| Anti-pattern | Reason | Alternative |
+| ------------ | ------ | ----------- |
+| Hardcoded API keys | Security risk, exposed in code | Use environment variables |
+| API keys in version control | Accidental exposure | Use .env files (gitignored) |
+| API keys in logs | Logging sensitive data | Use masked logging |
 
 ### Input Validation
 

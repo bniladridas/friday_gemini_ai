@@ -4,6 +4,9 @@
 
 This document describes the API for the Friday Gemini AI Ruby gem, which provides a Ruby interface to Google's Gemini AI models.
 
+> [!NOTE]
+> This reference covers the public API. For internal implementation details, see the source code.
+
 ## Installation
 
 ```ruby
@@ -44,8 +47,11 @@ GeminiAI::Client.new(api_key = nil, model: :pro)
 ```
 
 **Parameters:**
-- `api_key` (String, optional): API key for Gemini AI. If not provided, uses `ENV['GEMINI_API_KEY']`
-- `model` (Symbol, optional): Model to use. Options: `:pro`, `:flash`, `:flash_lite`. Default: `:pro`
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `api_key` | String, optional | API key for Gemini AI. If not provided, uses `ENV['GEMINI_API_KEY']` |
+| `model` | Symbol, optional | Model to use. Options: `:pro`, `:flash`, `:flash_lite`. Default: `:pro` |
 
 **Example:**
 ```ruby
@@ -70,10 +76,13 @@ Generate text from a prompt.
 - `options` (Hash, optional): Generation options
 
 **Options:**
-- `temperature` (Float): Controls randomness (0.0-1.0). Default: 0.7
-- `max_tokens` (Integer): Maximum tokens to generate. Default: 1024
-- `top_p` (Float): Nucleus sampling parameter. Default: 0.9
-- `top_k` (Integer): Top-k sampling parameter. Default: 40
+
+| Option | Type | Description | Default |
+| ------ | ---- | ----------- | ------- |
+| `temperature` | Float | Controls randomness (0.0-1.0) | 0.7 |
+| `max_tokens` | Integer | Maximum tokens to generate | 1024 |
+| `top_p` | Float | Nucleus sampling parameter | 0.9 |
+| `top_k` | Integer | Top-k sampling parameter | 40 |
 
 **Returns:** String - Generated text response
 
@@ -138,29 +147,14 @@ response = client.generate_image_text(image_data, "What's in this image?")
 
 ## Error Classes
 
-### `GeminiAI::Error`
-
-Base error class for all gem-related errors.
-
-### `GeminiAI::APIError`
-
-Raised when API returns an error response.
-
-### `GeminiAI::AuthenticationError`
-
-Raised when API key is invalid or missing.
-
-### `GeminiAI::RateLimitError`
-
-Raised when API rate limit is exceeded.
-
-### `GeminiAI::InvalidRequestError`
-
-Raised when request parameters are invalid.
-
-### `GeminiAI::NetworkError`
-
-Raised when network communication fails.
+| Error Class | Description |
+| ----------- | ----------- |
+| `GeminiAI::Error` | Base error class for all gem-related errors |
+| `GeminiAI::APIError` | Raised when API returns an error response |
+| `GeminiAI::AuthenticationError` | Raised when API key is invalid or missing |
+| `GeminiAI::RateLimitError` | Raised when API rate limit is exceeded |
+| `GeminiAI::InvalidRequestError` | Raised when request parameters are invalid |
+| `GeminiAI::NetworkError` | Raised when network communication fails |
 
 ## Utility Classes
 
@@ -187,8 +181,10 @@ GeminiAI::Utils::Logger.debug("Debug info")
 
 ### Available Models
 
-- **`:pro`** / **`:flash`**: `gemini-2.0-flash` - Full-featured model
-- **`:flash_lite`**: `gemini-2.0-flash-lite` - Lightweight, faster model
+| Symbol | Model ID | Description |
+| ------ | -------- | ----------- |
+| `:pro` / `:flash` | `gemini-2.0-flash` | Full-featured model |
+| `:flash_lite` | `gemini-2.0-flash-lite` | Lightweight, faster model |
 
 ### Model Selection
 
@@ -204,7 +200,9 @@ client = GeminiAI::Client.new(model: :flash_lite)
 
 ### Environment Variables
 
-- `GEMINI_API_KEY`: Your Google Gemini API key (required)
+| Variable | Description | Required |
+| -------- | ----------- | -------- |
+| `GEMINI_API_KEY` | Your Google Gemini API key | Yes |
 
 ### .env File Support
 

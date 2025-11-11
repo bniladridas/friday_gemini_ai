@@ -2,6 +2,9 @@
 
 Friday Gemini AI supports multiple Google Gemini models, each optimized for different use cases.
 
+> [!TIP]
+> Choose the right model based on your use case. Flash Lite for speed, Flash for quality.
+
 ## Available Models
 
 ### Gemini 2.0 Flash (Default)
@@ -44,10 +47,13 @@ client = GeminiAI::Client.new(model: :flash_lite)
 ## Choosing the Right Model
 
 ### Use Flash for:
-- **Creative Writing**: Stories, poems, marketing copy
-- **Complex Analysis**: Code review, data interpretation
-- **Detailed Explanations**: Technical documentation, tutorials
-- **Multi-step Reasoning**: Problem-solving, planning
+
+| Use Case | Examples |
+| -------- | -------- |
+| Creative Writing | Stories, poems, marketing copy |
+| Complex Analysis | Code review, data interpretation |
+| Detailed Explanations | Technical documentation, tutorials |
+| Multi-step Reasoning | Problem-solving, planning |
 
 ```ruby
 # Creative writing example
@@ -60,10 +66,13 @@ story = client.generate_text(
 ```
 
 ### Use Flash Lite for:
-- **Quick Q&A**: Simple questions and answers
-- **Chatbots**: Fast conversational responses
-- **High-Volume Processing**: Batch operations
-- **Real-time Applications**: Live chat, instant responses
+
+| Use Case | Examples |
+| -------- | -------- |
+| Quick Q&A | Simple questions and answers |
+| Chatbots | Fast conversational responses |
+| High-Volume Processing | Batch operations |
+| Real-time Applications | Live chat, instant responses |
 
 ```ruby
 # Quick Q&A example
@@ -165,9 +174,12 @@ analysis = get_response("Analyze this code for security issues", complex: true)
 ## Rate Limits
 
 Both models share the same rate limits:
-- **Requests per minute**: 60
-- **Tokens per minute**: 32,000
-- **Requests per day**: 1,500
+
+| Limit | Value |
+| ----- | ----- |
+| Requests per minute | 60 |
+| Tokens per minute | 32,000 |
+| Requests per day | 1,500 |
 
 The gem automatically handles rate limiting with exponential backoff retry logic.
 
