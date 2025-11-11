@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   # Testing
   spec.add_development_dependency 'dotenv', '~> 2.8'
   spec.add_development_dependency 'minitest', '~> 5.0' # Required for E2E tests
-  spec.add_development_dependency 'rake', '~> 13.0.6'
+  spec.add_development_dependency 'rake', '~> 13.3.1'
   # spec.add_development_dependency 'simplecov', '~> 0.22.0'
   # spec.add_development_dependency 'simplecov-lcov', '~> 0.9.0'
 
