@@ -5,7 +5,9 @@
 [![Dependencies](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/dependencies.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/dependencies.yml)
 [![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml)
 
-Ruby gem for integrating with Google’s Gemini AI models.
+Ruby gem for integrating with Google's Gemini AI models.
+
+The full API of this library can be found in [docs/reference/api.md](docs/reference/api.md).
 
 ## Installation
 
@@ -18,6 +20,9 @@ Set your API key in `.env`:
 ```
 GEMINI_API_KEY=your_api_key
 ```
+
+> [!NOTE]
+> Ensure your API key is kept secure and not committed to version control.
 
 ## HarperBot Integration
 
@@ -38,6 +43,8 @@ HarperBot provides automated PR code reviews using Google's Gemini AI. It suppor
 For detailed setup instructions, see [harperbot/HarperBot.md](harperbot/HarperBot.md).
 
 ## Usage
+
+The full API of this library can be found in [docs/reference/api.md](docs/reference/api.md).
 
 ### Basic Setup
 
@@ -74,6 +81,121 @@ fast_client = GeminiAI::Client.new(model: :flash)
 * **Image Analysis:** base64 image input, detailed descriptions
 * **Chat:** context retention, system instructions
 * **Security:** API key masking, retries, and rate limits (1s default, 3s CI)
+
+## Handling errors
+
+When the library is unable to connect to the API,
+or if the API returns a non-success status code (i.e., 4xx or 5xx response),
+a subclass of `GeminiAI::APIError` will be thrown:
+
+```ruby
+response = client.generate_text('Hello').catch do |err|
+  if err.is_a?(GeminiAI::APIError)
+    puts err.status  # 400
+    puts err.name    # BadRequestError
+    puts err.headers # {server: 'nginx', ...}
+  else
+    raise err
+  end
+end
+```
+
+Error codes are as follows:
+
+| Status Code | Error Type                 |
+| ----------- | -------------------------- |
+| 400         | `BadRequestError`          |
+| 401         | `AuthenticationError`     |
+| 403         | `PermissionDeniedError`   |
+| 404         | `NotFoundError`           |
+| 422         | `UnprocessableEntityError` |
+| 429         | `RateLimitError`          |
+| >=500       | `InternalServerError`     |
+| N/A         | `APIConnectionError`      |
+
+### Retries
+
+Certain errors will be automatically retried 2 times by default, with a short exponential backoff.
+Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
+429 Rate Limit, and >=500 Internal errors will all be retried by default.
+
+You can use the `max_retries` option to configure or disable this:
+
+```ruby
+# Configure the default for all requests:
+client = GeminiAI::Client.new(max_retries: 0)  # default is 2
+
+# Or, configure per-request:
+client.generate_text('Hello', max_retries: 5)
+
+### Timeouts
+
+Requests time out after 60 seconds by default. You can configure this with a `timeout` option:
+
+```ruby
+# Configure the default for all requests:
+client = GeminiAI::Client.new(timeout: 20)  # 20 seconds (default is 60)
+
+# Override per-request:
+client.generate_text('Hello', timeout: 5)
+```
+
+On timeout, an `APIConnectionTimeoutError` is thrown.
+
+Note that requests which time out will be [retried twice by default](#retries).
+
+## Advanced Usage
+
+### Logging
+
+> [!IMPORTANT]
+> All log messages are intended for debugging only. The format and content of log messages
+> may change between releases.
+
+#### Log levels
+
+The log level can be configured via the `GEMINI_LOG_LEVEL` environment variable or client option.
+
+Available log levels, from most to least verbose:
+
+- `'debug'` - Show debug messages, info, warnings, and errors
+- `'info'` - Show info messages, warnings, and errors
+- `'warn'` - Show warnings and errors (default)
+- `'error'` - Show only errors
+- `'off'` - Disable all logging
+
+```ruby
+require 'friday_gemini_ai'
+
+client = GeminiAI::Client.new(log_level: 'debug')  # Show all log messages
+
+## Frequently Asked Questions
+
+## Semantic versioning
+
+This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
+
+1. Changes that only affect static types, without breaking runtime behavior.
+2. Changes to library internals which are technically public but not intended or documented for external use. _(Please open a GitHub issue to let us know if you are relying on such internals.)_
+3. Changes that we do not expect to impact the vast majority of users in practice.
+
+We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
+
+We are keen for your feedback; please open an [issue](https://github.com/bniladridas/friday_gemini_ai/issues) with questions, bugs, or suggestions.
+
+## Requirements
+
+Ruby 3.0 or later is supported.
+
+The following runtimes are supported:
+
+- Ruby 3.0+
+- JRuby (compatible versions)
+- TruffleRuby (compatible versions)
+
+Note that Windows support is limited; Linux and macOS are recommended.
+```
+```
 
 ## Migration Guide
 
