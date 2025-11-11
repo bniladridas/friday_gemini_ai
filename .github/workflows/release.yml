@@ -81,15 +81,18 @@ jobs:
           name: gem-file
           path: "*.gem"
 
-  publish-gems:
-    name: Publish Gems
-    runs-on: ubuntu-latest
-    needs: build
-    environment: production
-    permissions:
-      contents: read
+   publish-gems:
+     name: Publish Gems
+     runs-on: ubuntu-latest
+     needs: build
+     environment: production
+     permissions:
+       contents: read
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
       - name: Setup Ruby
         uses: ./.github/actions/setup-ruby
 
@@ -160,15 +163,18 @@ jobs:
             exit 1
           fi
 
-  publish-gh:
-    name: Publish GH
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      contents: read
-      packages: write
+   publish-gh:
+     name: Publish GH
+     runs-on: ubuntu-latest
+     needs: build
+     permissions:
+       contents: read
+       packages: write
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
       - name: Setup Ruby
         uses: ./.github/actions/setup-ruby
 
