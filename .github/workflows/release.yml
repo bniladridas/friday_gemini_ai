@@ -15,14 +15,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
-          bundle config set --local path 'vendor/bundle'
-          bundle config set --local frozen false
-          bundle install
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
 
       - name: Run tests
         run: |
@@ -57,12 +51,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
-          bundle install
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
 
       - name: Build gem
         run: gem build *.gemspec
@@ -100,11 +90,8 @@ jobs:
       contents: read
 
     steps:
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
 
       - name: Get gem file
         run: |
@@ -177,11 +164,8 @@ jobs:
       packages: write
 
     steps:
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
 
       - name: Configure Git
         run: |
@@ -201,16 +185,16 @@ jobs:
 
       - name: Publish to GitHub Packages
         run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- ":github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+           mkdir -p $HOME/.gem
+           touch $HOME/.gem/credentials
+           chmod 0600 $HOME/.gem/credentials
+           printf -- ":github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
 
-          # Push to GitHub Packages
-          gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem || \
-            echo "::warning::Failed to publish to GitHub Packages (this might be expected if the package already exists)"
+           # Push to GitHub Packages
+           gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem || \
+              echo "::warning::Failed to publish to GitHub Packages (this might be expected if the package already exists)"
         env:
-          GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+          GEM_HOST_API_KEY: ${{ secrets.GH_PAT }}
 
   release:
     name: Release
@@ -354,7 +338,7 @@ jobs:
 
           # Create the release using GitHub API
           RELEASE_RESPONSE=$(curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/releases" \
             -d "{\"tag_name\":\"$TAG_NAME\",\"name\":\"Release $TAG_NAME\",\"body\":$(jq -Rs '.' <<< "$RELEASE_NOTES"),\"draft\":false,\"prerelease\":false}")
@@ -373,7 +357,7 @@ jobs:
             GEM_NAME=$(basename "$GEM_FILE")
             UPLOAD_RESPONSE=$(curl -s \
               -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Authorization: token ${{ secrets.GH_PAT }}" \
               -H "Content-Type: application/octet-stream" \
               --data-binary "@$GEM_FILE" \
               "${UPLOAD_URL}?name=$GEM_NAME")
@@ -389,4 +373,4 @@ jobs:
           RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}

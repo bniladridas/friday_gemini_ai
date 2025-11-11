@@ -1,0 +1,16 @@
+---
+name: 'Setup Ruby'
+description: 'Sets up Ruby environment with bundler for CI'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Ruby
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ruby-full ruby-bundler
+        ruby --version
+        bundle config set --local path 'vendor/bundle'
+        bundle config set --local frozen false
+        bundle install
+      shell: bash
