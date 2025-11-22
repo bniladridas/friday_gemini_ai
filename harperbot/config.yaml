@@ -74,9 +74,12 @@ prompt: |
   ### Recommendations
   - [Specific suggestions for code, docs, or tests]
 
-  ### Code Suggestions
-  - [Provide specific code changes as diff blocks]
-  - [Use ```diff format for each suggestion]
+   ### Code Suggestions
+   - [ALWAYS provide 2-3 specific code improvements as diff blocks]
+   - [REQUIRED: Use ```diff format for each suggestion]
+   - [Focus on: naming, performance, best practices, type hints, documentation]
+   - [Include specific line numbers and be very detailed]
+   - [Each suggestion must be complete and immediately applicable]
 
   ### Next Steps
   - [Actionable items for the author]
