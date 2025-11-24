@@ -871,8 +871,12 @@ def main():
 
     # Post the comment with formatted analysis
     logging.info("Posting analysis to PR...")
-    post_comment_webhook(github_token, args.repo, pr_details, analysis)
-    logging.info("Analysis complete!")
+    try:
+        post_comment_webhook(github_token, args.repo, pr_details, analysis)
+        logging.info("Analysis complete!")
+    except Exception as e:
+        logging.error(f"Failed to post analysis: {str(e)}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
