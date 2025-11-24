@@ -660,17 +660,14 @@ def post_inline_suggestions(pr, pr_details, suggestions):
     for file_path, line_str, suggestion in suggestions:
         try:
             line = int(line_str)
-            position = find_diff_position(pr_details["diff"], file_path, line)
-            if position is not None:
-                comments.append(
-                    {
-                        "path": file_path,
-                        "position": position,
-                        "body": f"```suggestion\n{suggestion}\n```",
-                    }
-                )
-            else:
-                logging.warning(f"Could not find diff position for {file_path}:{line}")
+            comments.append(
+                {
+                    "path": file_path,
+                    "line": line,
+                    "side": "RIGHT",
+                    "body": f"```suggestion\n{suggestion}\n```",
+                }
+            )
         except ValueError as e:
             logging.error(f"Invalid line number '{line_str}': {e}")
     if comments:
