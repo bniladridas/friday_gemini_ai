@@ -1,0 +1,37 @@
+---
+name: Manual Code Suggestions
+
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'Files to analyze (comma-separated, e.g., src/*.js,*.py)'
+        required: false
+        default: '**/*.js,**/*.ts,**/*.py,**/*.rb'
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install @google/generative-ai
+
+      - name: Run manual fix analysis
+        run: |
+          FILES="${{ github.event.inputs.files }}"
+          node harperbot/manual-fix.js $FILES
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
