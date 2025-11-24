@@ -650,7 +650,7 @@ def update_main_comment(analysis):
     return analysis[:start_pos] + "### Code Suggestions\n- Suggestions posted as inline comments below.\n" + analysis[end_pos:]
 
 
-def post_inline_suggestions(pr, pr_details, suggestions):
+def post_inline_suggestions(pr, pr_details, suggestions, github_token):
     """
     Post inline code suggestions as a pull request review.
     """
@@ -672,8 +672,21 @@ def post_inline_suggestions(pr, pr_details, suggestions):
             logging.error(f"Invalid line number '{line_str}': {e}")
     if comments:
         try:
-            pr.create_review(commit=pr_details["head_sha"], comments=comments, event="COMMENT")
-            logging.info(f"Posted {len(comments)} inline suggestions")
+            import requests
+
+            url = f"https://api.github.com/repos/{pr.repository.owner.login}/{pr.repository.name}/pulls/{pr.number}/reviews"
+            headers = {"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3+json"}
+            data = {
+                "commit_id": pr_details["head_sha"],
+                "body": "Code suggestions from HarperBot",
+                "event": "COMMENT",
+                "comments": comments,
+            }
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code == 200:
+                logging.info(f"Posted {len(comments)} inline suggestions")
+            else:
+                logging.error(f"Error posting review: {response.status_code} {response.text}")
         except Exception as e:
             logging.error(f"Error posting review with suggestions: {str(e)}")
 
@@ -700,7 +713,7 @@ def post_comment(github_token, repo_name, pr_details, analysis):
         pr.create_issue_comment(formatted_comment)
 
         # Post inline suggestions
-        post_inline_suggestions(pr, pr_details, suggestions)
+        post_inline_suggestions(pr, pr_details, suggestions, github_token)
 
         # Apply authoring features if enabled
         if config.get("enable_authoring", False):
@@ -762,7 +775,8 @@ def setup_environment_webhook(installation_id):
     # Generate installation-specific token
     auth = Auth.AppAuth(app_id, private_key)
     installation_auth = auth.get_installation_auth(installation_id)
-    return Github(auth=installation_auth)
+    g = Github(auth=installation_auth)
+    return g, installation_auth.token
 
 
 def get_pr_details_webhook(g, repo_name, pr_number):
@@ -787,7 +801,7 @@ def get_pr_details_webhook(g, repo_name, pr_number):
     }
 
 
-def post_comment_webhook(g, repo_name, pr_details, analysis):
+def post_comment_webhook(github_token, repo_name, pr_details, analysis):
     """
     Post analysis comment and inline suggestions using GitHub App auth.
 
@@ -796,6 +810,7 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
     suggestions directly or creates improvement PRs.
     """
     try:
+        g = Github(github_token)
         config = load_config()
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_details["number"])
@@ -809,7 +824,7 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
         logging.info(f"Posted main analysis comment to PR #{pr_details['number']}")
 
         # Post inline suggestions
-        post_inline_suggestions(pr, pr_details, suggestions)
+        post_inline_suggestions(pr, pr_details, suggestions, github_token)
 
         # Apply authoring features if enabled
         if config.get("enable_authoring", False):
@@ -873,10 +888,10 @@ def webhook_handler():
     logging.info(f"Processing PR #{pr_number} in {repo_name}")
 
     try:
-        g = setup_environment_webhook(installation_id)
+        g, installation_token = setup_environment_webhook(installation_id)
         pr_details = get_pr_details_webhook(g, repo_name, pr_number)
         analysis = analyze_with_gemini(pr_details)
-        post_comment_webhook(g, repo_name, pr_details, analysis)
+        post_comment_webhook(installation_token, repo_name, pr_details, analysis)
         logging.info(f"Successfully processed PR #{pr_number}")
         return jsonify({"status": "ok"})
     except Exception as e:
