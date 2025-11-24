@@ -683,24 +683,11 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
             )
         except ValueError as e:
             logging.error(f"Invalid line number '{line_str}': {e}")
-    for comment in comments:
-        try:
-            import requests
-
-            url = f"https://api.github.com/repos/{pr.repository.owner.login}/{pr.repository.name}/pulls/{pr.number}/reviews"
-            headers = {"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3+json"}
-            data = {
-                "commit_id": pr_details["head_sha"],
-                "body": f"Code suggestion for {comment['path']}",
-                "comments": [comment],
-            }
-            response = requests.post(url, headers=headers, json=data)
-            if response.status_code == 200:
-                logging.info(f"Posted inline suggestion for {comment['path']}:{comment['line']}")
-            else:
-                logging.error(f"Error posting review: {response.status_code} {response.text}")
-        except Exception as e:
-            logging.error(f"Error posting review with suggestion: {str(e)}")
+    try:
+        pr.create_review(commit=pr_details["head_sha"], comments=comments)
+        logging.info(f"Posted {len(comments)} inline suggestions")
+    except Exception as e:
+        logging.error(f"Error posting review with suggestions: {str(e)}")
 
 
 def post_comment(github_token, repo_name, pr_details, analysis):
