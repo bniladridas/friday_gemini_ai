@@ -84,7 +84,6 @@ jobs:
                     repo: context.repo.repo,
                     pull_number: context.issue.number,
                     body: `Code suggestion for ${item.file}`,
-                    event: 'COMMENT',
                     comments: [
                       {
                         path: item.file,
