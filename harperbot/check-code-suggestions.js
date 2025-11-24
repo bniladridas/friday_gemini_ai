@@ -109,14 +109,17 @@ function parseCodeSuggestions(analysis) {
 }
 
 async function main() {
-  const changed = gitChangedFiles();
-  const fileTypesRegex = /\.ts$|\.tsx$|\.js$|\.jsx$|\.py$|\.c$|\.cpp$|\.h$|\.go$|\.rs$|\.java$|\.rb$/i;
-  const relevant = changed.filter(f => fileTypesRegex.test(f));
-
-  if (relevant.length === 0) {
-    console.log(JSON.stringify({ suggestions: [] }));
-    process.exit(0);
-  }
+  // Dummy suggestion for testing apply button
+  const suggestions = [
+    {
+      file: '.github/workflows/code-suggestions.yml',
+      line: 10,
+      suggestion: 'fetch-depth: 2'
+    }
+  ];
+  console.log(JSON.stringify({ suggestions }));
+  process.exit(0);
+}
 
   const diff = getDiff();
   const apiKey = process.env.GEMINI_API_KEY;
