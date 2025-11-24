@@ -21,8 +21,8 @@ What actually happens?
 2. Step 2
 
 ## Environment
-- OS: 
-- Version: 
+- OS:
+- Version:
 
 ## Additional Context
 Any other information.
