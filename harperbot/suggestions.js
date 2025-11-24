@@ -109,15 +109,8 @@ function parseCodeSuggestions(analysis) {
 }
 
 function main() {
-  // Dummy suggestion for testing apply button
-  const suggestions = [
-    {
-      file: '.github/workflows/code-suggestions.yml',
-      line: 20,
-      suggestion: '          fetch-depth: 2'
-    }
-  ];
-  console.log(JSON.stringify({ suggestions }));
+  // No suggestions for now
+  console.log(JSON.stringify({ suggestions: [] }));
   process.exit(0);
 }
 
