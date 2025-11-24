@@ -7,6 +7,13 @@ assignees: ''
 
 ---
 
+## Type of Issue/Request
+- [ ] Bug Report
+- [ ] Feature Request
+- [ ] Documentation Improvement
+- [ ] Question/Support
+- [ ] Other
+
 ## Description
 Brief description of the issue or feature request.
 
