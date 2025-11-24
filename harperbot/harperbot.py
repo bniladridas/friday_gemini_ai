@@ -891,7 +891,7 @@ def main():
 
     # Post the comment with formatted analysis
     logging.info("Posting analysis to PR...")
-    post_comment(github_token, args.repo, pr_details, analysis)
+    post_comment_webhook(github_token, args.repo, pr_details, analysis)
     logging.info("Analysis complete!")
 
 
