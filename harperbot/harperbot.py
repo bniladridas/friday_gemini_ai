@@ -687,7 +687,7 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
         except ValueError as e:
             logging.error(f"Invalid line number '{line_str}': {e}")
     try:
-        pr.create_review(commit=pr_details["head_sha"], comments=comments)
+        pr.create_review(commit=pr_details["head_sha"], comments=comments, event="COMMENT")
         logging.info(f"Posted {len(comments)} inline suggestions")
     except Exception as e:
         logging.error(f"Error posting review with suggestions: {str(e)}")
