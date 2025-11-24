@@ -876,7 +876,7 @@ def main():
         logging.info("Analysis complete!")
     except Exception as e:
         logging.error(f"Failed to post analysis: {str(e)}")
-        sys.exit(1)
+        # Continue even if posting fails
 
 
 if __name__ == "__main__":
