@@ -666,12 +666,12 @@ def update_main_comment(analysis):
     return analysis[:start_pos] + "### Code Suggestions\n- Suggestions posted as inline comments below.\n" + analysis[end_pos:]
 
 
-def post_inline_suggestions(pr, pr_details, suggestions, github_token):
+def post_inline_suggestions(pr, pr_details, suggestions, github_token, repo):
     """
     Post inline code suggestions as a pull request review.
     """
     try:
-        commit = pr.repository.get_commit(pr_details["head_sha"])
+        commit = repo.get_commit(pr_details["head_sha"])
         pr.create_review(commit=commit, comments=suggestions)
         logging.info(f"Posted {len(suggestions)} inline suggestions")
     except Exception as e:
@@ -775,7 +775,7 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
         logging.info(f"Posted main analysis comment to PR #{pr_details['number']}")
 
         # Post inline suggestions
-        post_inline_suggestions(pr, pr_details, suggestions, github_token)
+        post_inline_suggestions(pr, pr_details, suggestions, github_token, repo)
 
         # Apply authoring features if enabled
         if config.get("enable_authoring", False):
