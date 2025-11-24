@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
 ---
 # HarperBot Configuration
 # This file configures HarperBot's analysis behavior. Modify these settings to customize the bot's performance and output.
@@ -44,39 +47,20 @@ improvement_branch_pattern: "harperbot-improvements-{timestamp}"
 # AI analysis prompt template
 # Customize the prompt to change how HarperBot analyzes code
 prompt: |
-  **Files Changed** ({num_files}):
-  {files_list}
+  Analyze the following code changes for improvements. Focus on code quality, best practices, performance, and correctness.
 
+  Changed files:
+  {files}
+
+  Diff:
+  {diff}
+
+  Provide specific code suggestions as diff blocks in the format:
   ```diff
-  {diff_content}
+  file_path
+  @@ -line_start,count +line_start,count @@
+  - old code
+  + new code
   ```
 
-  {focus_instruction}
-
-  Provide a concise code review analysis in this format:
-
-  ## Summary
-  [Brief overview of changes and purpose]
-
-  ### Scores
-  - Code Quality: [score]/10
-  - Maintainability: [score]/10
-  - Security: [score]/10
-
-  ### Strengths
-  - [Key positives]
-  - [What's working well]
-
-  ### Areas Needing Attention
-  - [Potential issues or improvements]
-  - [Be specific and constructive]
-
-  ### Recommendations
-  - [Specific suggestions for code, docs, or tests]
-
-  ### Code Suggestions
-  - [Provide specific code changes as diff blocks]
-  - [Use ```diff format for each suggestion]
-
-  ### Next Steps
-  - [Actionable items for the author]
+  Only suggest changes to lines that are modified in the diff. Suggestions should be actionable and include accurate line numbers from the diff.

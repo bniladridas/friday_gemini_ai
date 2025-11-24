@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
 #!/usr/bin/env python3
 """
 GitHub PR Bot that analyzes pull requests using Google's Gemini API.
@@ -381,15 +384,28 @@ def parse_diff_for_suggestions(diff_text):
     file_path = lines[0][6:]  # --- a/file
     hunk_start = None
     suggestion_lines = []
+    current_line = 0
+    line_num = 0
     for line in lines:
         if line.startswith("@@"):
             match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
             if match:
                 hunk_start = int(match.group(1))
-        elif line.startswith("+") and hunk_start is not None:
-            suggestion_lines.append(line[1:])  # remove +
-    if hunk_start is not None and suggestion_lines:
-        return file_path, hunk_start, "\n".join(suggestion_lines)
+                current_line = hunk_start
+        elif hunk_start is not None:
+            if line.startswith("+"):
+                if not suggestion_lines:  # First + line
+                    line_num = current_line
+                suggestion_lines.append(line[1:])  # remove +
+                current_line += 1
+            elif line.startswith("-"):
+                # Removed line, no change to current_line
+                pass
+            else:
+                # Context line
+                current_line += 1
+    if suggestion_lines:
+        return file_path, line_num, "\n".join(suggestion_lines)
     return None
 
 
@@ -650,72 +666,17 @@ def update_main_comment(analysis):
     return analysis[:start_pos] + "### Code Suggestions\n- Suggestions posted as inline comments below.\n" + analysis[end_pos:]
 
 
-def post_inline_suggestions(pr, pr_details, suggestions):
+def post_inline_suggestions(pr, pr_details, suggestions, github_token, repo):
     """
     Post inline code suggestions as a pull request review.
     """
-    if not suggestions:
-        return
-    comments = []
-    for file_path, line_str, suggestion in suggestions:
-        try:
-            line = int(line_str)
-            position = find_diff_position(pr_details["diff"], file_path, line)
-            if position is not None:
-                comments.append(
-                    {
-                        "path": file_path,
-                        "position": position,
-                        "body": f"```suggestion\n{suggestion}\n```",
-                    }
-                )
-            else:
-                logging.warning(f"Could not find diff position for {file_path}:{line}")
-        except ValueError as e:
-            logging.error(f"Invalid line number '{line_str}': {e}")
-    if comments:
-        try:
-            pr.create_review(commit=pr_details["head_sha"], comments=comments, event="COMMENT")
-            logging.info(f"Posted {len(comments)} inline suggestions")
-        except Exception as e:
-            logging.error(f"Error posting review with suggestions: {str(e)}")
-
-
-def post_comment(github_token, repo_name, pr_details, analysis):
-    """
-    Post analysis comment and inline suggestions.
-
-    Creates a main comment with the analysis summary, and posts
-    code suggestions as inline review comments. Optionally applies
-    suggestions directly or creates improvement PRs.
-    """
     try:
-        config = load_config()
-        g = Github(auth=Auth.Token(github_token))
-        repo = g.get_repo(repo_name)
-        pr = repo.get_pull(pr_details["number"])
-
-        suggestions = parse_code_suggestions(analysis)
-        main_comment = update_main_comment(analysis)
-
-        # Format and post main comment
-        formatted_comment = format_comment(main_comment)
-        pr.create_issue_comment(formatted_comment)
-
-        # Post inline suggestions
-        post_inline_suggestions(pr, pr_details, suggestions)
-
-        # Apply authoring features if enabled
-        if config.get("enable_authoring", False):
-            if config.get("auto_commit_suggestions", False) and suggestions:
-                apply_suggestions_to_pr(repo, pr, suggestions)
-
-            if config.get("create_improvement_prs", False):
-                create_improvement_pr_from_analysis(repo, pr_details, analysis, config)
-
+        commit = repo.get_commit(pr_details["head_sha"])
+        pr.create_review(commit=commit, comments=suggestions, event="COMMENT")
+        logging.info(f"Posted {len(suggestions)} inline suggestions")
     except Exception as e:
-        logging.error(f"Error posting comment: {str(e)}")
-        raise
+        logging.error(f"Error posting review with suggestions: {str(e)}")
+        # Don't fail the whole process for review posting errors
 
 
 def verify_webhook_signature(payload, signature, secret):
@@ -765,7 +726,8 @@ def setup_environment_webhook(installation_id):
     # Generate installation-specific token
     auth = Auth.AppAuth(app_id, private_key)
     installation_auth = auth.get_installation_auth(installation_id)
-    return Github(auth=installation_auth)
+    g = Github(auth=installation_auth)
+    return g, installation_auth.token
 
 
 def get_pr_details_webhook(g, repo_name, pr_number):
@@ -790,7 +752,7 @@ def get_pr_details_webhook(g, repo_name, pr_number):
     }
 
 
-def post_comment_webhook(g, repo_name, pr_details, analysis):
+def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, analysis: str):
     """
     Post analysis comment and inline suggestions using GitHub App auth.
 
@@ -799,6 +761,7 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
     suggestions directly or creates improvement PRs.
     """
     try:
+        g = Github(github_token)
         config = load_config()
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_details["number"])
@@ -812,7 +775,7 @@ def post_comment_webhook(g, repo_name, pr_details, analysis):
         logging.info(f"Posted main analysis comment to PR #{pr_details['number']}")
 
         # Post inline suggestions
-        post_inline_suggestions(pr, pr_details, suggestions)
+        post_inline_suggestions(pr, pr_details, suggestions, github_token, repo)
 
         # Apply authoring features if enabled
         if config.get("enable_authoring", False):
@@ -876,10 +839,10 @@ def webhook_handler():
     logging.info(f"Processing PR #{pr_number} in {repo_name}")
 
     try:
-        g = setup_environment_webhook(installation_id)
+        g, installation_token = setup_environment_webhook(installation_id)
         pr_details = get_pr_details_webhook(g, repo_name, pr_number)
         analysis = analyze_with_gemini(pr_details)
-        post_comment_webhook(g, repo_name, pr_details, analysis)
+        post_comment_webhook(installation_token, repo_name, pr_details, analysis)
         logging.info(f"Successfully processed PR #{pr_number}")
         return jsonify({"status": "ok"})
     except Exception as e:
@@ -907,8 +870,12 @@ def main():
 
     # Post the comment with formatted analysis
     logging.info("Posting analysis to PR...")
-    post_comment(github_token, args.repo, pr_details, analysis)
-    logging.info("Analysis complete!")
+    try:
+        post_comment_webhook(github_token, args.repo, pr_details, analysis)
+        logging.info("Analysis complete!")
+    except Exception as e:
+        logging.error(f"Failed to post analysis: {str(e)}")
+        # Continue even if posting fails
 
 
 if __name__ == "__main__":

@@ -1,0 +1,103 @@
+---
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
+name: Suggestions
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install @google/generative-ai
+
+      - name: Run code suggestions script
+        id: suggestions
+        run: |
+          node harperbot/suggestions.js > suggestions-report.json || true
+          cat suggestions-report.json
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Parse report
+        id: parse
+        run: |
+          REPORT=$(cat suggestions-report.json)
+          {
+            echo "report<<EOF"
+            echo "$REPORT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create PR review comments with code suggestions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = JSON.parse(process.env.REPORT || '{}')
+            const suggestions = report.suggestions || []
+            if (suggestions.length === 0) {
+              // Add success check
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '✅ Code analysis passed — no suggestions found.'
+              })
+            } else {
+              let body = '### 💡 Code Suggestions\n\nAI-generated suggestions for code improvements have been posted as inline comments.\n\n'
+              for (const item of suggestions) {
+                body += `- \`${item.file}\` at line ${item.line}\n`
+              }
+              body += '\n---\nClick the suggested fixes above to apply them.'
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              })
+
+              // Create review comments with suggested changes
+              for (const item of suggestions) {
+                try {
+                  await github.rest.pulls.createReview({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.issue.number,
+                    body: `Code suggestion for ${item.file}`,
+                    comments: [
+                      {
+                        path: item.file,
+                        side: 'RIGHT',
+                        line: item.line,
+                        body: `Suggested improvement:\n\n\`\`\`suggestion\n${item.suggestion}\n\`\`\``
+                      }
+                    ]
+                  })
+                } catch (e) {
+                  console.log('review comment error', e.message)
+                }
+              }
+            }
+        env:
+          REPORT: ${{ steps.parse.outputs.report }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

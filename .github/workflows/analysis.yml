@@ -1,0 +1,35 @@
+---
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
+name: Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install @google/generative-ai
+
+      - name: Run manual fix analysis
+        run: |
+          node harperbot/manual.js "**/*.js,**/*.ts,**/*.py,**/*.rb"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
