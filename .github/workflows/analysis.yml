@@ -1,5 +1,8 @@
 ---
-name: Manual Code Suggestions
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
+name: Analysis
 
 on:
   workflow_dispatch:

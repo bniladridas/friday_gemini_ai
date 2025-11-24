@@ -1,5 +1,8 @@
 ---
-name: Code Suggestions Bot
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
+name: Suggestions
 
 on:
   pull_request:
