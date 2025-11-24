@@ -19,7 +19,6 @@ import google.generativeai as genai
 import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
-from github.GithubException import GithubException
 from google.generativeai.types import GenerationConfig
 from harperbot_apply import handle_apply_comment
 
