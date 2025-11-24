@@ -665,7 +665,7 @@ def post_inline_suggestions(pr, pr_details, suggestions):
                     "path": file_path,
                     "line": line,
                     "side": "RIGHT",
-                    "body": f"```suggestion\n{suggestion}\n```",
+                    "body": f"Suggested improvement:\n\n```suggestion\n{suggestion}\n```",
                 }
             )
         except ValueError as e:
