@@ -20,6 +20,12 @@ What actually happens?
 1. Step 1
 2. Step 2
 
+## Code Sample
+If applicable, provide a code sample that demonstrates the issue.
+
+## Error Output
+If applicable, include any error messages or output.
+
 ## Environment
 - OS:
 - Version:
