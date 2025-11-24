@@ -108,7 +108,7 @@ function parseCodeSuggestions(analysis) {
   return suggestions;
 }
 
-async function main() {
+function main() {
   // Dummy suggestion for testing apply button
   const suggestions = [
     {
@@ -119,28 +119,6 @@ async function main() {
   ];
   console.log(JSON.stringify({ suggestions }));
   process.exit(0);
-}
-
-  const diff = getDiff();
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error('GEMINI_API_KEY not set');
-    process.exit(1);
-  }
-
-  try {
-    const analysis = await analyzeWithGemini(relevant, diff, apiKey);
-    const suggestions = parseCodeSuggestions(analysis);
-    const report = { suggestions };
-
-    console.log(JSON.stringify(report));
-
-    if (suggestions.length > 0) process.exit(2);
-    process.exit(0);
-  } catch (e) {
-    console.error('Error analyzing code:', e);
-    process.exit(1);
-  }
 }
 
 main();
