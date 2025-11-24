@@ -677,6 +677,7 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
                 {
                     "path": file_path,
                     "line": line,
+                    "side": "RIGHT",
                     "body": f"```suggestion\n{suggestion}\n```",
                 }
             )
