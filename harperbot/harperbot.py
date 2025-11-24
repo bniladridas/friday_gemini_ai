@@ -667,8 +667,6 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
     """
     Post inline code suggestions as a pull request review.
     """
-    unused_variable = "this is not used"  # FIXME: remove this unused variable
-    # TODO: remove this comment
     if not suggestions:
         return
     comments = []
