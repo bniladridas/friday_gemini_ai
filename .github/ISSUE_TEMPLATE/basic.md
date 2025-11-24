@@ -17,6 +17,17 @@ assignees: ''
 ## Description
 Brief description of the issue or feature request.
 
+### Bug Report Details (if applicable)
+- Steps to reproduce:
+- Expected behavior:
+- Actual behavior:
+- Environment (OS, browser, version):
+
+### Feature Request Details (if applicable)
+- Current behavior:
+- Proposed solution:
+- Alternatives considered:
+
 ## Expected Behavior
 What should happen?
 
