@@ -4,10 +4,10 @@
 // Copyright (c) 2025 friday_gemini_ai
 
 /**
- * manual-fix.js
+ * manual.js
  * A CLI script for manual code fixing using Gemini AI.
  * Analyzes local files and provides suggestions for improvements.
- * Usage: node manual-fix.js [files...]
+ * Usage: node manual.js [files...]
  */
 
 const fs = require('fs');

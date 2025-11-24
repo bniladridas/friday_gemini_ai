@@ -2,7 +2,7 @@
 // Copyright (c) 2025 friday_gemini_ai
 
 /**
- * check-code-suggestions.js
+ * suggestions.js
  * Node script used by the workflow to analyze changed files for code suggestions.
  * It uses Gemini AI to generate suggestions and prints a JSON report
  * to stdout that the workflow can consume.
