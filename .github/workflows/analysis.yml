@@ -32,6 +32,6 @@ jobs:
       - name: Run manual fix analysis
         run: |
           FILES="${{ github.event.inputs.files }}"
-          node harperbot/manual-fix.js $FILES
+          node harperbot/manual.js $FILES
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

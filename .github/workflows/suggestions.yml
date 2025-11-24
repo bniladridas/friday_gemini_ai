@@ -30,7 +30,7 @@ jobs:
       - name: Run code suggestions script
         id: suggestions
         run: |
-          node harperbot/check-code-suggestions.js > suggestions-report.json || true
+          node harperbot/suggestions.js > suggestions-report.json || true
           cat suggestions-report.json
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
