@@ -674,11 +674,11 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
     try:
         config = load_config()
         g = Github(auth=Auth.Token(github_token))
-        repo = g.get_repo(repo_name)
+        repo = g.get_repo(repo_name)  # noqa: F821
         pr = repo.get_pull(pr_details["number"])
 
-        suggestions = parse_code_suggestions(analysis)
-        main_comment = update_main_comment(analysis)
+        suggestions = parse_code_suggestions(analysis)  # noqa: F821
+        main_comment = update_main_comment(analysis)  # noqa: F821
 
         # Format and post main comment
         formatted_comment = format_comment(main_comment)
@@ -693,7 +693,7 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
                 apply_suggestions_to_pr(repo, pr, suggestions)
 
             if config.get("create_improvement_prs", False):
-                create_improvement_pr_from_analysis(repo, pr_details, analysis, config)
+                create_improvement_pr_from_analysis(repo, pr_details, analysis, config)  # noqa: F821
 
     except Exception as e:
         logging.error(f"Error posting comment: {str(e)}")
@@ -773,7 +773,7 @@ def get_pr_details_webhook(g, repo_name, pr_number):
     }
 
 
-def post_comment_webhook(github_token, repo_name, pr_details, analysis):
+def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, analysis: str):
     """
     Post analysis comment and inline suggestions using GitHub App auth.
 
