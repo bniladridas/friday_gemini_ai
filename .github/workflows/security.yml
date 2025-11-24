@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
 ---
 on:
   schedule:
@@ -106,7 +109,7 @@ jobs:
 
       # Upload Reports
       - name: Upload security reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-reports-${{ github.sha }}
           path: |

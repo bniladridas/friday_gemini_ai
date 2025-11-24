@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name        = 'friday_gemini_ai'
-  spec.version     = '0.1.6'
+  spec.version     = '0.1.7'
   spec.authors     = ['Niladri Das']
   spec.email       = ['bniladridas@gmail.com']
   spec.summary     = "A Ruby gem for interacting with Google's Gemini AI models"
@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   # Testing
   spec.add_development_dependency 'dotenv', '~> 2.8'
   spec.add_development_dependency 'minitest', '~> 5.0' # Required for E2E tests
-  spec.add_development_dependency 'rake', '~> 13.0.6'
+  spec.add_development_dependency 'rake', '~> 13.3.1'
   # spec.add_development_dependency 'simplecov', '~> 0.22.0'
   # spec.add_development_dependency 'simplecov-lcov', '~> 0.9.0'
 

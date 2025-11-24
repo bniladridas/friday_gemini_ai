@@ -2,10 +2,15 @@
 
 Get started with Friday Gemini AI in under 5 minutes.
 
+> [!NOTE]
+> This guide assumes you have basic Ruby knowledge. For detailed API documentation, see the [API Reference](../reference/api.md).
+
 ## Prerequisites
 
-- Ruby 2.6 or higher
-- A Google AI API key
+| Requirement | Details |
+| ----------- | ------- |
+| Ruby | 2.6 or higher |
+| Google AI API Key | From [Google AI Studio](https://makersuite.google.com/app/apikey) |
 
 ## Step 1: Installation
 
@@ -99,20 +104,11 @@ response = client.chat(messages)
 
 ## Common Issues
 
-### "API key is required"
-Make sure your `.env` file exists and contains:
-```
-GEMINI_API_KEY=AIza...
-```
-
-### "Invalid API key format"
-Ensure your API key starts with `AIza` and has no extra spaces.
-
-### Permission errors on CLI
-Make the CLI executable:
-```bash
-chmod +x bin/gemini
-```
+| Issue | Solution |
+| ----- | -------- |
+| "API key is required" | Ensure your `.env` file exists and contains `GEMINI_API_KEY=AIza...` |
+| "Invalid API key format" | Check that your API key starts with `AIza` and has no extra spaces |
+| Permission errors on CLI | Make the CLI executable: `chmod +x bin/gemini` |
 
 ## Next Steps
 

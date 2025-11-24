@@ -103,7 +103,7 @@ Add these secrets in repository settings:
 
 - `GEMINI_API_KEY` - For integration tests
 - `RUBYGEMS_API_KEY` - For publishing to RubyGems.org
-- `GITHUB_TOKEN` - Automatically provided by GitHub
+- `GH_PAT` - Personal Access Token with `repo`, `write:packages` scopes (for releases)
 
 ## Status Badges
 

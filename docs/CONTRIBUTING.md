@@ -1,6 +1,11 @@
 # Contributing to Friday Gemini AI
 
+[![CI](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/ci.yml)
+
 Thank you for your interest in contributing! We welcome contributions from everyone.
+
+> [!NOTE]
+> Before contributing, please read our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure your changes align with our [development practices](docs/guides/practices.md).
 
 ## Quick Start
 
@@ -16,9 +21,12 @@ Thank you for your interest in contributing! We welcome contributions from every
 ## Development Setup
 
 ### Prerequisites
-- Ruby 3.1+ (we test on 3.1, 3.2, 3.3)
-- Bundler 2.0+
-- Git 2.25+
+
+| Requirement | Version | Notes |
+| ----------- | ------- | ----- |
+| Ruby | 3.1+ | Tested on 3.1, 3.2, 3.3 |
+| Bundler | 2.0+ | For dependency management |
+| Git | 2.25+ | For version control |
 
 ### Setup
 ```bash
@@ -238,16 +246,11 @@ We use [Semantic Versioning](https://semver.org/):
 
 ## Areas for Contribution
 
-### High Priority
-- Bug fixes
-- Performance improvements
-- Documentation improvements
-- Test coverage
-
-### Medium Priority
-- New features
-- Code refactoring
-- Developer experience
+| Priority | Areas |
+| -------- | ----- |
+| High | Bug fixes, Performance improvements, Documentation improvements, Test coverage |
+| Medium | New features, Code refactoring, Developer experience |
+| Low | Community support, Localization, Tooling enhancements |
 
 ### Ideas for Contributors
 - Add support for new Gemini models
@@ -264,9 +267,12 @@ We use [Semantic Versioning](https://semver.org/):
 - **Email**: [bniladridas@gmail.com](mailto:bniladridas@gmail.com)
 
 ### Response Times
-- **Issues**: Within 48 hours
-- **PRs**: Within 1 week
-- **Email**: Within 2-3 days
+
+| Channel | Expected Response |
+| ------- | ----------------- |
+| Issues | Within 48 hours |
+| Pull Requests | Within 1 week |
+| Email | Within 2-3 days |
 
 ## Recognition
 

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
 ---
 on:
   push:
@@ -13,16 +16,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
-          bundle config set --local path 'vendor/bundle'
-          bundle config set --local frozen false
-          bundle install
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
 
       - name: Run tests
         run: |
@@ -55,14 +52,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
-          bundle install
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
 
       - name: Build gem
         run: gem build *.gemspec
@@ -86,7 +79,7 @@ jobs:
           echo "Gem file saved to $GITHUB_WORKSPACE/artifacts/"
 
       - name: Upload gem to artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: gem-file
           path: "*.gem"
@@ -100,23 +93,25 @@ jobs:
       contents: read
 
     steps:
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
+
+      - name: Download gem
+        uses: actions/download-artifact@v6
+        with:
+          name: gem-file
 
       - name: Get gem file
         run: |
-          # Find the gem file in the artifacts directory
-          GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
+          # Find the downloaded gem file
+          GEM_FILE=$(ls *.gem | head -1)
           if [ -z "$GEM_FILE" ]; then
-            echo "No gem file found in artifacts directory"
+            echo "No gem file found"
             exit 1
           fi
-          # Copy gem file to current directory
-          cp "$GEM_FILE" .
-          GEM_FILE=$(basename "$GEM_FILE")
           GEM_NAME=$(basename "$GEM_FILE" .gem)
           # Extract version using a more robust method
           GEM_VERSION=$(echo "$GEM_NAME" | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?)$/\1/')
@@ -177,40 +172,43 @@ jobs:
       packages: write
 
     steps:
-      - name: Set up Ruby
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full ruby-bundler
-          ruby --version
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Ruby
+        uses: ./.github/actions/setup-ruby
 
       - name: Configure Git
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
+      - name: Download gem
+        uses: actions/download-artifact@v6
+        with:
+          name: gem-file
+
       - name: Get gem file
         run: |
-          # Find the gem file in the artifacts directory
-          GEM_FILE=$(ls $GITHUB_WORKSPACE/artifacts/*.gem | head -1)
+          # Find the downloaded gem file
+          GEM_FILE=$(ls *.gem | head -1)
           if [ -z "$GEM_FILE" ]; then
-            echo "No gem file found in artifacts directory"
+            echo "No gem file found"
             exit 1
           fi
-          # Copy gem file to current directory
-          cp "$GEM_FILE" .
 
       - name: Publish to GitHub Packages
         run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- ":github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+           mkdir -p $HOME/.gem
+           touch $HOME/.gem/credentials
+           chmod 0600 $HOME/.gem/credentials
+           printf -- ":github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
 
-          # Push to GitHub Packages
-          gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem || \
-            echo "::warning::Failed to publish to GitHub Packages (this might be expected if the package already exists)"
+           # Push to GitHub Packages
+           gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem || \
+              echo "::warning::Failed to publish to GitHub Packages (this might be expected if the package already exists)"
         env:
-          GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+          GEM_HOST_API_KEY: ${{ secrets.GH_PAT }}
 
   release:
     name: Release
@@ -221,10 +219,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download gem
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: gem-file
 
@@ -239,9 +237,9 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-          # Get the gem file from artifacts
+          # Get the downloaded gem file
           mkdir -p release_assets
-          cp $GITHUB_WORKSPACE/artifacts/*.gem release_assets/ 2>/dev/null || echo "No gem file found in artifacts"
+          cp *.gem release_assets/ 2>/dev/null || echo "No gem file found"
 
           # Get the current tag (from the tag that triggered the workflow)
           CURRENT_TAG=${GITHUB_REF#refs/tags/}
@@ -352,9 +350,37 @@ jobs:
           RELEASE_NOTES=$(cat release_notes.md)
           TAG_NAME="${{ github.ref_name }}"
 
+          # Check if release already exists
+          RELEASE_EXISTS=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG_NAME" | jq -r '.id')
+          if [ "$RELEASE_EXISTS" != "null" ] && [ -n "$RELEASE_EXISTS" ]; then
+            echo "Release already exists, using existing"
+            RELEASE_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG_NAME")
+            RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
+            UPLOAD_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.upload_url' | sed 's/{?name,label}//')
+            echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
+          else
+            # Create the release using GitHub API
+            RELEASE_RESPONSE=$(curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GH_PAT }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases" \
+              -d "{\"tag_name\":\"$TAG_NAME\",\"name\":\"Release $TAG_NAME\",\"body\":$(jq -Rs '.' <<< "$RELEASE_NOTES"),\"draft\":false,\"prerelease\":false}")
+
+            # Extract the upload URL
+            UPLOAD_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.upload_url' | sed 's/{?name,label}//')
+
+            if [ -z "$UPLOAD_URL" ] || [ "$UPLOAD_URL" = "null" ]; then
+              echo "::error::Failed to create release: $RELEASE_RESPONSE"
+              exit 1
+            fi
+
+            RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
+            echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
+          fi
+
           # Create the release using GitHub API
           RELEASE_RESPONSE=$(curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/releases" \
             -d "{\"tag_name\":\"$TAG_NAME\",\"name\":\"Release $TAG_NAME\",\"body\":$(jq -Rs '.' <<< "$RELEASE_NOTES"),\"draft\":false,\"prerelease\":false}")
@@ -373,7 +399,7 @@ jobs:
             GEM_NAME=$(basename "$GEM_FILE")
             UPLOAD_RESPONSE=$(curl -s \
               -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Authorization: token ${{ secrets.GH_PAT }}" \
               -H "Content-Type: application/octet-stream" \
               --data-binary "@$GEM_FILE" \
               "${UPLOAD_URL}?name=$GEM_NAME")
@@ -389,4 +415,4 @@ jobs:
           RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}

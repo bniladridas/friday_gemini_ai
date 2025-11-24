@@ -1,13 +1,12 @@
 ---
-name: Manual Code Suggestions
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
+name: Analysis
 
 on:
-  workflow_dispatch:
-    inputs:
-      files:
-        description: 'Files to analyze (comma-separated, e.g., src/*.js,*.py)'
-        required: false
-        default: '**/*.js,**/*.ts,**/*.py,**/*.rb'
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
@@ -16,13 +15,14 @@ permissions:
 
 jobs:
   analyze:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 18
 
@@ -31,7 +31,6 @@ jobs:
 
       - name: Run manual fix analysis
         run: |
-          FILES="${{ github.event.inputs.files }}"
-          node harperbot/manual-fix.js $FILES
+          node harperbot/manual.js "**/*.js,**/*.ts,**/*.py,**/*.rb"
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

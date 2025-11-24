@@ -1,5 +1,8 @@
 ---
-name: Code Suggestions Bot
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
+name: Suggestions
 
 on:
   pull_request:
@@ -15,12 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 18
 
@@ -30,7 +33,7 @@ jobs:
       - name: Run code suggestions script
         id: suggestions
         run: |
-          node harperbot/check-code-suggestions.js > suggestions-report.json || true
+          node harperbot/suggestions.js > suggestions-report.json || true
           cat suggestions-report.json
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -46,7 +49,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Create PR review comments with code suggestions
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const report = JSON.parse(process.env.REPORT || '{}')
@@ -81,13 +84,12 @@ jobs:
                     repo: context.repo.repo,
                     pull_number: context.issue.number,
                     body: `Code suggestion for ${item.file}`,
-                    event: 'COMMENT',
                     comments: [
                       {
                         path: item.file,
                         side: 'RIGHT',
                         line: item.line,
-                        body: `\`\`\`suggestion\n${item.suggestion}\n\`\`\``
+                        body: `Suggested improvement:\n\n\`\`\`suggestion\n${item.suggestion}\n\`\`\``
                       }
                     ]
                   })
