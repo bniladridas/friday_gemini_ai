@@ -670,37 +670,7 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
     """
     Post inline code suggestions as a pull request review.
     """
-    if not suggestions:
-        return
-    comments = []
-    for file_path, line_str, suggestion in suggestions:
-        try:
-            line = int(line_str)
-            comments.append(
-                {
-                    "path": file_path,
-                    "line": line,
-                    "side": "RIGHT",
-                    "body": f"```suggestion\n{suggestion}\n```",
-                }
-            )
-        except ValueError as e:
-            logging.error(f"Invalid line number '{line_str}': {e}")
-    try:
-        pr.create_review(commit=pr_details["head_sha"], comments=comments, event="COMMENT")
-        logging.info(f"Posted {len(comments)} inline suggestions")
-    except Exception as e:
-        logging.error(f"Error posting review with suggestions: {str(e)}")
-
-
-def post_comment(github_token, repo_name, pr_details, analysis):
-    """
-    Post analysis comment and inline suggestions.
-
-    Creates a main comment with the analysis summary, and posts
-    code suggestions as inline review comments. Optionally applies
-    suggestions directly or creates improvement PRs.
-    """
+    # FIXME: remove this test comment
     try:
         config = load_config()
         g = Github(auth=Auth.Token(github_token))
