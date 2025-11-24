@@ -113,8 +113,8 @@ async function main() {
   const suggestions = [
     {
       file: '.github/workflows/code-suggestions.yml',
-      line: 10,
-      suggestion: 'fetch-depth: 2'
+      line: 20,
+      suggestion: '          fetch-depth: 2'
     }
   ];
   console.log(JSON.stringify({ suggestions }));
