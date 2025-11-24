@@ -90,7 +90,7 @@ jobs:
                         path: item.file,
                         side: 'RIGHT',
                         line: item.line,
-                        body: `\`\`\`suggestion\n${item.suggestion}\n\`\`\``
+                        body: `Suggested improvement:\n\n\`\`\`suggestion\n${item.suggestion}\n\`\`\``
                       }
                     ]
                   })
