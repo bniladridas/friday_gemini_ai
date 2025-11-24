@@ -44,42 +44,20 @@ improvement_branch_pattern: "harperbot-improvements-{timestamp}"
 # AI analysis prompt template
 # Customize the prompt to change how HarperBot analyzes code
 prompt: |
-  **Files Changed** ({num_files}):
-  {files_list}
+  Analyze the following code changes for improvements. Focus on code quality, best practices, performance, and correctness.
 
+  Changed files:
+  {files}
+
+  Diff:
+  {diff}
+
+  Provide specific code suggestions as diff blocks in the format:
   ```diff
-  {diff_content}
+  file_path
+  @@ -line_start,count +line_start,count @@
+  - old code
+  + new code
   ```
 
-  {focus_instruction}
-
-  Provide a concise code review analysis in this format:
-
-  ## Summary
-  [Brief overview of changes and purpose]
-
-  ### Scores
-  - Code Quality: [score]/10
-  - Maintainability: [score]/10
-  - Security: [score]/10
-
-  ### Strengths
-  - [Key positives]
-  - [What's working well]
-
-  ### Areas Needing Attention
-  - [Potential issues or improvements]
-  - [Be specific and constructive]
-
-  ### Recommendations
-  - [Specific suggestions for code, docs, or tests]
-
-   ### Code Suggestions
-   - [ALWAYS provide 2-3 specific code improvements as diff blocks]
-   - [REQUIRED: Use ```diff format for each suggestion]
-   - [Focus on: naming, performance, best practices, type hints, documentation]
-   - [Include specific line numbers and be very detailed]
-   - [Each suggestion must be complete and immediately applicable]
-
-  ### Next Steps
-  - [Actionable items for the author]
+  Suggestions should be actionable and include line numbers.
