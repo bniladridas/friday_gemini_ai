@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
 """
 HarperBot Apply Module
 Handles user-approved application of code suggestions, committed as HarperBot.

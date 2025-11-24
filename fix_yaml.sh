@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 friday_gemini_ai
+
 #!/bin/bash
 
 # Script to fix common yamllint errors in .github/ directory
