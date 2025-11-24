@@ -31,16 +31,30 @@ function readFileContent(file) {
   }
 }
 
+function getFilesWithExt(dir, ext) {
+  const files = [];
+  try {
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+    for (const item of items) {
+      const fullPath = path.join(dir, item.name);
+      if (item.isDirectory() && !item.name.startsWith('.')) { // Skip hidden dirs
+        files.push(...getFilesWithExt(fullPath, ext));
+      } else if (item.isFile() && item.name.endsWith('.' + ext)) {
+        files.push(fullPath);
+      }
+    }
+  } catch (e) {
+    // Ignore errors for inaccessible dirs
+  }
+  return files;
+}
+
 function expandGlobs(patterns) {
-  // Simple glob expansion for common patterns
   const files = [];
   for (const pattern of patterns) {
-    if (pattern.includes('*')) {
-      // For simplicity, handle **/*.ext
+    if (pattern.startsWith('**/*.')) {
       const ext = pattern.split('.').pop();
-      // This is a placeholder; in real implementation, use a glob library
-      console.log(`Note: Glob expansion not fully implemented. Analyzing ${pattern} as example.`);
-      files.push(`example.${ext}`);
+      files.push(...getFilesWithExt('.', ext));
     } else {
       files.push(pattern);
     }
