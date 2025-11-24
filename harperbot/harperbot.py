@@ -692,7 +692,6 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
             data = {
                 "commit_id": pr_details["head_sha"],
                 "body": f"Code suggestion for {comment['path']}",
-                "event": "COMMENT",
                 "comments": [comment],
             }
             response = requests.post(url, headers=headers, json=data)
