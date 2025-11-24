@@ -671,7 +671,8 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token):
     Post inline code suggestions as a pull request review.
     """
     try:
-        pr.create_review(commit=pr_details["head_sha"], comments=suggestions)
+        commit = pr.get_commit(pr_details["head_sha"])
+        pr.create_review(commit=commit, comments=suggestions)
         logging.info(f"Posted {len(suggestions)} inline suggestions")
     except Exception as e:
         logging.error(f"Error posting review with suggestions: {str(e)}")
