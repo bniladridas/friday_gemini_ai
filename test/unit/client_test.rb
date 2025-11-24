@@ -8,6 +8,8 @@ require 'minitest/autorun'
 # require 'webmock/minitest'
 require 'mocha/minitest'
 
+# Test comment for Harperbot PR testing
+
 # Include the necessary assertion methods
 module Minitest
   module Assertions
