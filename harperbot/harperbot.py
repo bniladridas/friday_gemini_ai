@@ -381,15 +381,28 @@ def parse_diff_for_suggestions(diff_text):
     file_path = lines[0][6:]  # --- a/file
     hunk_start = None
     suggestion_lines = []
+    current_line = 0
+    line_num = 0
     for line in lines:
         if line.startswith("@@"):
             match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
             if match:
                 hunk_start = int(match.group(1))
-        elif line.startswith("+") and hunk_start is not None:
-            suggestion_lines.append(line[1:])  # remove +
-    if hunk_start is not None and suggestion_lines:
-        return file_path, hunk_start, "\n".join(suggestion_lines)
+                current_line = hunk_start
+        elif hunk_start is not None:
+            if line.startswith("+"):
+                if not suggestion_lines:  # First + line
+                    line_num = current_line
+                suggestion_lines.append(line[1:])  # remove +
+                current_line += 1
+            elif line.startswith("-"):
+                # Removed line, no change to current_line
+                pass
+            else:
+                # Context line
+                current_line += 1
+    if suggestion_lines:
+        return file_path, line_num, "\n".join(suggestion_lines)
     return None
 
 
