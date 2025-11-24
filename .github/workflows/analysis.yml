@@ -5,12 +5,8 @@
 name: Analysis
 
 on:
-  workflow_dispatch:
-    inputs:
-      files:
-        description: 'Files to analyze (comma-separated, e.g., src/*.js,*.py)'
-        required: false
-        default: '**/*.js,**/*.ts,**/*.py,**/*.rb'
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
@@ -34,7 +30,6 @@ jobs:
 
       - name: Run manual fix analysis
         run: |
-          FILES="${{ github.event.inputs.files }}"
-          node harperbot/manual.js $FILES
+          node harperbot/manual.js "**/*.js,**/*.ts,**/*.py,**/*.rb"
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
