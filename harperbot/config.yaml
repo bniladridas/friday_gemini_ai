@@ -60,4 +60,4 @@ prompt: |
   + new code
   ```
 
-  Suggestions should be actionable and include line numbers.
+  Only suggest changes to lines that are modified in the diff. Suggestions should be actionable and include accurate line numbers from the diff.
