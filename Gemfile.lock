@@ -13,7 +13,7 @@ GEM
       bundler (>= 1.2.0)
       thor (~> 1.0)
     csv (3.3.5)
-    dotenv (2.8.1)
+    dotenv (3.2.0)
     httparty (0.23.2)
       csv
       mini_mime (>= 1.0.0)
@@ -36,7 +36,7 @@ DEPENDENCIES
   base64
   bigdecimal (~> 3.3)
   bundler-audit (~> 0.9)
-  dotenv (~> 2.8)
+  dotenv (~> 3.2)
   friday_gemini_ai!
   minitest (~> 5.0)
   mocha (~> 2.7)
