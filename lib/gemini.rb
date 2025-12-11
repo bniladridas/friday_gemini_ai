@@ -9,6 +9,7 @@ require_relative 'core/errors'
 require_relative 'core/client'
 require_relative 'utils/loader'
 require_relative 'utils/logger'
+require_relative 'mac/mac_utils'
 
 module GeminiAI
   # Convenience method to create a new client
