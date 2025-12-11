@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2025 friday_gemini_ai
 
+require 'rbconfig'
+
 module GeminiAI
   module MacUtils
     def self.mac?
-      RUBY_PLATFORM.include?('darwin')
+      RbConfig::CONFIG['host_os'] =~ /darwin/
     end
 
     def self.version
