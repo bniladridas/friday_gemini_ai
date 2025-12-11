@@ -10,7 +10,7 @@ module GeminiAI
     end
 
     def self.version
-      `sw_vers -productVersion`.strip if mac?
+      `/usr/bin/sw_vers -productVersion`.strip if mac?
     end
   end
 end
