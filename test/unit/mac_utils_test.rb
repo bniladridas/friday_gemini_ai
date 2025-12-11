@@ -19,12 +19,8 @@ class MacUtilsTest < Minitest::Test
 
   def test_version_nil_on_non_mac
     # Mock non-mac platform
-    original_platform = RUBY_PLATFORM
-    RUBY_PLATFORM = 'linux'
-    begin
+    stub_const(:RUBY_PLATFORM, 'linux') do
       assert_nil GeminiAI::MacUtils.version
-    ensure
-      RUBY_PLATFORM = original_platform
     end
   end
 end
