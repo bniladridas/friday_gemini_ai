@@ -17,12 +17,3 @@ class MacUtilsTest < Minitest::Test
     assert_match(/\d+\.\d+/, version)
   end
 end
-
-  def test_version_retrieval
-    # This test assumes it's running on macOS
-    version = GeminiAI::MacUtils.version
-    assert version.is_a?(String)
-    assert_match(/\d+\.\d+/, version)
-  end
-
-end
