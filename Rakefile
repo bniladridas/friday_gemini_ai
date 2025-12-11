@@ -38,7 +38,7 @@ def configure_test_task(task, with_coverage: true)
 
   task.test_files = test_files
   task.warning = true
-  task.verbose = true
+  task.verbose = false
 
   # Set up environment
   if with_coverage
@@ -60,8 +60,12 @@ end
 
 # Test task with coverage
 Rake::TestTask.new(:test) do |t|
-  configure_test_task(t, with_coverage: true)
-  t.description = 'Run all tests with coverage'
+  configure_test_task(t, with_coverage: false)
+  t.description = 'Run unit tests without coverage'
+  # Only unit tests
+  t.test_files = FileList[
+    'test/unit/**/*.rb'
+  ].exclude('test/unit/test_helper.rb')
 end
 
 # Test task without coverage (faster for CI)
