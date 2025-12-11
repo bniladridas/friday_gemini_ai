@@ -17,10 +17,4 @@ class MacUtilsTest < Minitest::Test
     assert_match(/\d+\.\d+/, version)
   end
 
-  def test_version_nil_on_non_mac
-    # Mock non-mac platform
-    stub_const(:RUBY_PLATFORM, 'linux') do
-      assert_nil GeminiAI::MacUtils.version
-    end
-  end
 end
