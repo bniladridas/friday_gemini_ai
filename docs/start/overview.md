@@ -27,11 +27,11 @@ Comprehensive error handling, detailed logging, and intuitive CLI tools for test
 
 ```
 Friday Gemini AI
-├── Core Client (src/core/)
+├── Core Client (lib/core/)
 │   ├── HTTP API communication
 │   ├── Request/response handling
 │   └── Error management
-├── Utilities (src/utils/)
+├── Utilities (lib/utils/)
 │   ├── Environment loading
 │   └── Secure logging
 ├── CLI Interface (bin/)
@@ -57,14 +57,14 @@ Friday Gemini AI
    - Add it to your environment
 
 3. **Start generating**
-   ```ruby
-   require_relative 'src/gemini_ai'
-   GeminiAI.load_env
+```ruby
+require 'friday_gemini_ai'
+GeminiAI.load_env
 
-   client = GeminiAI::Client.new
-   response = client.generate_text("Hello, AI!")
-   puts response
-   ```
+client = GeminiAI::Client.new
+response = client.generate_text("Hello, AI!")
+puts response
+```
 
 ## Use Cases
 
