@@ -3,7 +3,7 @@
 
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+require 'test_helper'
 
 class GeminiTest < Minitest::Test
   def setup

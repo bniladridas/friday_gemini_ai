@@ -3,10 +3,7 @@
 
 # frozen_string_literal: true
 
-require_relative '../test_helper'
-require 'minitest/autorun'
-# require 'webmock/minitest'
-require 'mocha/minitest'
+require 'test_helper'
 
 # Include the necessary assertion methods
 module Minitest
