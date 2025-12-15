@@ -3,7 +3,7 @@
 
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+require 'test_helper'
 
 class ClientEdgeCasesTest < Minitest::Test
   def setup

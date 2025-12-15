@@ -3,7 +3,7 @@
 
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+require 'test_helper'
 
 # Module to encapsulate common test logic for model testing
 module ModelTestHelper

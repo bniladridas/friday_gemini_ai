@@ -38,6 +38,7 @@ DEPENDENCIES
   bundler-audit (~> 0.9)
   dotenv (~> 3.2)
   friday_gemini_ai!
+  httparty (>= 0.21, < 0.24)
   minitest (~> 5.0)
   mocha (~> 2.7)
   rake (~> 13.3.1)

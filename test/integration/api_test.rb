@@ -3,11 +3,7 @@
 
 # frozen_string_literal: true
 
-require 'minitest/autorun'
-# require 'webmock/minitest'
-require 'mocha/minitest'
-require_relative '../../lib/gemini'
-require_relative '../test_helper'
+require 'test_helper'
 
 class TestAPI < Minitest::Test
   def setup
