@@ -8,7 +8,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     base64 (0.3.0)
-    bigdecimal (3.3.1)
+    bigdecimal (4.0.1)
     bundler-audit (0.9.3)
       bundler (>= 1.2.0)
       thor (~> 1.0)
@@ -22,8 +22,7 @@ GEM
     minitest (5.27.0)
     mocha (2.8.2)
       ruby2_keywords (>= 0.0.5)
-    multi_xml (0.7.1)
-      bigdecimal (~> 3.1)
+    multi_xml (0.6.0)
     rake (13.3.1)
     ruby2_keywords (0.0.5)
     thor (1.4.0)
@@ -34,7 +33,7 @@ PLATFORMS
 
 DEPENDENCIES
   base64
-  bigdecimal (~> 3.3)
+  bigdecimal (~> 4.0)
   bundler-audit (~> 0.9)
   dotenv (~> 3.2)
   friday_gemini_ai!
