@@ -14,7 +14,7 @@ group :development, :test do
    # gem 'rubocop', '~> 1.72.1', require: false
 end
 
-gem "mocha", "~> 2.7", groups: [:development, :test]
+gem "mocha", "~> 3.0", groups: [:development, :test]
 gem 'httparty', '>= 0.21', '< 0.24', groups: [:development, :test]
 # gem "minitest-reporters", "1.5.0", :groups => [:development, :test]
 # gem "webmock", "~> 3.19", :groups => [:test]
