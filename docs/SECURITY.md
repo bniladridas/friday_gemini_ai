@@ -99,7 +99,7 @@ For the latest security advisories, please check our [GitHub Security Advisories
 
 ---
 
-*Last Updated: 2025-08-31*
+*Last Updated: 2025-12-30*
 
 ---
 

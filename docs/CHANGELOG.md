@@ -5,51 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## [Unreleased]
 
-## [0.1.6] - 2025-10-07
-
 ### Added
 
-- PR reviews with Gemini AI
-- PR Bot script
-- Documentation updates
-- Changelog generation
-- Contributor recognition
-- End-to-end tests with real API integration
-- Dedicated e2e CI workflow
-- Windows CI support
-- E2E tests documentation
-
-### Changed
-
-- RuboCop configuration
-- Method naming
-- Predicate methods renamed
-- README updated
-- Git configuration
-- Repository checkout
-- Release notes formatting
-- Changes organization
-
-### Fixed
-
-- RuboCop offenses
-- Code style consistency
-- Git ownership issues
-- Workflow syntax
-- HarperBot model updated to gemini-2.5-flash for compatibility
-- Security workflow gitleaks license requirement removed
-- CI bundler installation issues resolved by configuring Bundler to use vendor/bundle path
-- Development dependencies restored: minitest-reporters
-- rubocop, simplecov, redcarpet, github-markup, webmock temporarily removed due to native extension compilation issues in CI
-- Tests updated to work without webmock using HTTParty stubbing (123 tests, 165 assertions, all passing)
-- Test infrastructure completely overhauled to prevent real API calls during testing
-- HTTParty stubbing implemented for reliable CI testing without external dependencies
-
-### Security
-
-- TBD
-
----
+- MkDocs documentation site with comprehensive guides and references
+- HarperBot documentation integrated into docs
 
 ## [0.1.5] – 2025-08-24
 

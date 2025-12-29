@@ -1,118 +1,106 @@
 # Quickstart
 
-Get started with Friday Gemini AI in under 5 minutes.
-
-> [!NOTE]
-> This guide assumes you have basic Ruby knowledge. For detailed API documentation, see the [API Reference](../reference/api.md).
+Get started with Friday Gemini AI in minutes.
 
 ## Prerequisites
 
-| Requirement | Details |
-| ----------- | ------- |
-| Ruby | 2.6 or higher |
-| Google AI API Key | From [Google AI Studio](https://makersuite.google.com/app/apikey) |
+- Ruby 2.6 or higher
+- Google AI API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 
-## Step 1: Installation
+## Installation
+
+Install the gem:
 
 ```bash
 gem install friday_gemini_ai
 ```
 
-Or add to your Gemfile:
+Or add to Gemfile:
+
 ```ruby
 gem 'friday_gemini_ai'
 ```
 
-## Step 2: Get API Key
+## Get API Key
 
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy your API key (starts with `AIza...`)
+1. Visit Google AI Studio
+2. Sign in with Google account
+3. Create API key
+4. Copy the key (starts with `AIza...`)
 
-## Step 3: Set Up Environment
+## Setup Environment
 
-Create a `.env` file in your project root:
+Create `.env` file:
+
 ```bash
 echo "GEMINI_API_KEY=your_api_key_here" > .env
 ```
 
-Replace `your_api_key_here` with your actual API key.
+Replace with your actual key.
 
-## Step 4: First Request
+## First Request
 
-Create a Ruby file and add:
+Create a Ruby file:
 
 ```ruby
-require_relative 'src/gemini'
+require 'friday_gemini_ai'
 
-# Load environment variables
-GeminiAI.load_env
-
-# Create client
 client = GeminiAI::Client.new
-
-# Generate text
-response = client.generate_text("Write a haiku about programming")
+response = client.generate_text("Hello, world!")
 puts response
 ```
 
 Run it:
+
 ```bash
 ruby your_file.rb
 ```
 
-## Step 5: Test CLI
+## Test CLI
 
-Test your setup with the CLI:
+Test with CLI:
+
 ```bash
 ./bin/gemini test
 ```
 
-You should see:
-```
-Test successful!
-Response: Connection successful!
-```
+Should show success message.
 
-## Quick Examples
+## Examples
 
-### Generate Creative Content
+Creative content:
+
 ```ruby
 response = client.generate_text(
-  "Write a short story about a robot learning to paint",
-  temperature: 0.8,
-  max_tokens: 200
+  "Write a story",
+  temperature: 0.8
 )
 ```
 
-### Have a Conversation
+Conversation:
+
 ```ruby
 messages = [
-  { role: 'user', content: 'What is Ruby?' },
-  { role: 'model', content: 'Ruby is a programming language.' },
-  { role: 'user', content: 'What makes it special?' }
+  { role: 'user', content: 'What is Ruby?' }
 ]
-
 response = client.chat(messages)
 ```
 
-### Interactive CLI Chat
+Interactive chat:
+
 ```bash
 ./bin/gemini chat
 ```
 
 ## Common Issues
 
-| Issue | Solution |
-| ----- | -------- |
-| "API key is required" | Ensure your `.env` file exists and contains `GEMINI_API_KEY=AIza...` |
-| "Invalid API key format" | Check that your API key starts with `AIza` and has no extra spaces |
-| Permission errors on CLI | Make the CLI executable: `chmod +x bin/gemini` |
+- API key required: Check `.env` file
+- Invalid key: Ensure starts with `AIza`
+- CLI permission: Run `chmod +x bin/gemini`
 
 ## Next Steps
 
-- [Usage Guide](../reference/usage.md) - Comprehensive examples and patterns
-- [API Reference](../reference/api.md) - Complete method documentation
-- [Models Guide](../reference/models.md) - Understanding different Gemini models
-- [Error Handling](../guides/troubleshoot.md) - Common issues and solutions
+- [Usage Guide](../reference/usage.md)
+- [API Reference](../reference/api.md)
+- [Models](../reference/models.md)
+- [Troubleshooting](../guides/troubleshoot.md)

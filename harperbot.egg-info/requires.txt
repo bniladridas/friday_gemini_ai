@@ -1,0 +1,7 @@
+flask
+requests
+PyGithub
+python-dotenv
+google-genai
+PyYAML
+mkdocs

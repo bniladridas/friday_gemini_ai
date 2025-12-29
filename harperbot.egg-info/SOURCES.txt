@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+harperbot/harperbot.py
+harperbot/harperbot_apply.py
+harperbot.egg-info/PKG-INFO
+harperbot.egg-info/SOURCES.txt
+harperbot.egg-info/dependency_links.txt
+harperbot.egg-info/entry_points.txt
+harperbot.egg-info/requires.txt
+harperbot.egg-info/top_level.txt
+test/test_harperbot.py

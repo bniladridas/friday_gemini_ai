@@ -5,7 +5,7 @@
 Thank you for your interest in contributing! We welcome contributions from everyone.
 
 > [!NOTE]
-> Before contributing, please read our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure your changes align with our [development practices](docs/guides/practices.md).
+> Before contributing, please read our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure your changes align with our [development practices](guides/practices.md).
 
 ## Quick Start
 
