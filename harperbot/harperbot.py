@@ -677,7 +677,13 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token, repo):
         commit = repo.get_commit(pr_details["head_sha"])
         review_comments = []
         for file_path, line, suggestion in suggestions:
-            position = find_diff_position(pr_details["diff"], file_path, int(line))
+            try:
+                line_num = int(line)
+            except (ValueError, TypeError):
+                logging.warning(f"Invalid line number format '{line}' for suggestion in '{file_path}'. Skipping.")
+                continue
+
+            position = find_diff_position(pr_details["diff"], file_path, line_num)
             if position is not None:
                 body = f"```suggestion\n{suggestion}\n```"
                 review_comments.append({"path": file_path, "position": position, "body": body})
