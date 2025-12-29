@@ -6,11 +6,11 @@ We actively support the following versions of Friday Gemini AI with security upd
 
 | Version | Supported          | Security Updates Until |
 | ------- | ------------------ | ---------------------- |
-| 0.2.x   | :white_check_mark: | TBD                    |
-| 0.1.x   | :warning:          | 2024-12-31             |
+| 0.2.x   | :white_check_mark: | 2026-12-31             |
+| 0.1.x   | :warning:          | 2025-12-31             |
 | < 0.1   | :x:                | Unsupported            |
 
-> :warning: Version 0.1.x will reach end of security support on December 31, 2024.
+> :warning: Version 0.1.x will reach end of security support on December 31, 2025.
 
 ## Reporting a Vulnerability
 
@@ -27,9 +27,9 @@ Please report security issues by creating a new security advisory in our GitHub 
 To help us triage and fix the issue, please include the following information:
 
 1. **Project Information**
-   - Affected component/package
-   - Version number(s) affected
-   - Environment details (OS, Ruby version, etc.)
+    - Affected component/package
+    - Version number(s) affected
+    - Environment details (OS, Ruby/Python versions, etc.)
 
 2. **Vulnerability Details**
    - Type of vulnerability (XSS, CSRF, RCE, etc.)
@@ -69,12 +69,14 @@ To help us triage and fix the issue, please include the following information:
 
 Security updates are typically released as patch versions (e.g., 1.2.3 → 1.2.4). We recommend always using the latest patch version of your chosen minor version.
 
+**Note**: Security support timelines are subject to change based on project needs and community feedback.
+
 ### Security Best Practices
 
 1. **Dependencies**
-   - Keep all dependencies up to date
-   - Use `bundle audit` to check for vulnerable dependencies
-   - Enable Dependabot for automated dependency updates
+    - Keep all dependencies up to date
+    - Use `bundle audit` for Ruby gems and `pip-audit` or `safety` for Python packages to check for vulnerabilities
+    - Enable Dependabot for automated dependency updates
 
 2. **Configuration**
    - Use environment variables for sensitive data
@@ -125,9 +127,9 @@ We appreciate security researchers who help keep our users safe. With your permi
    - Use least-privilege access
 
 2. **Dependencies**
-   - Keep the gem updated to the latest version
-   - Monitor for security advisories
-   - Use `bundle audit` to check for vulnerabilities
+    - Keep the gem and packages updated to the latest versions
+    - Monitor for security advisories
+    - Use `bundle audit` for Ruby and `pip-audit` for Python to check for vulnerabilities
 
 3. **Input Validation**
    - Validate and sanitize user inputs before sending to AI
@@ -143,9 +145,9 @@ We appreciate security researchers who help keep our users safe. With your permi
    - Implement proper error handling
 
 2. **Dependencies**
-   - Regularly update dependencies
-   - Use `bundler-audit` in CI/CD
-   - Monitor security advisories
+    - Regularly update dependencies
+    - Use `bundler-audit` for Ruby and security scanners for Python in CI/CD
+    - Monitor security advisories
 
 ## Security Features
 
