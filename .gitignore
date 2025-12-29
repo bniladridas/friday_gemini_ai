@@ -25,6 +25,9 @@
 /test/version_tmp/
 /tmp/
 
+# Python specific
+*.egg-info/
+
 # Temporary files
 *.swp
 .DS_Store
