@@ -246,8 +246,8 @@ def analyze_with_gemini(client, pr_details):
             contents=formatted_prompt,
             config=genai.GenerateContentConfig(
                 temperature=temperature,
-                top_p=0.95,
-                top_k=40,
+                top_p=config.get("top_p", 0.95),
+                top_k=config.get("top_k", 40),
                 max_output_tokens=max_output_tokens,
                 safety_settings=[
                     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
