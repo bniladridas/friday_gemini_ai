@@ -7,10 +7,9 @@ We actively support the following versions of Friday Gemini AI with security upd
 | Version | Supported          | Security Updates Until |
 | ------- | ------------------ | ---------------------- |
 | 0.2.x   | :white_check_mark: | TBD                    |
-| 0.1.x   | :warning:          | 2024-12-31             |
-| < 0.1   | :x:                | Unsupported            |
+| 0.1.x   | :warning:          | 2025-12-31             |
 
-> :warning: Version 0.1.x will reach end of security support on December 31, 2024.
+> :warning: Version 0.1.x will reach end of security support on December 31, 2025.
 
 ## Reporting a Vulnerability
 
