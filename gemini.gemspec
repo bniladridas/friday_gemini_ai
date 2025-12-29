@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name        = 'friday_gemini_ai'
-  spec.version     = '0.1.7'
+  spec.version     = '0.1.5'
   spec.authors     = ['Niladri Das']
   spec.email       = ['bniladridas@gmail.com']
   spec.summary     = "A Ruby gem for interacting with Google's Gemini AI models"

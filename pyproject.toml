@@ -14,7 +14,9 @@ dependencies = [
     "PyGithub",
     "python-dotenv",
     "google-genai",
-    "PyYAML"
+    "PyYAML",
+    "mkdocs",
+    "mkdocs-include-markdown-plugin"
 ]
 
 [project.scripts]

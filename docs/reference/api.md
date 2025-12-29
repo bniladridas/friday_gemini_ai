@@ -1,11 +1,6 @@
-# Friday Gemini AI - API Reference
+# API Reference
 
-## Overview
-
-This document describes the API for the Friday Gemini AI Ruby gem, which provides a Ruby interface to Google's Gemini AI models.
-
-> [!NOTE]
-> This reference covers the public API. For internal implementation details, see the source code.
+Ruby interface to Google's Gemini AI models.
 
 ## Installation
 
@@ -13,7 +8,8 @@ This document describes the API for the Friday Gemini AI Ruby gem, which provide
 gem install friday_gemini_ai
 ```
 
-Or in your Gemfile:
+Or in Gemfile:
+
 ```ruby
 gem 'friday_gemini_ai'
 ```
@@ -21,82 +17,56 @@ gem 'friday_gemini_ai'
 ## Quick Start
 
 ```ruby
-require_relative 'src/gemini'
+require 'friday_gemini_ai'
 
-# Load environment variables (if using .env file)
-GeminiAI.load_env
-
-# Create client
 client = GeminiAI::Client.new
-
-# Generate text
 response = client.generate_text("Hello, world!")
 puts response
 ```
 
-## Classes
+## Client Class
 
-### `GeminiAI::Client`
-
-Main client class for interacting with Gemini AI API.
-
-#### Constructor
+### Constructor
 
 ```ruby
 GeminiAI::Client.new(api_key = nil, model: :pro)
 ```
 
-**Parameters:**
+Parameters:
+- `api_key`: API key string (optional, uses ENV if not provided)
+- `model`: Model symbol (optional, default :pro)
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| `api_key` | String, optional | API key for Gemini AI. If not provided, uses `ENV['GEMINI_API_KEY']` |
-| `model` | Symbol, optional | Model to use. Options: `:pro`, `:flash`, `:flash_lite`. Default: `:pro` |
+Examples:
 
-**Example:**
 ```ruby
-# Use environment variable
 client = GeminiAI::Client.new
-
-# Specify API key
-client = GeminiAI::Client.new('your_api_key_here')
-
-# Use different model
-client = GeminiAI::Client.new(model: :flash_lite)
+client = GeminiAI::Client.new('your_key')
+client = GeminiAI::Client.new(model: :flash)
 ```
 
-#### Methods
+### Methods
 
-##### `generate_text(prompt, options = {})`
+#### generate_text(prompt, options = {})
 
-Generate text from a prompt.
+Generate text from prompt.
 
-**Parameters:**
-- `prompt` (String): Text prompt for generation
-- `options` (Hash, optional): Generation options
+Parameters:
+- `prompt`: String prompt
+- `options`: Hash of options
 
-**Options:**
+Options:
+- `temperature`: Float (0.0-1.0, default 0.7)
+- `max_tokens`: Integer (default 1024)
+- `top_p`: Float (default 0.9)
+- `top_k`: Integer (default 40)
 
-| Option | Type | Description | Default |
-| ------ | ---- | ----------- | ------- |
-| `temperature` | Float | Controls randomness (0.0-1.0) | 0.7 |
-| `max_tokens` | Integer | Maximum tokens to generate | 1024 |
-| `top_p` | Float | Nucleus sampling parameter | 0.9 |
-| `top_k` | Integer | Top-k sampling parameter | 40 |
+Returns: String response
 
-**Returns:** String - Generated text response
+Examples:
 
-**Example:**
 ```ruby
-# Basic usage
-response = client.generate_text("Write a haiku about Ruby")
-
-# With custom parameters
-response = client.generate_text(
-  "Explain quantum computing",
-  temperature: 0.3,
-  max_tokens: 200
-)
+response = client.generate_text("Write a haiku")
+response = client.generate_text("Explain AI", temperature: 0.3)
 ```
 
 ##### `chat(messages, options = {})`

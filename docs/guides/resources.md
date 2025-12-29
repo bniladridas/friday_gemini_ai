@@ -13,8 +13,8 @@ Additional resources, links, and references for Friday Gemini AI.
 ### Friday Gemini AI Documentation
 - [GitHub Repository](https://github.com/your-username/friday_gemini_ai) - Source code and issues
 - [RubyGems Page](https://rubygems.org/gems/friday_gemini_ai) - Gem installation and versions
-- [API Reference](api.md) - Complete method documentation
-- [Usage Guide](usage.md) - Comprehensive examples
+- [API Reference](../reference/api.md) - Complete method documentation
+- [Usage Guide](../reference/usage.md) - Comprehensive examples
 
 ## Migration Guides
 
