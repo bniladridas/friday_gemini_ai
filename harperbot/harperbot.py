@@ -506,7 +506,10 @@ def create_commit_with_changes(repo, branch_ref, changes, commit_message):
 
         # Create new tree
         tree = repo.create_git_tree(new_blobs, base_tree=current_tree)
-        author = {"name": "HarperBot", "email": "236089746+harper-bot-glitch@users.noreply.github.com"}
+        author = {
+            "name": "HarperBot",
+            "email": "236089746+harper-bot-glitch@users.noreply.github.com",
+        }
         commit = repo.create_git_commit(commit_message, tree, [current_commit], author=author)
         branch_ref.edit(commit.sha)
         logging.info(f"Created commit with {len(changes)} file changes")
@@ -639,7 +642,7 @@ def create_improvement_pr_from_analysis(repo, pr_details, analysis, config):
         title = f"HarperBot Improvements for PR #{pr_details['number']}"
         body = f"""## HarperBot Improvement Suggestions
 
-This PR contains additional improvements suggested by HarperBot analysis of PR #{pr_details['number']}.
+This PR contains additional improvements suggested by HarperBot analysis of PR #{pr_details["number"]}.
 
 ### Analysis Summary
 {analysis[:1000]}...
@@ -672,8 +675,17 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token, repo):
     """
     try:
         commit = repo.get_commit(pr_details["head_sha"])
-        pr.create_review(commit=commit, comments=suggestions, event="COMMENT")
-        logging.info(f"Posted {len(suggestions)} inline suggestions")
+        review_comments = []
+        for file_path, line, suggestion in suggestions:
+            position = find_diff_position(pr_details["diff"], file_path, int(line))
+            if position is not None:
+                body = f"```suggestion\n{suggestion}\n```"
+                review_comments.append({"path": file_path, "position": position, "body": body})
+        if review_comments:
+            pr.create_review(commit=commit, comments=review_comments, event="COMMENT")
+            logging.info(f"Posted {len(review_comments)} inline suggestions")
+        else:
+            logging.info("No valid inline suggestions to post")
     except Exception as e:
         logging.error(f"Error posting review with suggestions: {str(e)}")
         # Don't fail the whole process for review posting errors
