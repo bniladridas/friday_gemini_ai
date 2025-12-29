@@ -1,6 +1,8 @@
 ---
 site_name: Friday Gemini AI
 docs_dir: docs
+plugins:
+  - include-markdown
 nav:
   - Home: index.md
   - Start:
@@ -26,5 +28,5 @@ nav:
       - Changelog: CHANGELOG.md
       - Contributing: CONTRIBUTING.md
       - Code of Conduct: CODE_OF_CONDUCT.md
-      - Security: SECURITY.md
+      - Security: security.md
       - Setup: SETUP.md
