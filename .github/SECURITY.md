@@ -69,23 +69,6 @@ To help us triage and fix the issue, please include the following information:
 
 Security updates are typically released as patch versions (e.g., 1.2.3 → 1.2.4). We recommend always using the latest patch version of your chosen minor version.
 
-### Security Best Practices
-
-1. **Dependencies**
-    - Keep all dependencies up to date
-    - Use `bundle audit` to check for vulnerable dependencies
-    - Enable Dependabot for automated dependency updates
-
-2. **Configuration**
-    - Use environment variables for sensitive data
-    - Follow the principle of least privilege
-    - Enable all available security features
-
-3. **Development**
-    - Run security scanners as part of your CI/CD pipeline
-    - Perform regular security audits
-    - Follow secure coding practices
-
 ### Recognition
 
 We believe in giving credit where it's due. Security researchers who report valid vulnerabilities will be:
