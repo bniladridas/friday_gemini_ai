@@ -191,6 +191,12 @@ Provide a concise code review analysis in this format:
         "create_improvement_prs": False,
         "improvement_branch_pattern": "harperbot-improvements-{timestamp}",
         "prompt": default_prompt,
+        "safety_settings": [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+        ],
     }
     config_path = os.path.join(os.path.dirname(__file__), "config.yaml")
     if os.path.exists(config_path):
@@ -213,6 +219,7 @@ def analyze_with_gemini(client, pr_details):
         max_diff = config.get("max_diff_length", 4000)
         temperature = config.get("temperature", 0.2)
         max_output_tokens = config.get("max_output_tokens", 4096)
+        safety_settings = config.get("safety_settings", [])
 
         # Auto-select model based on PR complexity
         diff_length = len(pr_details["diff"])
@@ -246,24 +253,10 @@ def analyze_with_gemini(client, pr_details):
             contents=formatted_prompt,
             config=genai.GenerateContentConfig(
                 temperature=temperature,
-                top_p=config.get("top_p", 0.95),
-                top_k=config.get("top_k", 40),
+                top_p=0.95,
+                top_k=40,
                 max_output_tokens=max_output_tokens,
-                safety_settings=[
-                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-                    {
-                        "category": "HARM_CATEGORY_HATE_SPEECH",
-                        "threshold": "BLOCK_NONE",
-                    },
-                    {
-                        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                        "threshold": "BLOCK_NONE",
-                    },
-                    {
-                        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                        "threshold": "BLOCK_NONE",
-                    },
-                ],
+                safety_settings=safety_settings,
             ),
         )
 
