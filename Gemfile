@@ -15,6 +15,6 @@ group :development, :test do
 end
 
 gem "mocha", "~> 3.0", groups: [:development, :test]
-gem 'httparty', '>= 0.21', '< 0.24', groups: [:development, :test]
+gem 'httparty', '>= 0.21', '< 0.25', groups: [:development, :test]
 # gem "minitest-reporters", "1.5.0", :groups => [:development, :test]
 # gem "webmock", "~> 3.19", :groups => [:test]
