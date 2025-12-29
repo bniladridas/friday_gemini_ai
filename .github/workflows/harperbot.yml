@@ -104,7 +104,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install Python dependencies
-          pip install --no-cache-dir PyGithub python-dotenv PyYAML google-generativeai
+          pip install --no-cache-dir PyGithub python-dotenv PyYAML google-genai
 
           # Verify installations
           python --version

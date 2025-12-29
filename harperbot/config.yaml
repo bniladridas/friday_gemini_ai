@@ -28,6 +28,19 @@ temperature: 0.2
 # Maximum length of AI response in tokens. Higher allows more detailed analysis but increases cost.
 max_output_tokens: 4096
 
+# Safety settings for AI content filtering
+# Configure thresholds: BLOCK_NONE, BLOCK_ONLY_HIGH, BLOCK_MEDIUM_AND_ABOVE, BLOCK_LOW_AND_ABOVE
+# See https://ai.google.dev/gemini-api/docs/safety-settings for details
+safety_settings:
+  - category: HARM_CATEGORY_HARASSMENT
+    threshold: BLOCK_NONE
+  - category: HARM_CATEGORY_HATE_SPEECH
+    threshold: BLOCK_NONE
+  - category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+    threshold: BLOCK_NONE
+  - category: HARM_CATEGORY_DANGEROUS_CONTENT
+    threshold: BLOCK_NONE
+
 # Enable code authoring features
 # When enabled, HarperBot can create commits, branches, and PRs with improvements
 enable_authoring: false

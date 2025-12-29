@@ -15,11 +15,10 @@ import os
 import re
 import sys
 
-import google.generativeai as genai
+import google.genai as genai
 import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
-from google.generativeai.types import GenerationConfig
 from harperbot_apply import handle_apply_comment
 
 # Flask imported conditionally for webhook mode
@@ -104,9 +103,9 @@ def setup_environment():
         logging.error("Missing required environment variables. Ensure GITHUB_TOKEN and GEMINI_API_KEY are set.")
         sys.exit(1)
 
-    # Configure Gemini API
-    genai.configure(api_key=gemini_api_key)
-    return github_token
+    # Create Gemini client
+    client = genai.Client(api_key=gemini_api_key)
+    return github_token, client
 
 
 def get_pr_details(github_token, repo_name, pr_number):
@@ -192,6 +191,12 @@ Provide a concise code review analysis in this format:
         "create_improvement_prs": False,
         "improvement_branch_pattern": "harperbot-improvements-{timestamp}",
         "prompt": default_prompt,
+        "safety_settings": [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+        ],
     }
     config_path = os.path.join(os.path.dirname(__file__), "config.yaml")
     if os.path.exists(config_path):
@@ -205,7 +210,7 @@ Provide a concise code review analysis in this format:
     return default_config
 
 
-def analyze_with_gemini(pr_details):
+def analyze_with_gemini(client, pr_details):
     """Analyze the PR using Gemini API."""
     try:
         config = load_config()
@@ -214,6 +219,7 @@ def analyze_with_gemini(pr_details):
         max_diff = config.get("max_diff_length", 4000)
         temperature = config.get("temperature", 0.2)
         max_output_tokens = config.get("max_output_tokens", 4096)
+        safety_settings = config.get("safety_settings", [])
 
         # Auto-select model based on PR complexity
         diff_length = len(pr_details["diff"])
@@ -222,8 +228,7 @@ def analyze_with_gemini(pr_details):
             model_name = "gemini-2.5-flash"  # More powerful model for complex PRs
         # For simple PRs, use the configured model (default gemini-2.0-flash)
 
-        # Initialize with selected model
-        model = genai.GenerativeModel(model_name)
+        # Use client for selected model
 
         # Prepare the prompt based on focus
         focus_instructions = {
@@ -242,29 +247,17 @@ def analyze_with_gemini(pr_details):
             focus_instruction=focus_instruction,
         )
 
-        prompt = {"role": "user", "parts": [formatted_prompt]}
-
-        # Generate content with safety settings
-        response = model.generate_content(
-            contents=[prompt],
-            generation_config=GenerationConfig(
+        # Generate content with config
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=genai.GenerateContentConfig(
                 temperature=temperature,
                 top_p=0.95,
                 top_k=40,
                 max_output_tokens=max_output_tokens,
+                safety_settings=safety_settings,
             ),
-            safety_settings=[
-                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-                {
-                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    "threshold": "BLOCK_NONE",
-                },
-                {
-                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                    "threshold": "BLOCK_NONE",
-                },
-            ],
         )
 
         # Handle different response formats
@@ -506,7 +499,10 @@ def create_commit_with_changes(repo, branch_ref, changes, commit_message):
 
         # Create new tree
         tree = repo.create_git_tree(new_blobs, base_tree=current_tree)
-        author = {"name": "HarperBot", "email": "236089746+harper-bot-glitch@users.noreply.github.com"}
+        author = {
+            "name": "HarperBot",
+            "email": "236089746+harper-bot-glitch@users.noreply.github.com",
+        }
         commit = repo.create_git_commit(commit_message, tree, [current_commit], author=author)
         branch_ref.edit(commit.sha)
         logging.info(f"Created commit with {len(changes)} file changes")
@@ -639,7 +635,7 @@ def create_improvement_pr_from_analysis(repo, pr_details, analysis, config):
         title = f"HarperBot Improvements for PR #{pr_details['number']}"
         body = f"""## HarperBot Improvement Suggestions
 
-This PR contains additional improvements suggested by HarperBot analysis of PR #{pr_details['number']}.
+This PR contains additional improvements suggested by HarperBot analysis of PR #{pr_details["number"]}.
 
 ### Analysis Summary
 {analysis[:1000]}...
@@ -672,8 +668,23 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token, repo):
     """
     try:
         commit = repo.get_commit(pr_details["head_sha"])
-        pr.create_review(commit=commit, comments=suggestions, event="COMMENT")
-        logging.info(f"Posted {len(suggestions)} inline suggestions")
+        review_comments = []
+        for file_path, line, suggestion in suggestions:
+            try:
+                line_num = int(line)
+            except (ValueError, TypeError):
+                logging.warning(f"Invalid line number format '{line}' for suggestion in '{file_path}'. Skipping.")
+                continue
+
+            position = find_diff_position(pr_details["diff"], file_path, line_num)
+            if position is not None:
+                body = f"```suggestion\n{suggestion}\n```"
+                review_comments.append({"path": file_path, "position": position, "body": body})
+        if review_comments:
+            pr.create_review(commit=commit, comments=review_comments, event="COMMENT")
+            logging.info(f"Posted {len(review_comments)} inline suggestions")
+        else:
+            logging.info("No valid inline suggestions to post")
     except Exception as e:
         logging.error(f"Error posting review with suggestions: {str(e)}")
         # Don't fail the whole process for review posting errors
@@ -721,13 +732,13 @@ def setup_environment_webhook(installation_id):
         logging.error("Missing required environment variables for webhook mode")
         raise ValueError("Missing required environment variables")
 
-    genai.configure(api_key=gemini_api_key)
+    client = genai.Client(api_key=gemini_api_key)
 
     # Generate installation-specific token
     auth = Auth.AppAuth(app_id, private_key)
     installation_auth = auth.get_installation_auth(installation_id)
     g = Github(auth=installation_auth)
-    return g, installation_auth.token
+    return g, installation_auth.token, client
 
 
 def get_pr_details_webhook(g, repo_name, pr_number):
@@ -839,9 +850,9 @@ def webhook_handler():
     logging.info(f"Processing PR #{pr_number} in {repo_name}")
 
     try:
-        g, installation_token = setup_environment_webhook(installation_id)
+        g, installation_token, client = setup_environment_webhook(installation_id)
         pr_details = get_pr_details_webhook(g, repo_name, pr_number)
-        analysis = analyze_with_gemini(pr_details)
+        analysis = analyze_with_gemini(client, pr_details)
         post_comment_webhook(installation_token, repo_name, pr_details, analysis)
         logging.info(f"Successfully processed PR #{pr_number}")
         return jsonify({"status": "ok"})
@@ -859,12 +870,12 @@ def main():
     args = parser.parse_args()
 
     # Setup environment and get PR details
-    github_token = setup_environment()
+    github_token, client = setup_environment()
     pr_details = get_pr_details(github_token, args.repo, args.pr)
 
     # Analyze PR with Gemini
     logging.info("Analyzing PR with Gemini...")
-    analysis = analyze_with_gemini(pr_details)
+    analysis = analyze_with_gemini(client, pr_details)
     logging.debug("Analysis response received")
     logging.debug(analysis)
 
