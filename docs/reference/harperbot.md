@@ -35,6 +35,10 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 ### Webhook Mode (Recommended)
 This is the preferred mode for new installations. It uses a centralized deployment for scalability and ease of management.
 
+1. Install the GitHub App on your repository
+2. The hosted bot automatically receives webhooks for PR events
+3. Analysis is posted directly without repository-specific setup
+
 ### Workflow Mode (Legacy)
 *This mode is deprecated in favor of Webhook Mode. Support will continue for existing users, but new features and improvements will prioritize Webhook Mode.*
 
@@ -43,11 +47,6 @@ This is the preferred mode for new installations. It uses a centralized deployme
     Or manually copy `harperbot/` and `.github/workflows/harperbot.yml` to your repository
 2. Set required secrets: `GEMINI_API_KEY`, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`
 3. When a PR is opened/updated, the workflow runs and posts analysis
-
-### Webhook Mode (Recommended)
-1. Install the GitHub App on your repository
-2. The hosted bot automatically receives webhooks for PR events
-3. Analysis is posted directly without repository-specific setup
 
 ### CLI Mode
 Run manually: `python harperbot/harperbot.py --repo owner/repo --pr 123`
