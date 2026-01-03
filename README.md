@@ -344,12 +344,14 @@ git commit -m "feat: add user authentication"
 
 ## Documentation
 
-* [Overview](docs/start/overview.md)
+* [Documentation](docs/index.md)
 * [Quickstart](docs/start/quickstart.md)
 * [API Reference](docs/reference/api.md)
 * [Cookbook](docs/reference/cookbook.md)
 * [Best Practices](docs/guides/practices.md)
-* [Changelog](CHANGELOG.md)
+* [Changelog](docs/CHANGELOG.md)
+* [Contributing](docs/CONTRIBUTING.md)
+* [Resources](docs/guides/resources.md)
 
 ## Contributing
 
