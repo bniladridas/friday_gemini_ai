@@ -6,19 +6,19 @@ class GeminiAITest < Minitest::Test
   def setup
     # IMPORTANT: Replace this with your ACTUAL API key from Google AI Studio
     @api_key = ENV['GEMINI_API_KEY'] || 'REPLACE_WITH_YOUR_ACTUAL_API_KEY'
-    
+
     # Diagnostic logging
     puts "\nDiagnostic Info:"
     puts "API Key: #{@api_key}"
     puts "Key Length: #{@api_key&.length}"
     puts "Key Starts with AIza: #{@api_key&.start_with?('AIza')}"
     puts "Key is not empty: #{!@api_key.nil? && @api_key.strip != ''}"
-    
+
     raise "GEMINI_API_KEY must be set. Please go to https://aistudio.google.com/app/apikey and create a new API key." if @api_key == 'REPLACE_WITH_YOUR_ACTUAL_API_KEY'
-    
+
     # Temporarily set environment variable
     ENV['GEMINI_API_KEY'] = @api_key
-    
+
     @client_flash = GeminiAI::Client.new
     @client_flash_lite = GeminiAI::Client.new(model: :flash_lite)
   end
@@ -30,7 +30,7 @@ class GeminiAITest < Minitest::Test
       [@client_flash_lite, 'Explain quantum computing in simple terms']
     ].each do |client, prompt|
       response = client.generate_text(prompt)
-      
+
       # Assertions
       refute_nil response, "Response should not be nil for #{client.instance_variable_get(:@model)}"
       assert response.is_a?(String), "Response should be a string for #{client.instance_variable_get(:@model)}"
@@ -48,7 +48,7 @@ class GeminiAITest < Minitest::Test
     }
 
     response = @client_flash.generate_text('Write a haiku about technology', options)
-    
+
     # Assertions
     refute_nil response, "Response should not be nil"
     assert response.is_a?(String), "Response should be a string"
@@ -76,11 +76,11 @@ class GeminiAITest < Minitest::Test
   def test_model_switching
     # Verify model switching works
     models = [:flash, :flash_lite]
-    
+
     models.each do |model|
       client = GeminiAI::Client.new(model: model)
       response = client.generate_text('What model am I using?')
-      
+
       # Assertions
       refute_nil response, "Response should not be nil for #{model}"
       assert response.is_a?(String), "Response should be a string for #{model}"

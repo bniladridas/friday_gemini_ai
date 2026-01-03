@@ -29,20 +29,20 @@ module GeminiAI
     def initialize(api_key = nil, model: :pro)
       # Prioritize passed API key, then environment variable
       @api_key = api_key || ENV['GEMINI_API_KEY']
-      
+
       # Extensive logging for debugging
       self.class.logger.debug("Initializing Client")
       self.class.logger.debug("API Key present: #{!@api_key.nil?}")
       self.class.logger.debug("API Key length: #{@api_key&.length}")
-      
+
       # Validate API key
       validate_api_key!
-      
-      @model = MODELS.fetch(model) { 
+
+      @model = MODELS.fetch(model) {
         self.class.logger.warn("Invalid model: #{model}, defaulting to pro")
-        MODELS[:pro] 
+        MODELS[:pro]
       }
-      
+
       self.class.logger.debug("Selected model: #{@model}")
     end
 
@@ -59,7 +59,7 @@ module GeminiAI
 
     def generate_image_text(image_base64, prompt, options = {})
       raise Error, "Image is required" if image_base64.nil? || image_base64.empty?
-      
+
       request_body = {
         contents: [
           { parts: [
@@ -139,9 +139,9 @@ module GeminiAI
 
       begin
         response = HTTParty.post(
-          url, 
+          url,
           body: body.to_json,
-          headers: { 
+          headers: {
             'Content-Type' => 'application/json',
             'x-goog-api-client' => 'gemini_ai_ruby_gem/0.1.0'
           },
@@ -175,10 +175,10 @@ module GeminiAI
     # Mask API key for logging and error reporting
     def mask_api_key(key)
       return '[REDACTED]' if key.nil?
-      
+
       # Keep first 4 and last 4 characters, replace middle with asterisks
       return key if key.length <= 8
-      
+
       "#{key[0,4]}#{'*' * (key.length - 8)}#{key[-4,4]}"
     end
   end

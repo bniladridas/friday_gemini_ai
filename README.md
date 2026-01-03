@@ -123,7 +123,7 @@ response = client_lite.generate_text('What is AI?')
 puts response
 
 # Use custom parameters
-response = client.generate_text('Write a haiku', 
+response = client.generate_text('Write a haiku',
   temperature: 0.3,
   max_tokens: 30,
   top_p: 0.8,

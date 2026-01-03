@@ -14,8 +14,8 @@ class GeminiAITest < Minitest::Test
   end
 
   def test_generate_text_with_options
-    response = @client.generate_text('Explain machine learning', 
-      temperature: 0.5, 
+    response = @client.generate_text('Explain machine learning',
+      temperature: 0.5,
       max_tokens: 200
     )
     refute_nil response

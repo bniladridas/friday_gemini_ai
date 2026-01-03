@@ -24,7 +24,7 @@ puts "Response: #{response}"
 
 # Test with custom parameters
 puts "\nTesting with custom parameters..."
-response = client.generate_text("Write a haiku about programming", 
+response = client.generate_text("Write a haiku about programming",
   temperature: 0.3,
   max_tokens: 30,
   top_p: 0.8,
