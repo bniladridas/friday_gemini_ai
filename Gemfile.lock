@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    friday_gemini_ai (0.1.5)
+    friday_gemini_ai (1.0.1)
       httparty (>= 0.21, < 0.25)
 
 GEM
