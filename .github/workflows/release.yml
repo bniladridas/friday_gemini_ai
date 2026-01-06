@@ -3,7 +3,7 @@
 
 ---
 name: Release
-# Automated release workflow using release-please
+# Automated release workflow
 
 on:
   push:
