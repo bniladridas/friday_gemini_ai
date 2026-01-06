@@ -4,8 +4,8 @@ Friday Gemini AI version history, compatibility, and migration information.
 
 ## Current Version
 
-### v1.0.0 (Current)
-- **Release Date**: January 2025
+### v0.1.5 (Current)
+- **Release Date**: January 2026
 - **Status**: Stable
 - **Support**: Full support and active development
 
@@ -31,8 +31,43 @@ Friday Gemini AI version history, compatibility, and migration information.
 
 ## Version History
 
-### v1.0.0 - Initial Release
-**Released**: January 2025
+### v0.1.5 - Latest Release
+**Released**: January 2026
+
+#### New Features
+- Complete Ruby interface to Gemini AI API
+- Text generation with customizable parameters
+- Chat conversation support with context
+- Multiple model selection
+- Comprehensive error handling hierarchy
+- CLI tool for testing and development
+- Environment variable and .env file support
+- Secure API key masking in logs
+- Detailed logging with configurable levels
+
+#### API Methods
+```ruby
+# Core client methods
+client = GeminiAI::Client.new
+client.generate_text(prompt, options = {})
+client.chat(messages, options = {})
+
+# Utility methods
+GeminiAI.load_env(file = '.env')
+```
+
+#### Error Classes
+```ruby
+GeminiAI::Error                 # Base error class
+GeminiAI::APIError             # API-related errors
+GeminiAI::AuthenticationError  # API key issues
+GeminiAI::RateLimitError       # Rate limiting
+GeminiAI::InvalidRequestError  # Invalid parameters
+GeminiAI::NetworkError         # Network issues
+```
+
+### v0.1.0 - Initial Release
+**Released**: January 2026
 
 #### New Features
 - Complete Ruby interface to Gemini AI API
