@@ -43,5 +43,5 @@ puts response
 - [RubyGems](https://rubygems.org/gems/friday_gemini_ai)
 - [Issues](https://github.com/bniladridas/friday_gemini_ai/issues)
 - [Discussions](https://github.com/bniladridas/friday_gemini_ai/discussions)
-- [Security](SECURITY.md)
+- [Security](../SECURITY.md)
 - [License](https://github.com/bniladridas/friday_gemini_ai/blob/main/LICENSE)
