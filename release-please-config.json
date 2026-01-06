@@ -2,7 +2,7 @@
   "packages": {
     ".": {
       "package-name": "friday_gemini_ai",
-      "changelog-path": "docs/CHANGELOG.md",
+      "changelog-path": "CHANGELOG.md",
       "release-type": "ruby"
     }
   },
