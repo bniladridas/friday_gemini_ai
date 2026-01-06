@@ -23,7 +23,7 @@ nav:
       - Models: reference/models.md
       - Testing: reference/testing.md
       - Usage: reference/usage.md
-       - Versions: reference/versions.md
+      - Versions: reference/versions.md
   - Additional:
       - Changelog: CHANGELOG.md
       - CI/CD Workflows: workflows.md
