@@ -1,0 +1,16 @@
+{
+  "packages": {
+    ".": {
+      "package-name": "friday_gemini_ai",
+      "changelog-path": "docs/CHANGELOG.md",
+      "release-type": "ruby"
+    }
+  },
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "perf", "section": "Performance Improvements" },
+    { "type": "docs", "section": "Documentation" },
+    { "type": "refactor", "section": "Code Refactoring" }
+  ]
+}
