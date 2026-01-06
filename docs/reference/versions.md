@@ -22,7 +22,6 @@ Friday Gemini AI version history, compatibility, and migration information.
 - **Ruby 3.1+** - Minimum supported version
 - **Ruby 3.1** - Fully supported
 - **Ruby 3.2** - Fully supported
-- **Ruby 3.3** - Fully supported
 
 #### Supported Gemini Models
 - **gemini-2.0-flash** - Primary model (`:flash`, `:pro`)
