@@ -3,6 +3,13 @@
 All notable changes are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
+## [1.0.1](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.0.0...friday_gemini_ai/v1.0.1) (2026-01-06)
+### Bug Fixes
+
+* add tag creation on pr merge ([e4a5abf](https://github.com/bniladridas/friday_gemini_ai/commit/e4a5abfcf0fe1583f131704c9fdfec384c7ac0ff))
+* update ci workflow indentation ([8ead6cd](https://github.com/bniladridas/friday_gemini_ai/commit/8ead6cdede4142164f34995e05df523bfe814f0b))
+* update token in changelog workflow ([ec4ebfa](https://github.com/bniladridas/friday_gemini_ai/commit/ec4ebfa98d1f56a5eb47521732e9281a0241b5e2))
+
 ## 1.0.0 (2026-01-06)
 
 
