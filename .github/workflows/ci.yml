@@ -109,45 +109,6 @@ jobs:
         continue-on-error: true
         working-directory: ${{ github.workspace }}
 
-  release:
-    name: Release
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-    needs: [test, lint]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: false
-
-      - name: Configure Bundler
-        run: bundle config set path 'vendor/bundle'
-        working-directory: ${{ github.workspace }}
-
-      - name: Build gem
-        run: |
-          mkdir -p pkg
-          gem build -o pkg/gemini-ai.gem *.gemspec
-        working-directory: ${{ github.workspace }}
-
-      - name: Publish to RubyGems
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf ":rubygems_api_key: %s\n" "${{ secrets.RUBYGEMS_API_KEY }}" > $HOME/.gem/credentials
-          gem push pkg/*.gem --verbose
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-        working-directory: ${{ github.workspace }}
-
   build:
     name: Build Gem
     runs-on: ubuntu-latest
