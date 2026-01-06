@@ -26,6 +26,7 @@ nav:
       - Versions: reference/versions.md
   - Additional:
       - Changelog: CHANGELOG.md
+      - CI/CD Workflows: guides/workflows.md
       - Contributing: CONTRIBUTING.md
       - Code of Conduct: CODE_OF_CONDUCT.md
       - Security: security.md
