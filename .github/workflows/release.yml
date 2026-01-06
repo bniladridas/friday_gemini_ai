@@ -3,6 +3,7 @@
 
 ---
 name: Release
+# Automated release workflow
 
 on:
   push:
