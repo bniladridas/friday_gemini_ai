@@ -4,7 +4,6 @@ All notable changes are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
 ## [1.0.2](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.0.1...friday_gemini_ai/v1.0.2) (2026-01-06)
-
 ### Bug Fixes
 
 * update version to 1.0.1 ([3dc02db](https://github.com/bniladridas/friday_gemini_ai/commit/3dc02db2fc2cdb76f22a01eb29659912a36287fe))
