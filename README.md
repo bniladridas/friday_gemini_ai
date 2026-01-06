@@ -349,6 +349,7 @@ git commit -m "feat: add user authentication"
 * [API Reference](docs/reference/api.md)
 * [Cookbook](docs/reference/cookbook.md)
 * [Best Practices](docs/guides/practices.md)
+* [CI/CD Workflows](docs/guides/workflows.md)
 * [Changelog](docs/CHANGELOG.md)
 * [Contributing](docs/CONTRIBUTING.md)
 * [Resources](docs/guides/resources.md)
