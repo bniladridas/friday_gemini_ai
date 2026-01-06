@@ -8,9 +8,12 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: [closed]
 
 jobs:
-  release:
+  release-pr:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
@@ -19,3 +22,15 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  release-tag:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          command: release
