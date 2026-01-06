@@ -23,7 +23,7 @@ jobs:
       - name: Fix extra blank line in CHANGELOG.md
         run: |
           # Remove extra blank line after the first version header
-          sed -i '/^## \[.*\](.*) (.*)$/{n;/^$/d;}' CHANGELOG.md
+          sed -i '/^## \[.*\](.*) (.*)$/{n;/^$/d;}' docs/CHANGELOG.md
 
       - name: Check for changes
         id: check
@@ -39,6 +39,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
+          git add docs/CHANGELOG.md
           git commit -m "fix: remove extra blank line in changelog"
           git push
