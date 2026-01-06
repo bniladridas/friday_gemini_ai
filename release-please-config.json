@@ -1,10 +1,6 @@
 {
-  "packages": {
-    ".": {
-      "changelog-path": "CHANGELOG.md",
-      "release-type": "ruby"
-    }
-  },
+  "changelog-path": "CHANGELOG.md",
+  "release-type": "ruby",
   "changelog-sections": [
     { "type": "feat", "section": "Features" },
     { "type": "fix", "section": "Bug Fixes" },
