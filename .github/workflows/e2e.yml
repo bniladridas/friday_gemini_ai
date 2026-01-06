@@ -30,6 +30,9 @@ jobs:
       - name: Configure Bundler
         run: bundle config set path 'vendor/bundle'
 
+      - name: Disable frozen mode
+        run: bundle config set frozen false
+
       - name: Install dependencies
         run: bundle install
 
