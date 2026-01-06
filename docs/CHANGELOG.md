@@ -167,7 +167,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 * update config available models to stable versions ([b9d0bc7](https://github.com/bniladridas/friday_gemini_ai/commit/b9d0bc70c77c0e1d32765f3d8675e5753df174c7))
 * update contributing and security documentation ([160444c](https://github.com/bniladridas/friday_gemini_ai/commit/160444c83cf09ae29bf88d3e443da36c2813d09f))
 * update contributing.md with new pr review process and ([ed81dc5](https://github.com/bniladridas/friday_gemini_ai/commit/ed81dc5bd0b2ca9dc34f2c2caa233a81660ba1ba))
-* update documentation for harperbot branding and featur ([ea8537a](https://github.com/bniladridas/friday_gemini_ai/commit/ea8537acd570a067aa370a8c7797366d20af8a11))
+* update documentation for harperbot branding and feature ([ea8537a](https://github.com/bniladridas/friday_gemini_ai/commit/ea8537acd570a067aa370a8c7797366d20af8a11))
 * update readme and development guide with comprehensive ([03069d4](https://github.com/bniladridas/friday_gemini_ai/commit/03069d48c1ad342bbf46f3a8a9c0a4bf1d913f8a))
 * update readme doc links ([5aa4a64](https://github.com/bniladridas/friday_gemini_ai/commit/5aa4a644944ecc91a06362c4af9991fb239a9944))
 * update readme with current github actions workflow det ([86705aa](https://github.com/bniladridas/friday_gemini_ai/commit/86705aadeffcb0739d3a6b7f8ea94a4a5d01eae8))
