@@ -182,7 +182,7 @@ Provide a concise code review analysis in this format:
 
     default_config = {
         "focus": "all",
-        "model": "gemini-2.0-flash",
+        "model": "gemini-2.5-flash-lite",
         "max_diff_length": 4000,
         "temperature": 0.2,
         "max_output_tokens": 4096,
@@ -214,7 +214,7 @@ def analyze_with_gemini(client, pr_details):
     """Analyze the PR using Gemini API."""
     try:
         config = load_config()
-        model_name = config.get("model", "gemini-2.0-flash")
+        model_name = config.get("model", "gemini-2.5-flash-lite")
         focus = config.get("focus", "all")
         max_diff = config.get("max_diff_length", 4000)
         temperature = config.get("temperature", 0.2)
@@ -226,7 +226,7 @@ def analyze_with_gemini(client, pr_details):
         num_files = len(pr_details["files_changed"])
         if diff_length > 10000 or num_files > 10:
             model_name = "gemini-2.5-flash"  # More powerful model for complex PRs
-        # For simple PRs, use the configured model (default gemini-2.0-flash)
+        # For simple PRs, use the configured model (default gemini-2.5-flash-lite)
 
         # Use client for selected model
 
