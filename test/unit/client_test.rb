@@ -929,4 +929,24 @@ class TestClient < Minitest::Test
     # Verify the redacted version is in the logs
     assert_match(/AIza\*{32}/, logs, 'Redacted API key pattern not found in logs')
   end
+
+  def test_generate_text_with_moderation
+    # Stub response with harmful content
+    harmful_response = {
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'This system could be exploited easily'
+          }]
+        }
+      }]
+    }
+    HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: harmful_response.to_json))
+
+    # Generate text with moderation enabled
+    result = @client.generate_text('test prompt', moderate: true)
+
+    # Assert harmful word is redacted
+    assert_equal 'This system could be [REDACTED]ed easily', result
+  end
 end
