@@ -13,8 +13,9 @@ module GeminiAI
       ].freeze
 
       # Moderate text by checking for harmful patterns and redacting them
+      # Returns [moderated_text, warnings_array]
       def self.moderate_text(text)
-        return text unless text.is_a?(String)
+        return [text, []] unless text.is_a?(String)
 
         moderated = text.dup
         warnings = []
@@ -25,10 +26,7 @@ module GeminiAI
           end
         end
 
-        # Log warnings if any
-        warnings.each { |w| Client.logger.warn(w) } unless warnings.empty?
-
-        moderated
+        [moderated, warnings]
       end
     end
   end

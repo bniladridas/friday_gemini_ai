@@ -132,7 +132,13 @@ module GeminiAI
     private
 
     def apply_moderation(response, options)
-      options[:moderate] ? Utils::Moderation.moderate_text(response) : response
+      if options[:moderate]
+        moderated, warnings = Utils::Moderation.moderate_text(response)
+        warnings.each { |w| logger.warn(w) } unless warnings.empty?
+        moderated
+      else
+        response
+      end
     end
 
     def resolve_model(model)
