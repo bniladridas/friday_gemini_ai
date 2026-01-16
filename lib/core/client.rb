@@ -134,7 +134,7 @@ module GeminiAI
     def apply_moderation(response, options)
       if options[:moderate]
         moderated, warnings = Utils::Moderation.moderate_text(response)
-        warnings.each { |w| logger.warn(w) } unless warnings.empty?
+        warnings.each { |w| self.class.logger.warn(w) } unless warnings.empty?
         moderated
       else
         response
