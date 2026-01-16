@@ -20,9 +20,8 @@ module GeminiAI
         warnings = []
 
         HARMFUL_PATTERNS.each do |pattern|
-          if moderated =~ pattern
+          if moderated.gsub!(pattern, '[REDACTED]')
             warnings << "Detected potentially harmful pattern: #{pattern.inspect}"
-            moderated.gsub!(pattern, '[REDACTED]')
           end
         end
 
