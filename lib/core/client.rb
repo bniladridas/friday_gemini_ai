@@ -91,9 +91,7 @@ module GeminiAI
         end
       end
 
-      response = send_request(request_body)
-      response = Utils::Moderation.moderate_text(response) if options[:moderate]
-      response
+      apply_moderation(send_request(request_body), options)
     end
 
     def generate_image_text(image_base64, prompt, options = {})
@@ -110,9 +108,7 @@ module GeminiAI
       }
 
       # Use the pro model for image-to-text tasks
-      response = send_request(request_body, model: :pro)
-      response = Utils::Moderation.moderate_text(response) if options[:moderate]
-      response
+      apply_moderation(send_request(request_body, model: :pro), options)
     end
 
     def chat(messages, options = {})
@@ -130,12 +126,14 @@ module GeminiAI
         }
       end
 
-      response = send_request(request_body)
-      response = Utils::Moderation.moderate_text(response) if options[:moderate]
-      response
+      apply_moderation(send_request(request_body), options)
     end
 
     private
+
+    def apply_moderation(response, options)
+      options[:moderate] ? Utils::Moderation.moderate_text(response) : response
+    end
 
     def resolve_model(model)
       if DEPRECATED_MODELS.key?(model)
