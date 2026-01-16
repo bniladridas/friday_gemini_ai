@@ -214,7 +214,7 @@ def analyze_with_gemini(client, pr_details):
     """Analyze the PR using Gemini API."""
     try:
         config = load_config()
-        model_name = config["model"]
+        model_name = config.get("model", "gemini-2.5-pro")
         focus = config.get("focus", "all")
         max_diff = config.get("max_diff_length", 4000)
         temperature = config.get("temperature", 0.2)
