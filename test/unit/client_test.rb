@@ -949,4 +949,84 @@ class TestClient < Minitest::Test
     # Assert harmful word is redacted
     assert_equal 'This system could be [REDACTED]ed easily', result
   end
+
+  def test_moderation_disabled
+    # Stub response with harmful content
+    harmful_response = {
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'This system could be exploited easily'
+          }]
+        }
+      }]
+    }
+    HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: harmful_response.to_json))
+
+    # Generate text with moderation disabled
+    result = @client.generate_text('test prompt', moderate: false)
+
+    # Assert no redaction occurs
+    assert_equal 'This system could be exploited easily', result
+  end
+
+  def test_moderation_clean_text
+    # Stub response with clean content
+    clean_response = {
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'This is a safe response with no issues'
+          }]
+        }
+      }]
+    }
+    HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: clean_response.to_json))
+
+    # Generate text with moderation enabled
+    result = @client.generate_text('test prompt', moderate: true)
+
+    # Assert clean text is unchanged
+    assert_equal 'This is a safe response with no issues', result
+  end
+
+  def test_moderation_multiple_harmful_words
+    # Stub response with multiple harmful words
+    multiple_harmful_response = {
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'You can hack this system or exploit vulnerabilities with malware'
+          }]
+        }
+      }]
+    }
+    HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: multiple_harmful_response.to_json))
+
+    # Generate text with moderation enabled
+    result = @client.generate_text('test prompt', moderate: true)
+
+    # Assert all harmful words are redacted
+    assert_equal 'You can [REDACTED] this system or [REDACTED] vulnerabilities with [REDACTED]', result
+  end
+
+  def test_moderation_case_insensitive
+    # Stub response with mixed case harmful words
+    case_insensitive_response = {
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'Learn to HACK and EXPLOIT systems'
+          }]
+        }
+      }]
+    }
+    HTTParty.stubs(:post).returns(Minitest::Test::MockHTTPResponse.new(status: 200, body: case_insensitive_response.to_json))
+
+    # Generate text with moderation enabled
+    result = @client.generate_text('test prompt', moderate: true)
+
+    # Assert harmful words are redacted regardless of case
+    assert_equal 'Learn to [REDACTED] and [REDACTED] systems', result
+  end
 end
