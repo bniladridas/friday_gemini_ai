@@ -9,6 +9,7 @@ require 'base64'
 require 'logger'
 require 'dotenv/load'
 require_relative 'errors'
+require_relative '../utils/moderation'
 
 module GeminiAI
   # Core client class for Gemini AI API communication
@@ -90,7 +91,7 @@ module GeminiAI
         end
       end
 
-      send_request(request_body)
+      apply_moderation(send_request(request_body), options)
     end
 
     def generate_image_text(image_base64, prompt, options = {})
@@ -107,7 +108,7 @@ module GeminiAI
       }
 
       # Use the pro model for image-to-text tasks
-      send_request(request_body, model: :pro)
+      apply_moderation(send_request(request_body, model: :pro), options)
     end
 
     def chat(messages, options = {})
@@ -125,10 +126,20 @@ module GeminiAI
         }
       end
 
-      send_request(request_body)
+      apply_moderation(send_request(request_body), options)
     end
 
     private
+
+    def apply_moderation(response, options)
+      if options[:moderate]
+        moderated, warnings = Utils::Moderation.moderate_text(response)
+        warnings.each { |w| self.class.logger.warn(w) } unless warnings.empty?
+        moderated
+      else
+        response
+      end
+    end
 
     def resolve_model(model)
       if DEPRECATED_MODELS.key?(model)
