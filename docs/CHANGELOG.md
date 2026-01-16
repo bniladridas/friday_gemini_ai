@@ -3,6 +3,16 @@
 All notable changes are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
+## [1.1.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.0.1...friday_gemini_ai/v1.1.0) (2026-01-16)
+### Features
+
+* add content moderation capability to client responses ([#130](https://github.com/bniladridas/friday_gemini_ai/issues/130)) ([6340330](https://github.com/bniladridas/friday_gemini_ai/commit/6340330e4fb2851cd8fc30479115005e1a4e724b))
+
+
+### Bug Fixes
+
+* update version to 1.0.1 ([3dc02db](https://github.com/bniladridas/friday_gemini_ai/commit/3dc02db2fc2cdb76f22a01eb29659912a36287fe))
+
 ## [1.0.1](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.0.0...friday_gemini_ai/v1.0.1) (2026-01-06)
 ### Bug Fixes
 
