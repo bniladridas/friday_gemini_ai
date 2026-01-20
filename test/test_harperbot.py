@@ -55,7 +55,7 @@ class TestHarperBot(unittest.TestCase):
         with patch("os.path.exists", return_value=False):
             config = load_config()
             self.assertEqual(config["focus"], "all")
-            self.assertEqual(config["model"], "gemini-2.0-flash")
+            self.assertEqual(config["model"], "gemini-2.5-flash")
             self.assertEqual(config["max_diff_length"], 4000)
             self.assertEqual(config["temperature"], 0.2)
             self.assertEqual(config["max_output_tokens"], 4096)
@@ -67,7 +67,7 @@ class TestHarperBot(unittest.TestCase):
         """Test successful Gemini analysis."""
         # Mock config with all required keys
         mock_load_config.return_value = {
-            "model": "gemini-2.0-flash",
+            "model": "gemini-2.5-flash",
             "focus": "all",
             "max_diff_length": 4000,
             "temperature": 0.2,

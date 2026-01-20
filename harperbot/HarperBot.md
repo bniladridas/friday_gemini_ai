@@ -22,7 +22,8 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
    - Install the app on your repository
 
 2. **Required Secrets**
-    - `GEMINI_API_KEY`: Your Google Gemini API key
+    - `GEMINI_API_KEY`: Your Google Gemini API key (global default)
+    - `HARPERBOT_GEMINI_API_KEY`: Optional per-repo override key for HarperBot
     - `HARPER_BOT_APP_ID`: The App ID from the GitHub App settings
     - `HARPER_BOT_PRIVATE_KEY`: The private key content (paste the entire .pem file content)
     - `WEBHOOK_SECRET`: A secret string for webhook signature verification (used in webhook mode)
@@ -42,12 +43,25 @@ This is the preferred mode for new installations. It uses a centralized deployme
    (Use `--update` to update existing, `--dry-run` to preview, `--repo URL` for custom source)
    Or manually copy `harperbot/` and `.github/workflows/harperbot.yml` to your repository
 2. Set required secrets: `GEMINI_API_KEY`, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`
-3. When a PR is opened/updated, the workflow runs and posts analysis
+3. When a PR is opened/reopened, the workflow runs and posts analysis
 
 ### Webhook Mode (Recommended)
 1. Install the GitHub App on your repository
 2. The hosted bot automatically receives webhooks for PR events
 3. Analysis is posted directly without repository-specific setup
+
+### Manual Analysis Trigger
+Comment `/analyze` on a PR to request a fresh analysis on demand.
+
+### Manual Merge Commands
+Comment one of the following on a PR to merge via HarperBot (requires write/admin permissions):
+- `/merge`
+- `/squash`
+- `/rebase`
+
+### Help & Notices
+- Comment `/help` to see HarperBot capabilities.
+- HarperBot posts **Notice** comments when something unusual happens (no files, empty diff, missing analysis output, permission issues, not mergeable, merge failures).
 
 ### CLI Mode
 Run manually: `python harperbot/harperbot.py --repo owner/repo --pr 123`
@@ -111,7 +125,7 @@ Authoring features require write access to repositories. Ensure proper permissio
 
 Modify `harperbot/config.yaml` to adjust:
 - Analysis focus: 'all', 'security', 'performance', 'quality'
-- Gemini model: 'gemini-2.0-flash', 'gemini-2.5-pro'
+- Gemini model: 'gemini-2.5-flash', 'gemini-2.5-pro'
 - Temperature and token limits
 - Authoring features (enable/disable auto-committing and improvement PRs)
 
