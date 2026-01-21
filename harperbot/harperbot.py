@@ -97,10 +97,12 @@ def setup_environment():
 
     # Get GitHub token and API key from environment
     github_token = os.getenv("GITHUB_TOKEN")
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    gemini_api_key = os.getenv("HARPERBOT_GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
     if not github_token or not gemini_api_key:
-        logging.error("Missing required environment variables. Ensure GITHUB_TOKEN and GEMINI_API_KEY are set.")
+        logging.error(
+            "Missing required environment variables. Ensure GITHUB_TOKEN and GEMINI_API_KEY (or HARPERBOT_GEMINI_API_KEY) are set."
+        )
         sys.exit(1)
 
     # Create Gemini client
@@ -182,7 +184,7 @@ Provide a concise code review analysis in this format:
 
     default_config = {
         "focus": "all",
-        "model": "gemini-2.0-flash",
+        "model": "gemini-2.5-flash",
         "max_diff_length": 4000,
         "temperature": 0.2,
         "max_output_tokens": 4096,
@@ -214,7 +216,7 @@ def analyze_with_gemini(client, pr_details):
     """Analyze the PR using Gemini API."""
     try:
         config = load_config()
-        model_name = config.get("model", "gemini-2.0-flash")
+        model_name = config.get("model", "gemini-2.5-flash")
         focus = config.get("focus", "all")
         max_diff = config.get("max_diff_length", 4000)
         temperature = config.get("temperature", 0.2)
@@ -226,7 +228,7 @@ def analyze_with_gemini(client, pr_details):
         num_files = len(pr_details["files_changed"])
         if diff_length > 10000 or num_files > 10:
             model_name = "gemini-2.5-flash"  # More powerful model for complex PRs
-        # For simple PRs, use the configured model (default gemini-2.0-flash)
+        # For simple PRs, use the configured model (default gemini-2.5-flash)
 
         # Use client for selected model
 
@@ -360,7 +362,10 @@ def analyze_with_gemini(client, pr_details):
             return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
         elif "api key" in error_msg or "authentication" in error_msg or "unauthorized" in error_msg:
             logging.error(f"API authentication error{context}: {str(e)}")
-            return f"Error generating analysis: Invalid API key or authentication failed{context}. Please check your GEMINI_API_KEY."
+            return (
+                "Error generating analysis: Invalid API key or authentication failed"
+                f"{context}. Please check your GEMINI_API_KEY or HARPERBOT_GEMINI_API_KEY."
+            )
         elif "model" in error_msg or "not found" in error_msg:
             logging.error(f"Model error{context}: {str(e)}")
             return f"Error generating analysis: Requested model not available{context}. Please try again later."
@@ -724,12 +729,14 @@ def setup_environment_webhook(installation_id):
     load_dotenv()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    gemini_api_key = os.getenv("HARPERBOT_GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
     app_id = os.getenv("HARPER_BOT_APP_ID")
     private_key = os.getenv("HARPER_BOT_PRIVATE_KEY")
 
     if not gemini_api_key or not app_id or not private_key:
-        logging.error("Missing required environment variables for webhook mode")
+        logging.error(
+            "Missing required environment variables for webhook mode (HARPERBOT_GEMINI_API_KEY or GEMINI_API_KEY, HARPER_BOT_APP_ID, HARPER_BOT_PRIVATE_KEY)"
+        )
         raise ValueError("Missing required environment variables")
 
     client = genai.Client(api_key=gemini_api_key)
@@ -748,7 +755,10 @@ def get_pr_details_webhook(g, repo_name, pr_number):
 
     files_changed = [f.filename for f in pr.get_files()]
 
-    diff_content = pr.get_diff()
+    # Get diff content using diff_url
+    import requests
+
+    diff_content = requests.get(pr.diff_url).text
 
     return {
         "title": pr.title,
@@ -801,11 +811,95 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
         raise
 
 
+def format_notice(title: str, details: str) -> str:
+    return f"""⚠️ **HarperBot Notice: {title}**
+
+{details}
+"""
+
+
+def post_notice_comment(github_token: str, repo_name: str, pr_number: int, title: str, details: str):
+    g = Github(github_token)
+    repo = g.get_repo(repo_name)
+    pr = repo.get_pull(pr_number)
+    pr.create_issue_comment(format_notice(title, details))
+
+
+def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int):
+    """Fetch PR details, run analysis, and post comments for a PR."""
+    g, installation_token, client = setup_environment_webhook(installation_id)
+    pr_details = get_pr_details_webhook(g, repo_name, pr_number)
+    if not pr_details.get("files_changed"):
+        post_notice_comment(
+            installation_token, repo_name, pr_number, "No files changed", "This PR has no file changes to analyze."
+        )
+        return
+    if not pr_details.get("diff"):
+        post_notice_comment(
+            installation_token, repo_name, pr_number, "Empty diff", "HarperBot could not find a diff to analyze."
+        )
+        return
+    analysis = analyze_with_gemini(client, pr_details)
+    if not analysis:
+        post_notice_comment(
+            installation_token,
+            repo_name,
+            pr_number,
+            "No analysis output",
+            "HarperBot did not receive a response from the model.",
+        )
+        return
+    post_comment_webhook(installation_token, repo_name, pr_details, analysis)
+
+
+def handle_merge_command(
+    installation_id: int,
+    repo_name: str,
+    pr_number: int,
+    merge_method: str,
+    commenter_login: str,
+):
+    """Handle merge/rebase commands from PR comments."""
+    g, _, _ = setup_environment_webhook(installation_id)
+    repo = g.get_repo(repo_name)
+    permission = repo.get_collaborator_permission(commenter_login)
+    if permission not in {"admin", "write"}:
+        pr = repo.get_pull(pr_number)
+        pr.create_issue_comment(
+            format_notice("Insufficient permissions", "You need write/admin permissions to use merge commands.")
+        )
+        logging.warning(f"User {commenter_login} lacks permission ({permission}) for {merge_method} on PR #{pr_number}")
+        return jsonify({"status": "forbidden"}), 403
+
+    pr = repo.get_pull(pr_number)
+    if pr.merged:
+        pr.create_issue_comment(format_notice("Already merged", "This PR is already merged."))
+        return jsonify({"status": "already_merged"})
+
+    try:
+        if pr.mergeable is False:
+            pr.create_issue_comment(format_notice("PR not mergeable", "Resolve conflicts or wait for checks, then try again."))
+            return jsonify({"status": "not_mergeable"})
+
+        result = pr.merge(merge_method=merge_method)
+        if result.merged:
+            pr.create_issue_comment(f"Merged via {merge_method} by HarperBot.")
+            logging.info(f"Merged PR #{pr_number} with method={merge_method}")
+            return jsonify({"status": "merged"})
+
+        pr.create_issue_comment(f"Merge failed: {result.message}")
+        return jsonify({"status": "merge_failed"}), 409
+    except Exception as e:
+        logging.error(f"Error merging PR #{pr_number}: {str(e)}")
+        pr.create_issue_comment(format_notice("Merge failed", "Merge failed due to an error. Check logs for details."))
+        return jsonify({"error": "merge_failed"}), 500
+
+
 def webhook_handler():
     """
     Handle incoming GitHub webhooks for PR events.
 
-    Processes webhook payloads for pull request opened/synchronize/reopened events.
+    Processes webhook payloads for pull request opened/reopened events.
     Verifies signature, extracts PR data, runs analysis, and posts comments.
     """
     if not flask_available:
@@ -835,13 +929,46 @@ def webhook_handler():
             return jsonify({"status": "ignored"})  # Not a PR comment
         pr_number = issue["number"]
         comment_body = data["comment"]["body"].strip()
+        commenter_login = data.get("comment", {}).get("user", {}).get("login", "")
         if comment_body.lower() == "/apply":
             return handle_apply_comment(installation_id, repo_name, pr_number)
+        if comment_body.lower() == "/analyze":
+            logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
+            try:
+                run_analysis_for_pr(installation_id, repo_name, pr_number)
+                return jsonify({"status": "ok"})
+            except Exception as e:
+                logging.error(f"Error processing /analyze: {str(e)}")
+                return jsonify({"error": "Processing failed"}), 500
+        if comment_body.lower() == "/help":
+            _, installation_token, _ = setup_environment_webhook(installation_id)
+            help_text = """
+**HarperBot Capabilities**
+
+- Automatic analysis on PR open/reopen
+- Manual analysis: `/analyze`
+- Apply suggestions: `/apply`
+- Merge commands (write/admin only): `/merge`, `/squash`, `/rebase`
+""".strip()
+            post_notice_comment(
+                installation_token,
+                repo_name,
+                pr_number,
+                "Help",
+                help_text,
+            )
+            return jsonify({"status": "ok"})
+        if comment_body.lower() == "/merge":
+            return handle_merge_command(installation_id, repo_name, pr_number, "merge", commenter_login)
+        if comment_body.lower() == "/squash":
+            return handle_merge_command(installation_id, repo_name, pr_number, "squash", commenter_login)
+        if comment_body.lower() == "/rebase":
+            return handle_merge_command(installation_id, repo_name, pr_number, "rebase", commenter_login)
         else:
             return jsonify({"status": "ignored"})
 
     # Only process PR events
-    if event_type not in ["opened", "synchronize", "reopened"] or not has_pr:
+    if event_type not in ["opened", "reopened"] or not has_pr:
         logging.info(f"Ignored webhook event: action={event_type}, has_pr={has_pr}")
         return jsonify({"status": "ignored"})
 
@@ -850,10 +977,7 @@ def webhook_handler():
     logging.info(f"Processing PR #{pr_number} in {repo_name}")
 
     try:
-        g, installation_token, client = setup_environment_webhook(installation_id)
-        pr_details = get_pr_details_webhook(g, repo_name, pr_number)
-        analysis = analyze_with_gemini(client, pr_details)
-        post_comment_webhook(installation_token, repo_name, pr_details, analysis)
+        run_analysis_for_pr(installation_id, repo_name, pr_number)
         logging.info(f"Successfully processed PR #{pr_number}")
         return jsonify({"status": "ok"})
     except Exception as e:
