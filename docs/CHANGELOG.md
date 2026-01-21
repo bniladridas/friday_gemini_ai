@@ -5,7 +5,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## [1.1.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.0.1...friday_gemini_ai/v1.1.0) (2026-01-21)
 
-
 ### Features
 
 * add content moderation capability to client responses ([#130](https://github.com/bniladridas/friday_gemini_ai/issues/130)) ([6340330](https://github.com/bniladridas/friday_gemini_ai/commit/6340330e4fb2851cd8fc30479115005e1a4e724b))
