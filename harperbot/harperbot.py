@@ -755,7 +755,10 @@ def get_pr_details_webhook(g, repo_name, pr_number):
 
     files_changed = [f.filename for f in pr.get_files()]
 
-    diff_content = pr.get_diff()
+    # Get diff content using diff_url
+    import requests
+
+    diff_content = requests.get(pr.diff_url).text
 
     return {
         "title": pr.title,
