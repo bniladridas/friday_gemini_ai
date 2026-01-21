@@ -3,6 +3,18 @@
 All notable changes are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
+## [1.1.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.0.1...friday_gemini_ai/v1.1.0) (2026-01-21)
+### Features
+
+* add content moderation capability to client responses ([#130](https://github.com/bniladridas/friday_gemini_ai/issues/130)) ([6340330](https://github.com/bniladridas/friday_gemini_ai/commit/6340330e4fb2851cd8fc30479115005e1a4e724b))
+* add per-repo API key override and merge commands ([#133](https://github.com/bniladridas/friday_gemini_ai/issues/133)) ([a4b2bc5](https://github.com/bniladridas/friday_gemini_ai/commit/a4b2bc55bfc6ff74b0b2f085e2439c1345bd13d7))
+
+
+### Bug Fixes
+
+* enable /analyze comment trigger ([597f1df](https://github.com/bniladridas/friday_gemini_ai/commit/597f1dfa8453d07c57c6d5a2863659f8732ecc3b))
+* update version to 1.0.1 ([3dc02db](https://github.com/bniladridas/friday_gemini_ai/commit/3dc02db2fc2cdb76f22a01eb29659912a36287fe))
+
 ## [1.0.1](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.0.0...friday_gemini_ai/v1.0.1) (2026-01-06)
 ### Bug Fixes
 
