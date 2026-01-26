@@ -165,7 +165,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 * update code of conduct to use github security advisory ([1d158df](https://github.com/bniladridas/friday_gemini_ai/commit/1d158df74888568f86739b32b0e1fbadee7a5555))
 * update config available models to stable versions ([b9d0bc7](https://github.com/bniladridas/friday_gemini_ai/commit/b9d0bc70c77c0e1d32765f3d8675e5753df174c7))
 * update contributing and security documentation ([160444c](https://github.com/bniladridas/friday_gemini_ai/commit/160444c83cf09ae29bf88d3e443da36c2813d09f))
-* update documentation for harperbot branding and featur ([ea8537a](https://github.com/bniladridas/friday_gemini_ai/commit/ea8537acd570a067aa370a8c7797366d20af8a11))
+* update documentation for harperbot branding and feature ([ea8537a](https://github.com/bniladridas/friday_gemini_ai/commit/ea8537acd570a067aa370a8c7797366d20af8a11))
 * update readme doc links ([5aa4a64](https://github.com/bniladridas/friday_gemini_ai/commit/5aa4a644944ecc91a06362c4af9991fb239a9944))
 * update references from .harperbot to harperbot ([8222a06](https://github.com/bniladridas/friday_gemini_ai/commit/8222a06c0c1c03846153b895eca0687fc3c41907))
 
