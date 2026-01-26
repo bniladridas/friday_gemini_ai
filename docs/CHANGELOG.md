@@ -5,9 +5,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## [1.2.2](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.1...friday_gemini_ai/v1.2.2) (2026-01-26)
 ### Bug Fixes
-
-* add permissions to release workflow ([d48d2e5](https://github.com/bniladridas/friday_gemini_ai/commit/d48d2e5c08911c4ad6102d98007b78c58cc88451))
-
 ## [1.2.1](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.0...friday_gemini_ai/v1.2.1) (2026-01-26)
 ### Bug Fixes
 
