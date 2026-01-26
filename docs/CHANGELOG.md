@@ -6,9 +6,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 ## [1.2.1](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.0...friday_gemini_ai/v1.2.1) (2026-01-26)
 ### Bug Fixes
 
-* skip labeling in release-please ([0399097](https://github.com/bniladridas/friday_gemini_ai/commit/0399097c221c410a0b7210c7521b91aee325ea74))
-* typo in changelog ([0c62983](https://github.com/bniladridas/friday_gemini_ai/commit/0c629837a7771e0b095dd3772a27b7a460acb528))
-
 ## [1.2.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai-v1.1.1...friday_gemini_ai/v1.2.0) (2026-01-26)
 ### Features
 
