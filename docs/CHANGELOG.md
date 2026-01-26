@@ -5,7 +5,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## [1.2.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai-v1.1.1...friday_gemini_ai/v1.2.0) (2026-01-26)
 
-
 ### Features
 
 * add /apply comment handler in separate file ([4b85767](https://github.com/bniladridas/friday_gemini_ai/commit/4b857674a36aa4915e699b71d098b07bb8d5ef6d))
