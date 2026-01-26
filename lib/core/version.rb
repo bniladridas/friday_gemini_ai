@@ -4,5 +4,5 @@
 # frozen_string_literal: true
 
 module GeminiAI
-  VERSION = '1.0.1'
+  VERSION = '1.2.2'
 end
