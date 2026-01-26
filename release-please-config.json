@@ -3,7 +3,10 @@
     ".": {
       "package-name": "friday_gemini_ai",
       "changelog-path": "docs/CHANGELOG.md",
-      "release-type": "ruby"
+      "release-type": "ruby",
+      "extra-files": [
+        "lib/core/version.rb"
+      ]
     }
   },
   "changelog-sections": [
