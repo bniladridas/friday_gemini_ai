@@ -18,8 +18,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete branch (skip if already deleted)
+      - name: Delete branch (skip if already deleted or from fork)
         run: |
+          # Only delete branch if PR is from the same repository (not a fork)
+          if [ "$HEAD_REPO_FULL_NAME" != "$BASE_REPO_FULL_NAME" ]; then
+            echo "Skipping branch deletion: PR is from a fork"
+            exit 0
+          fi
+
           response=$(gh api \
             -X DELETE \
             "repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME" \
@@ -34,3 +40,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO_FULL_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO_FULL_NAME: ${{ github.repository }}
