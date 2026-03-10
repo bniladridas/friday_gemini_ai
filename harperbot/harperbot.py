@@ -20,7 +20,10 @@ import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
 
-from .harperbot_apply import handle_apply_comment
+try:
+    from .harperbot_apply import handle_apply_comment
+except ImportError:
+    from harperbot_apply import handle_apply_comment
 
 # Flask imported conditionally for webhook mode
 flask_available = False
