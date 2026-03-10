@@ -187,6 +187,14 @@ class TestHarperBot(unittest.TestCase):
         result = parse_diff_for_suggestions(diff_text)
         self.assertIsNone(result)
 
+    def test_format_comment_does_not_add_hr(self):
+        """HarperBot comment should not add extra decorations."""
+        from harperbot import format_comment
+
+        formatted = format_comment("hello")
+        self.assertNotIn("\n---", formatted)
+        self.assertNotIn("badge.svg", formatted)
+
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
         import textwrap
