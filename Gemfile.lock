@@ -18,6 +18,7 @@ GEM
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
+    logger (1.7.0)
     mini_mime (1.1.5)
     minitest (5.27.0)
     mocha (3.0.2)
@@ -38,6 +39,7 @@ DEPENDENCIES
   dotenv (~> 3.2)
   friday_gemini_ai!
   httparty (>= 0.21, < 0.25)
+  logger
   minitest (~> 5.0)
   mocha (~> 3.0)
   rake (~> 13.3.1)

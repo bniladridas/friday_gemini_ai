@@ -5,6 +5,7 @@ gemspec
 
 # Additional dependencies
 gem 'bigdecimal', '~> 4.0'
+gem 'logger'
 
 # Development and test dependencies
 group :development, :test do

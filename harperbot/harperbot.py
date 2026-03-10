@@ -14,12 +14,19 @@ import logging
 import os
 import re
 import sys
+import time
 
 import google.genai as genai
 import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
-from harperbot_apply import handle_apply_comment
+from google.genai import errors as genai_errors
+from google.genai import types
+
+try:
+    from .harperbot_apply import handle_apply_comment
+except ImportError:
+    from harperbot_apply import handle_apply_comment
 
 # Flask imported conditionally for webhook mode
 flask_available = False
@@ -242,25 +249,57 @@ def analyze_with_gemini(client, pr_details):
 
         # Use configurable prompt template
         prompt_template = config["prompt"]
+        files_list = ", ".join(pr_details["files_changed"])
+        diff_content = pr_details["diff"][:max_diff]
         formatted_prompt = prompt_template.format(
+            # Preferred placeholders (used by the built-in default prompt)
             num_files=len(pr_details["files_changed"]),
-            files_list=", ".join(pr_details["files_changed"]),
-            diff_content=pr_details["diff"][:max_diff],
+            files_list=files_list,
+            diff_content=diff_content,
+            # Backward-compatible placeholders (used by harperbot/config.yaml)
+            files=files_list,
+            diff=diff_content,
             focus_instruction=focus_instruction,
         )
 
-        # Generate content with config
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=genai.GenerateContentConfig(
-                temperature=temperature,
-                top_p=0.95,
-                top_k=40,
-                max_output_tokens=max_output_tokens,
-                safety_settings=safety_settings,
-            ),
+        # Generate content with retries for transient failures (5xx, network).
+        generate_config = types.GenerateContentConfig(
+            temperature=temperature,
+            top_p=0.95,
+            top_k=40,
+            max_output_tokens=max_output_tokens,
+            safety_settings=safety_settings,
         )
+
+        for attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=formatted_prompt,
+                    config=generate_config,
+                )
+                break
+            except genai_errors.ServerError:
+                if attempt < 2:
+                    time.sleep(2**attempt)
+                    continue
+                raise
+            except Exception as e:
+                # Retry common transient network failures surfaced as generic exceptions.
+                transient_markers = (
+                    "timeout",
+                    "timed out",
+                    "temporarily unavailable",
+                    "connection reset",
+                    "connection aborted",
+                    "connection refused",
+                    "name or service not known",
+                    "dns",
+                )
+                if attempt < 2 and any(m in str(e).lower() for m in transient_markers):
+                    time.sleep(2**attempt)
+                    continue
+                raise
 
         # Handle different response formats
         def extract_text(resp):
@@ -353,10 +392,49 @@ def analyze_with_gemini(client, pr_details):
             return f"Error processing response: {str(e)}\n\nResponse type: {type(response)}"
 
     except Exception as e:
-        error_msg = str(e).lower()
         context = (
             f" (PR: {pr_details.get('title', 'Unknown')}, Model: {model_name}, Diff length: {len(pr_details.get('diff', ''))})"
         )
+
+        # Prefer structured API errors when available (google-genai).
+        if isinstance(e, genai_errors.ClientError):
+            code = getattr(e, "code", None)
+            status = getattr(e, "status", None)
+            message = getattr(e, "message", None)
+            lower_message = (message or str(e)).lower()
+
+            if code == 429 or "quota" in lower_message or "rate limit" in lower_message or "billing" in lower_message:
+                logging.exception(f"API quota/rate limit error{context}: {str(e)}")
+                return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
+
+            if (
+                code in (401, 403)
+                or "api key" in lower_message
+                or "authentication" in lower_message
+                or "unauthorized" in lower_message
+            ):
+                logging.exception(f"API authentication error{context}: {str(e)}")
+                return (
+                    "Error generating analysis: Invalid API key or authentication failed"
+                    f"{context}. Please check your GEMINI_API_KEY or HARPERBOT_GEMINI_API_KEY."
+                )
+
+            if code == 404 or "model" in lower_message or "not found" in lower_message:
+                logging.exception(f"Model error{context}: {str(e)}")
+                return f"Error generating analysis: Requested model not available{context}. Please try again later."
+
+            logging.exception(f"API client error{context}: {str(e)}")
+            details = f" (HTTP {code} {status})" if code else ""
+            return f"Error generating analysis: API request failed{details}{context}. Please try again later."
+
+        if isinstance(e, genai_errors.ServerError):
+            code = getattr(e, "code", None)
+            status = getattr(e, "status", None)
+            details = f" (HTTP {code} {status})" if code else ""
+            logging.exception(f"API server error{context}: {str(e)}")
+            return f"Error generating analysis: API unavailable{details}{context}. Please try again later."
+
+        error_msg = str(e).lower()
         if "quota" in error_msg or "rate limit" in error_msg or "billing" in error_msg:
             logging.error(f"API quota/rate limit error{context}: {str(e)}")
             return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
@@ -371,7 +449,8 @@ def analyze_with_gemini(client, pr_details):
             return f"Error generating analysis: Requested model not available{context}. Please try again later."
         else:
             logging.error(f"Unexpected API error{context}: {str(e)}")
-            return f"Error generating analysis: API unavailable{context}. Please try again later."
+            error_type = type(e).__name__
+            return f"Error generating analysis: API unavailable ({error_type}){context}. Please try again later."
 
 
 def parse_diff_for_suggestions(diff_text):
@@ -409,16 +488,13 @@ def parse_diff_for_suggestions(diff_text):
 
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
-    return f"""[![HarperBot](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml/badge.svg)](https://github.com/bniladridas/friday_gemini_ai/actions/workflows/harperbot.yml)
-
-<details>
-<summary>HarperBot Analysis</summary>
+    return f"""<details>
+<summary>HarperBot</summary>
 
 {analysis}
 
 </details>
-
----"""
+"""
 
 
 def parse_code_suggestions(analysis):
