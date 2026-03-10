@@ -61,9 +61,8 @@ class TestHarperBot(unittest.TestCase):
             self.assertEqual(config["max_output_tokens"], 4096)
             self.assertIn("prompt", config)  # Should include default prompt
 
-    @patch("harperbot.genai.GenerativeModel")
     @patch("harperbot.load_config")
-    def test_analyze_with_gemini_success(self, mock_load_config, mock_model_class):
+    def test_analyze_with_gemini_success(self, mock_load_config):
         """Test successful Gemini analysis."""
         # Mock config with all required keys
         mock_load_config.return_value = {
@@ -75,18 +74,71 @@ class TestHarperBot(unittest.TestCase):
             "prompt": "Test prompt {num_files} {files_list} {diff_content} {focus_instruction}",
         }
 
-        # Mock model and response
-        mock_model = Mock()
+        # Mock client and response
+        mock_client = Mock()
+        mock_client.models = Mock()
         mock_response = Mock()
         mock_response.text = "Test analysis"
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
+        mock_client.models.generate_content.return_value = mock_response
 
         pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
 
-        result = analyze_with_gemini(pr_details)
+        result = analyze_with_gemini(mock_client, pr_details)
         self.assertEqual(result, "Test analysis")
-        mock_model.generate_content.assert_called_once()
+        mock_client.models.generate_content.assert_called_once()
+
+    @patch("harperbot.time.sleep", return_value=None)
+    @patch("harperbot.load_config")
+    def test_analyze_with_gemini_retries_on_server_error(self, mock_load_config, _mock_sleep):
+        """Retries on 5xx and succeeds when API recovers."""
+        from google.genai import errors as genai_errors
+
+        mock_load_config.return_value = {
+            "model": "gemini-2.5-flash",
+            "focus": "all",
+            "max_diff_length": 4000,
+            "temperature": 0.2,
+            "max_output_tokens": 4096,
+            "prompt": "Test prompt {num_files} {files_list} {diff_content} {focus_instruction}",
+        }
+
+        mock_client = Mock()
+        mock_client.models = Mock()
+        mock_response = Mock()
+        mock_response.text = "Recovered analysis"
+
+        server_error = genai_errors.ServerError(503, {"error": {"message": "unavailable", "status": "UNAVAILABLE"}}, None)
+        mock_client.models.generate_content.side_effect = [server_error, server_error, mock_response]
+
+        pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
+        result = analyze_with_gemini(mock_client, pr_details)
+        self.assertEqual(result, "Recovered analysis")
+        self.assertEqual(mock_client.models.generate_content.call_count, 3)
+
+    @patch("harperbot.time.sleep", return_value=None)
+    @patch("harperbot.load_config")
+    def test_analyze_with_gemini_server_error_message_includes_http(self, mock_load_config, _mock_sleep):
+        """Server errors return a helpful message with HTTP details."""
+        from google.genai import errors as genai_errors
+
+        mock_load_config.return_value = {
+            "model": "gemini-2.5-flash",
+            "focus": "all",
+            "max_diff_length": 4000,
+            "temperature": 0.2,
+            "max_output_tokens": 4096,
+            "prompt": "Test prompt {num_files} {files_list} {diff_content} {focus_instruction}",
+        }
+
+        mock_client = Mock()
+        mock_client.models = Mock()
+        server_error = genai_errors.ServerError(503, {"error": {"message": "unavailable", "status": "UNAVAILABLE"}}, None)
+        mock_client.models.generate_content.side_effect = server_error
+
+        pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
+        result = analyze_with_gemini(mock_client, pr_details)
+        self.assertIn("api unavailable", result.lower())
+        self.assertIn("http 503", result.lower())
 
     def test_parse_diff_for_suggestions_valid(self):
         """Test parsing diff suggestions."""
