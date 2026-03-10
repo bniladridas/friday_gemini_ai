@@ -19,6 +19,7 @@ import google.genai as genai
 import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
+from google.genai import types
 
 try:
     from .harperbot_apply import handle_apply_comment
@@ -257,7 +258,7 @@ def analyze_with_gemini(client, pr_details):
         response = client.models.generate_content(
             model=model_name,
             contents=formatted_prompt,
-            config=genai.GenerateContentConfig(
+            config=types.GenerateContentConfig(
                 temperature=temperature,
                 top_p=0.95,
                 top_k=40,
