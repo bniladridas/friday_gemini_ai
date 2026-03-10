@@ -496,7 +496,7 @@ def parse_diff_for_suggestions(diff_text):
 def format_comment(analysis):
     """Format the analysis with proper markdown and emojis."""
     return f"""<details>
-<summary>HarperBot Analysis</summary>
+<summary>HarperBot</summary>
 
 {analysis}
 
