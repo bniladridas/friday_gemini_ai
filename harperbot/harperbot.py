@@ -271,7 +271,6 @@ def analyze_with_gemini(client, pr_details):
             safety_settings=safety_settings,
         )
 
-        last_error = None
         for attempt in range(3):
             try:
                 response = client.models.generate_content(
@@ -279,10 +278,8 @@ def analyze_with_gemini(client, pr_details):
                     contents=formatted_prompt,
                     config=generate_config,
                 )
-                last_error = None
                 break
-            except genai_errors.ServerError as e:
-                last_error = e
+            except genai_errors.ServerError:
                 if attempt < 2:
                     time.sleep(2**attempt)
                     continue
@@ -299,14 +296,10 @@ def analyze_with_gemini(client, pr_details):
                     "name or service not known",
                     "dns",
                 )
-                last_error = e
                 if attempt < 2 and any(m in str(e).lower() for m in transient_markers):
                     time.sleep(2**attempt)
                     continue
                 raise
-
-        if last_error is not None:
-            raise last_error
 
         # Handle different response formats
         def extract_text(resp):
@@ -411,7 +404,7 @@ def analyze_with_gemini(client, pr_details):
             lower_message = (message or str(e)).lower()
 
             if code == 429 or "quota" in lower_message or "rate limit" in lower_message or "billing" in lower_message:
-                logging.error(f"API quota/rate limit error{context}: {str(e)}")
+                logging.exception(f"API quota/rate limit error{context}: {str(e)}")
                 return f"Error generating analysis: API quota exceeded{context}. Please check your billing or try again later."
 
             if (
@@ -420,17 +413,17 @@ def analyze_with_gemini(client, pr_details):
                 or "authentication" in lower_message
                 or "unauthorized" in lower_message
             ):
-                logging.error(f"API authentication error{context}: {str(e)}")
+                logging.exception(f"API authentication error{context}: {str(e)}")
                 return (
                     "Error generating analysis: Invalid API key or authentication failed"
                     f"{context}. Please check your GEMINI_API_KEY or HARPERBOT_GEMINI_API_KEY."
                 )
 
             if code == 404 or "model" in lower_message or "not found" in lower_message:
-                logging.error(f"Model error{context}: {str(e)}")
+                logging.exception(f"Model error{context}: {str(e)}")
                 return f"Error generating analysis: Requested model not available{context}. Please try again later."
 
-            logging.error(f"API client error{context}: {str(e)}")
+            logging.exception(f"API client error{context}: {str(e)}")
             details = f" (HTTP {code} {status})" if code else ""
             return f"Error generating analysis: API request failed{details}{context}. Please try again later."
 
@@ -438,7 +431,7 @@ def analyze_with_gemini(client, pr_details):
             code = getattr(e, "code", None)
             status = getattr(e, "status", None)
             details = f" (HTTP {code} {status})" if code else ""
-            logging.error(f"API server error{context}: {str(e)}")
+            logging.exception(f"API server error{context}: {str(e)}")
             return f"Error generating analysis: API unavailable{details}{context}. Please try again later."
 
         error_msg = str(e).lower()

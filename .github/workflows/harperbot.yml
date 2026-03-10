@@ -131,8 +131,6 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           # Verify installations
-          echo "Node.js: $(node --version)"
-          echo "npm: $(npm --version)"
           echo "Python: $(python --version)"
           echo "pip: $(pip --version)"
 
