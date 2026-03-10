@@ -140,6 +140,33 @@ class TestHarperBot(unittest.TestCase):
         self.assertIn("api unavailable", result.lower())
         self.assertIn("http 503", result.lower())
 
+    @patch("harperbot.load_config")
+    def test_analyze_with_gemini_prompt_backcompat_files_diff(self, mock_load_config):
+        """Supports legacy {files}/{diff} placeholders in prompt templates."""
+        mock_load_config.return_value = {
+            "model": "gemini-2.5-flash",
+            "focus": "all",
+            "max_diff_length": 4000,
+            "temperature": 0.2,
+            "max_output_tokens": 4096,
+            "prompt": "Files:\\n{files}\\nDiff:\\n{diff}\\n{focus_instruction}",
+        }
+
+        mock_client = Mock()
+        mock_client.models = Mock()
+        mock_response = Mock()
+        mock_response.text = "OK"
+        mock_client.models.generate_content.return_value = mock_response
+
+        pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
+        result = analyze_with_gemini(mock_client, pr_details)
+        self.assertEqual(result, "OK")
+        _args, kwargs = mock_client.models.generate_content.call_args
+        self.assertIn("Files:", kwargs["contents"])
+        self.assertIn("test.py", kwargs["contents"])
+        self.assertIn("Diff:", kwargs["contents"])
+        self.assertIn("test diff", kwargs["contents"])
+
     def test_parse_diff_for_suggestions_valid(self):
         """Test parsing diff suggestions."""
         diff_text = """--- a/test.py

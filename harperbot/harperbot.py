@@ -249,10 +249,16 @@ def analyze_with_gemini(client, pr_details):
 
         # Use configurable prompt template
         prompt_template = config["prompt"]
+        files_list = ", ".join(pr_details["files_changed"])
+        diff_content = pr_details["diff"][:max_diff]
         formatted_prompt = prompt_template.format(
+            # Preferred placeholders (used by the built-in default prompt)
             num_files=len(pr_details["files_changed"]),
-            files_list=", ".join(pr_details["files_changed"]),
-            diff_content=pr_details["diff"][:max_diff],
+            files_list=files_list,
+            diff_content=diff_content,
+            # Backward-compatible placeholders (used by harperbot/config.yaml)
+            files=files_list,
+            diff=diff_content,
             focus_instruction=focus_instruction,
         )
 
