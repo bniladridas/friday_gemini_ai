@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>404 - Page Not Found</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      .error-code {
+        font-size: 8rem;
+        color: #ff9999;
+        margin: 0;
+        line-height: 1;
+      }
+      .error-message {
+        font-size: 2rem;
+        margin-top: 0;
+      }
+      .back-link {
+        margin-top: 40px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="notebook">
+      <div class="notebook-margin"></div>
+
+      <main class="content content-centered">
+        <h1 class="error-code">404</h1>
+        <p class="error-message">Oops! This page seems to have been torn out.</p>
+        <p>The notes you are looking for are missing or were never written.</p>
+
+        <a href="./index.html" class="back-link">Return to the Table of Contents</a>
+
+        <div class="doodle doodle-positioned">
+           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+             <path d="M20,20 L80,80 M80,20 L20,80" fill="none" stroke="#ff9999" stroke-width="5" />
+           </svg>
+         </div>
+      </main>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

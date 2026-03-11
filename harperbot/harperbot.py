@@ -1,7 +1,6 @@
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2025 friday_gemini_ai
-
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 friday_gemini_ai
 """
 GitHub PR Bot that analyzes pull requests using Google's Gemini API.
 Supports both CLI and webhook modes.
@@ -42,6 +41,19 @@ try:
 
 except ImportError:
     pass
+
+
+def get_bot_login(github_client):
+    """
+    Get the login name of the authenticated bot/user.
+
+    Args:
+        github_client: A Github client instance
+
+    Returns:
+        str: The login name of the authenticated user
+    """
+    return github_client.get_user().login
 
 
 def find_diff_position(diff, file_path, line_number):
@@ -359,9 +371,9 @@ def analyze_with_gemini(client, pr_details):
             text = re.sub(r"<[^>]+>", "", text)  # Remove all HTML tags
             text = re.sub(r"javascript:", "", text, flags=re.IGNORECASE)
             text = re.sub(r"on\w+\s*=", "", text, flags=re.IGNORECASE)  # Remove event handlers
-            # Limit length to prevent abuse
-            if len(text) > 10000:
-                text = text[:10000] + "... (truncated for length)"
+            # Limit length to prevent abuse (increased to accommodate AI output limits)
+            if len(text) > 20000:
+                text = text[:20000] + "... (truncated for length)"
             return text.strip()
 
         try:
@@ -486,13 +498,15 @@ def parse_diff_for_suggestions(diff_text):
     return None
 
 
-def format_comment(analysis):
+def format_comment(analysis, sha=None):
     """Format the analysis with proper markdown and emojis."""
+    sha_marker = f"\n<!-- harperbot-sha: {sha} -->" if sha else ""
     return f"""<details>
 <summary>HarperBot</summary>
 
 {analysis}
 
+{sha_marker}
 </details>
 """
 
@@ -743,12 +757,23 @@ def update_main_comment(analysis):
     return analysis[:start_pos] + "### Code Suggestions\n- Suggestions posted as inline comments below.\n" + analysis[end_pos:]
 
 
-def post_inline_suggestions(pr, pr_details, suggestions, github_token, repo):
+def post_inline_suggestions(pr, pr_details, suggestions, g, repo):
     """
     Post inline code suggestions as a pull request review.
     """
     try:
-        commit = repo.get_commit(pr_details["head_sha"])
+        head_sha = pr_details["head_sha"]
+
+        # Check if we already posted a review for this exact commit
+        # Review summaries can't be easily checked like issue comments,
+        # but we can look for reviews from our bot with specific markers.
+        bot_user = get_bot_login(g)
+        for review in pr.get_reviews():
+            if review.user.login == bot_user and f"harperbot-sha: {head_sha}" in (review.body or ""):
+                logging.info(f"Skipping inline suggestions for SHA {head_sha}: Review already exists")
+                return
+
+        commit = repo.get_commit(head_sha)
         review_comments = []
         for file_path, line, suggestion in suggestions:
             try:
@@ -759,11 +784,14 @@ def post_inline_suggestions(pr, pr_details, suggestions, github_token, repo):
 
             position = find_diff_position(pr_details["diff"], file_path, line_num)
             if position is not None:
+                # Use standard GitHub suggestion format for interactive batch applying
                 body = f"```suggestion\n{suggestion}\n```"
                 review_comments.append({"path": file_path, "position": position, "body": body})
+
         if review_comments:
-            pr.create_review(commit=commit, comments=review_comments, event="COMMENT")
-            logging.info(f"Posted {len(review_comments)} inline suggestions")
+            body = f"HarperBot Analysis for {head_sha}\n<!-- harperbot-sha: {head_sha} -->"
+            pr.create_review(commit=commit, body=body, comments=review_comments, event="COMMENT")
+            logging.info(f"Posted {len(review_comments)} inline suggestions as a review")
         else:
             logging.info("No valid inline suggestions to post")
     except Exception as e:
@@ -788,9 +816,19 @@ def verify_webhook_signature(payload, signature, secret):
     """
     if not signature or not secret:
         return False
-    sha_name, sig = signature.split("=", 1)
-    if sha_name != "sha256":
+
+    # Verify signature contains "=" and has valid format
+    if "=" not in signature:
         return False
+
+    parts = signature.split("=", 1)
+    if len(parts) != 2:
+        return False
+
+    sha_name, sig = parts
+    if sha_name != "sha256" or not sig:
+        return False
+
     mac = hmac.new(secret.encode(), msg=payload, digestmod=hashlib.sha256)
     return hmac.compare_digest(mac.hexdigest(), sig)
 
@@ -853,9 +891,8 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
     """
     Post analysis comment and inline suggestions using GitHub App auth.
 
-    Creates a main comment with the analysis summary, and posts
-    code suggestions as inline review comments. Optionally applies
-    suggestions directly or creates improvement PRs.
+    Updates the existing main comment with the analysis summary if it exists,
+    otherwise creates a new one. Posts code suggestions as inline review comments.
     """
     try:
         g = Github(github_token)
@@ -865,14 +902,25 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
 
         suggestions = parse_code_suggestions(analysis)
         main_comment = update_main_comment(analysis)
+        formatted_comment = format_comment(main_comment, sha=pr_details.get("head_sha"))
 
-        # Post main analysis comment
-        formatted_comment = format_comment(main_comment)
-        pr.create_issue_comment(formatted_comment)
-        logging.info(f"Posted main analysis comment to PR #{pr_details['number']}")
+        # Find existing HarperBot comment to update
+        existing_comment = None
+        bot_user = get_bot_login(g)
+        for comment in pr.get_issue_comments():
+            if comment.user.login == bot_user and "<summary>HarperBot</summary>" in (comment.body or ""):
+                existing_comment = comment
+                break
 
-        # Post inline suggestions
-        post_inline_suggestions(pr, pr_details, suggestions, github_token, repo)
+        if existing_comment:
+            existing_comment.edit(formatted_comment)
+            logging.info(f"Updated existing analysis comment for PR #{pr_details['number']}")
+        else:
+            pr.create_issue_comment(formatted_comment)
+            logging.info(f"Posted new analysis comment to PR #{pr_details['number']}")
+
+        # Post inline suggestions (as a Review)
+        post_inline_suggestions(pr, pr_details, suggestions, g, repo)
 
         # Apply authoring features if enabled
         if config.get("enable_authoring", False):
@@ -888,6 +936,7 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
 
 
 def format_notice(title: str, details: str) -> str:
+    # Notice comments should not include the SHA marker to avoid being treated as successful analysis
     return f"""⚠️ **HarperBot Notice: {title}**
 
 {details}
@@ -905,9 +954,24 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int):
     """Fetch PR details, run analysis, and post comments for a PR."""
     g, installation_token, client = setup_environment_webhook(installation_id)
     pr_details = get_pr_details_webhook(g, repo_name, pr_number)
+    head_sha = pr_details.get("head_sha")
+
+    # De-duplication check: Skip ONLY if analysis already exists for this EXACT commit SHA
+    repo = g.get_repo(repo_name)
+    pr = repo.get_pull(pr_number)
+    bot_user = get_bot_login(g)
+    for comment in pr.get_issue_comments():
+        if comment.user.login == bot_user and f"harperbot-sha: {head_sha}" in (comment.body or ""):
+            logging.info(f"Skipping analysis for PR #{pr_number}: Analysis already exists for SHA {head_sha}")
+            return
+
     if not pr_details.get("files_changed"):
         post_notice_comment(
-            installation_token, repo_name, pr_number, "No files changed", "This PR has no file changes to analyze."
+            installation_token,
+            repo_name,
+            pr_number,
+            "No files changed",
+            "This PR has no file changes to analyze.",
         )
         return
     if not pr_details.get("diff"):

@@ -42,7 +42,6 @@ __pycache__/
 vendor/
 
 # Documentation
-index.html
 testing_documentation.html
 .vercel
 site/

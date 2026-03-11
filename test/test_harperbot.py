@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2025 friday_gemini_ai
+# Copyright (c) 2026 friday_gemini_ai
 
 #!/usr/bin/env python3
 """
@@ -194,6 +194,41 @@ class TestHarperBot(unittest.TestCase):
         formatted = format_comment("hello")
         self.assertNotIn("\n---", formatted)
         self.assertNotIn("badge.svg", formatted)
+
+    def test_format_comment_with_sha(self):
+        """HarperBot comment should include SHA marker when provided."""
+        from harperbot import format_comment
+
+        formatted = format_comment("analysis content", sha="abc123")
+        self.assertIn("harperbot-sha: abc123", formatted)
+        self.assertIn("<details>", formatted)
+        self.assertIn("analysis content", formatted)
+
+    def test_format_comment_without_sha(self):
+        """HarperBot comment should not include SHA marker when not provided."""
+        from harperbot import format_comment
+
+        formatted = format_comment("analysis content")
+        self.assertNotIn("harperbot-sha:", formatted)
+        self.assertIn("<details>", formatted)
+        self.assertIn("analysis content", formatted)
+
+    def test_format_notice_includes_warning(self):
+        """Notice comment should include warning emoji and title."""
+        from harperbot import format_notice
+
+        formatted = format_notice("Test Title", "Test details")
+        self.assertIn("⚠️ **HarperBot Notice: Test Title**", formatted)
+        self.assertIn("Test details", formatted)
+
+    def test_format_notice_does_not_include_sha_marker(self):
+        """Notice comment should NOT include SHA marker (format_notice no longer accepts sha parameter)."""
+        from harperbot import format_notice
+
+        formatted = format_notice("Test Title", "Test details")
+        self.assertNotIn("harperbot-sha:", formatted)
+        self.assertIn("⚠️ **HarperBot Notice: Test Title**", formatted)
+        self.assertIn("Test details", formatted)
 
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
