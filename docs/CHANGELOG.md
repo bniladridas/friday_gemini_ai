@@ -5,7 +5,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## [1.3.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.2...friday_gemini_ai/v1.3.0) (2026-03-11)
 
-
 ### Features
 
 * ui & harperbot updates (wip) ([#143](https://github.com/bniladridas/friday_gemini_ai/issues/143)) ([1e40065](https://github.com/bniladridas/friday_gemini_ai/commit/1e40065964b0a17e83d3720e347066928769d192))
