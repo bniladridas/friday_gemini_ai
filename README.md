@@ -127,6 +127,7 @@ client = GeminiAI::Client.new(max_retries: 0)  # default is 2
 
 # Or, configure per-request:
 client.generate_text('Hello', max_retries: 5)
+```
 
 ### Timeouts
 
@@ -168,6 +169,7 @@ Available log levels, from most to least verbose:
 require 'friday_gemini_ai'
 
 client = GeminiAI::Client.new(log_level: 'debug')  # Show all log messages
+```
 
 ## Frequently Asked Questions
 
@@ -194,8 +196,6 @@ The following runtimes are supported:
 - TruffleRuby (compatible versions)
 
 Note that Windows support is limited; Linux and macOS are recommended.
-```
-```
 
 ## Migration Guide
 
@@ -361,3 +361,9 @@ Fork → Branch → Commit → Pull Request.
 ## License
 
 MIT – see [LICENSE](LICENSE).
+
+<div align="center">
+
+[<sup>© 2026 Friday Gemini AI • Hand-crafted for Rubyists</sup>](https://bniladridas.github.io/friday_gemini_ai/)
+
+</div>

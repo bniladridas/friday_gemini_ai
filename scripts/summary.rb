@@ -1,8 +1,7 @@
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2025 friday_gemini_ai
-
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 friday_gemini_ai
 
 require_relative '../lib/gemini'
 

@@ -1,5 +1,8 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 friday_gemini_ai
+
 ---
-name: Deploy MkDocs to GitHub Pages
+name: Deploy Website to GitHub Pages
 
 on:
   push:
@@ -23,23 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          pip install -e .
-          pip install mkdocs-include-markdown-plugin
-
-      - name: Build MkDocs
-        run: mkdocs build
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: site
+          # Point this to your website directory
+          path: website
 
   deploy:
     environment:
