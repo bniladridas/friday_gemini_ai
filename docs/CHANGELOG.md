@@ -3,6 +3,18 @@
 All notable changes are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
+## [1.3.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.2...friday_gemini_ai/v1.3.0) (2026-03-11)
+
+
+### Features
+
+* ui & harperbot updates (wip) ([#143](https://github.com/bniladridas/friday_gemini_ai/issues/143)) ([1e40065](https://github.com/bniladridas/friday_gemini_ai/commit/1e40065964b0a17e83d3720e347066928769d192))
+
+
+### Bug Fixes
+
+* update lock workflow and harperbot imports ([#141](https://github.com/bniladridas/friday_gemini_ai/issues/141)) ([b3dec6c](https://github.com/bniladridas/friday_gemini_ai/commit/b3dec6cdb1ea00c075e838efde8c7851319b758d))
+
 ## [1.2.2](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.1...friday_gemini_ai/v1.2.2) (2026-01-26)
 ### Bug Fixes
 ## [1.2.1](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.0...friday_gemini_ai/v1.2.1) (2026-01-26)
