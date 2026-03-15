@@ -885,7 +885,7 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
     otherwise creates a new one. Posts code suggestions as inline review comments.
     """
     try:
-        g = Github(github_token)
+        g = Github(auth=Auth.Token(github_token))
         config = load_config()
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_details["number"])
@@ -933,7 +933,7 @@ def format_notice(title: str, details: str) -> str:
 
 
 def post_notice_comment(github_token: str, repo_name: str, pr_number: int, title: str, details: str):
-    g = Github(github_token)
+    g = Github(auth=Auth.Token(github_token))
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
     pr.create_issue_comment(format_notice(title, details))
