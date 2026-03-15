@@ -43,19 +43,6 @@ except ImportError:
     pass
 
 
-def get_bot_login(github_client):
-    """
-    Get the login name of the authenticated bot/user.
-
-    Args:
-        github_client: A Github client instance
-
-    Returns:
-        str: The login name of the authenticated user
-    """
-    return github_client.get_user().login
-
-
 def find_diff_position(diff, file_path, line_number):
     """
     Find the position in the diff hunk for a given file and line number.
@@ -765,11 +752,9 @@ def post_inline_suggestions(pr, pr_details, suggestions, g, repo):
         head_sha = pr_details["head_sha"]
 
         # Check if we already posted a review for this exact commit
-        # Review summaries can't be easily checked like issue comments,
-        # but we can look for reviews from our bot with specific markers.
-        bot_user = get_bot_login(g)
+        # We'll look for reviews that include the harperbot marker.
         for review in pr.get_reviews():
-            if review.user.login == bot_user and f"harperbot-sha: {head_sha}" in (review.body or ""):
+            if f"harperbot-sha: {head_sha}" in (review.body or ""):
                 logging.info(f"Skipping inline suggestions for SHA {head_sha}: Review already exists")
                 return
 
@@ -887,6 +872,11 @@ def get_pr_details_webhook(g, repo_name, pr_number):
     }
 
 
+def is_harperbot_comment(comment):
+    """Identify HarperBot comments by the known summary marker."""
+    return "<summary>HarperBot</summary>" in (comment.body or "")
+
+
 def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, analysis: str):
     """
     Post analysis comment and inline suggestions using GitHub App auth.
@@ -906,9 +896,8 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
 
         # Find existing HarperBot comment to update
         existing_comment = None
-        bot_user = get_bot_login(g)
         for comment in pr.get_issue_comments():
-            if comment.user.login == bot_user and "<summary>HarperBot</summary>" in (comment.body or ""):
+            if is_harperbot_comment(comment):
                 existing_comment = comment
                 break
 
@@ -959,9 +948,8 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int):
     # De-duplication check: Skip ONLY if analysis already exists for this EXACT commit SHA
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
-    bot_user = get_bot_login(g)
     for comment in pr.get_issue_comments():
-        if comment.user.login == bot_user and f"harperbot-sha: {head_sha}" in (comment.body or ""):
+        if f"harperbot-sha: {head_sha}" in (comment.body or ""):
             logging.info(f"Skipping analysis for PR #{pr_number}: Analysis already exists for SHA {head_sha}")
             return
 
