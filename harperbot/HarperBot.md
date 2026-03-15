@@ -94,6 +94,7 @@ Webhook Mode is recommended for better scalability and ease of management. Benef
    - Install the HarperBot GitHub App on your repositories
    - Remove repository-specific secrets and workflow files if desired
     - While configuring the app, subscribe to the **Pull request** and **Issue comment** webhook events so HarperBot sees new PRs and `/analyze`/merge commands.
+    - If you’re migrating the app between accounts, uninstall the previous installation (Settings → Installed GitHub Apps → Configure → Uninstall) so the retired app no longer receives webhooks or posts comments.
 
 3. **Verify**:
    - Test with a new PR to ensure analysis posts correctly
