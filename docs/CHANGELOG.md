@@ -3,6 +3,32 @@
 All notable changes are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
+## [1.4.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.3.0...friday_gemini_ai/v1.4.0) (2026-03-15)
+
+
+### Features
+
+* process sync events in webhook ([02beaa5](https://github.com/bniladridas/friday_gemini_ai/commit/02beaa54d5a8f07bdf976340ef2ae141cc01d1ff))
+
+
+### Bug Fixes
+
+* avoid user lookup with app tokens ([776583a](https://github.com/bniladridas/friday_gemini_ai/commit/776583ae75d6af11a4a54d2dab11cbca6a67420d))
+* use auth token for bot clients ([2218823](https://github.com/bniladridas/friday_gemini_ai/commit/221882346a183050b3ac5e3e727d9ed46fb17f63))
+* webhook for vercel compatibility ([e6cb0d8](https://github.com/bniladridas/friday_gemini_ai/commit/e6cb0d8887f90a20d8f0cd39d807b37c4e66ce0b))
+
+
+### Documentation
+
+* clarify harperbot webhook notes ([06d8fc1](https://github.com/bniladridas/friday_gemini_ai/commit/06d8fc1b48809658e3eed32bf7207277c949b6d5))
+* mention webhook events ([23ddc60](https://github.com/bniladridas/friday_gemini_ai/commit/23ddc60c05dc073663802eda0ab339af9cebbcba))
+* mention webhook events in readme ([df012ce](https://github.com/bniladridas/friday_gemini_ai/commit/df012cea5a6a4567a64e50987b91e8998ce2a204))
+* note app uninstall in readme ([1d8a135](https://github.com/bniladridas/friday_gemini_ai/commit/1d8a135de0b880fe6002505e32d31cbedf1f6586))
+* note uninstalling old app ([1172b69](https://github.com/bniladridas/friday_gemini_ai/commit/1172b6930047f6969fab534c8c7e694a4f456acd))
+* remind to rotate webhook secret ([87130c5](https://github.com/bniladridas/friday_gemini_ai/commit/87130c5c75f02e33f7d51a86c86b4ea4300d1663))
+* update app link ([0a5280c](https://github.com/bniladridas/friday_gemini_ai/commit/0a5280c5f45175bb5e2dc157ec3bb1c13039b6f1))
+* update webhook app and security ([6a5492b](https://github.com/bniladridas/friday_gemini_ai/commit/6a5492b6de794acf23d0a38f04bc9b8340a83668))
+
 ## [1.3.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.2.2...friday_gemini_ai/v1.3.0) (2026-03-11)
 ### Features
 
