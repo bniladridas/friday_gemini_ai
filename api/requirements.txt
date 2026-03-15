@@ -2,5 +2,5 @@ flask
 requests
 PyGithub
 python-dotenv
-google-generativeai
+google-genai
 PyYAML
