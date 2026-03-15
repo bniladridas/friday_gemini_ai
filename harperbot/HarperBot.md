@@ -36,6 +36,12 @@ This bot automatically analyzes pull requests using Google's Gemini AI and posts
 ### Webhook Mode (Recommended)
 This is the preferred mode for new installations. It uses a centralized deployment for scalability and ease of management.
 
+Before deploying, make sure you:
+
+- Install the HarperBot GitHub App and grant it access to the repositories whose PRs you want analyzed.
+- Set the required environment secrets (`GEMINI_API_KEY`, `HARPERBOT_GEMINI_API_KEY` optional, `HARPER_BOT_APP_ID`, `HARPER_BOT_PRIVATE_KEY`, and `WEBHOOK_SECRET`) in your hosting platform (Vercel, Gunicorn host, etc.) so the webhook server can authenticate with Gemini and GitHub.
+- When you self-host the webhook service outside Vercel, run the Flask app behind a production-grade WSGI server such as Gunicorn; the development server is not designed for production traffic.
+
 ### Workflow Mode (Legacy)
 *This mode is deprecated in favor of Webhook Mode. Support will continue for existing users, but new features and improvements will prioritize Webhook Mode.*
 

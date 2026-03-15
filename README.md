@@ -29,10 +29,20 @@ GEMINI_API_KEY=your_api_key
 HarperBot provides automated PR code reviews using Google's Gemini AI. It supports two deployment modes:
 
 ### Webhook Mode (Recommended)
-- **Self-hosted on Vercel** for centralized, scalable analysis
-- Install the [HarperBot GitHub App](https://github.com/apps/harperbot) once for all repositories
-- No per-repository setup required
-- **Note:** For self-hosting outside Vercel, use a production WSGI server like Gunicorn instead of Flask's development server for security and performance.
+This is the preferred deployment path. You need to:
+
+- Install the [HarperBot GitHub App](https://github.com/apps/harperbot) and grant it access to the repositories you want to monitor.
+- Provision these secrets (in Vercel or another host) so the webhook server can authenticate with both Gemini and GitHub:
+  - `GEMINI_API_KEY`
+  - `HARPERBOT_GEMINI_API_KEY` *(optional override)*
+  - `HARPER_BOT_APP_ID`
+  - `HARPER_BOT_PRIVATE_KEY`
+  - `WEBHOOK_SECRET`
+- Deploy the webhook service behind a production WSGI server (for example, Gunicorn) whenever you self-host it outside Vercel; Flask’s dev server is not safe for production traffic.
+
+Once those requirements are met, the centralized HarperBot instance receives webhooks from any connected repository without per-repo secrets.
+
+**Quick checklist before you deploy:** install the HarperBot GitHub App, configure the five secrets above, and serve the webhook process through a WSGI server when not on Vercel so you stay secure.
 
 ### Workflow Mode (Legacy)
 - Repository-specific GitHub Actions workflow
