@@ -38,6 +38,7 @@ This is the preferred deployment path. You need to:
   - `HARPER_BOT_APP_ID`
   - `HARPER_BOT_PRIVATE_KEY`
   - `WEBHOOK_SECRET`
+- Subscribe the app webhooks to **Pull request** and **Issue comment** events so HarperBot receives new PRs and manual `/analyze` commands.
 - Deploy the webhook service behind a production WSGI server (for example, Gunicorn) whenever you self-host it outside Vercel; Flask’s dev server is not safe for production traffic.
 
 Once those requirements are met, the centralized HarperBot instance receives webhooks from any connected repository without per-repo secrets.
