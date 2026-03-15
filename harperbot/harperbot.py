@@ -964,7 +964,11 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int):
         return
     if not pr_details.get("diff"):
         post_notice_comment(
-            installation_token, repo_name, pr_number, "Empty diff", "HarperBot could not find a diff to analyze."
+            installation_token,
+            repo_name,
+            pr_number,
+            "Empty diff",
+            "HarperBot could not find a diff to analyze.",
         )
         return
     analysis = analyze_with_gemini(client, pr_details)
@@ -994,7 +998,10 @@ def handle_merge_command(
     if permission not in {"admin", "write"}:
         pr = repo.get_pull(pr_number)
         pr.create_issue_comment(
-            format_notice("Insufficient permissions", "You need write/admin permissions to use merge commands.")
+            format_notice(
+                "Insufficient permissions",
+                "You need write/admin permissions to use merge commands.",
+            )
         )
         logging.warning(f"User {commenter_login} lacks permission ({permission}) for {merge_method} on PR #{pr_number}")
         return jsonify({"status": "forbidden"}), 403
@@ -1006,7 +1013,12 @@ def handle_merge_command(
 
     try:
         if pr.mergeable is False:
-            pr.create_issue_comment(format_notice("PR not mergeable", "Resolve conflicts or wait for checks, then try again."))
+            pr.create_issue_comment(
+                format_notice(
+                    "PR not mergeable",
+                    "Resolve conflicts or wait for checks, then try again.",
+                )
+            )
             return jsonify({"status": "not_mergeable"})
 
         result = pr.merge(merge_method=merge_method)
@@ -1096,7 +1108,7 @@ def webhook_handler():
             return jsonify({"status": "ignored"})
 
     # Only process PR events
-    if event_type not in ["opened", "reopened"] or not has_pr:
+    if event_type not in ["opened", "reopened", "synchronize"] or not has_pr:
         logging.info(f"Ignored webhook event: action={event_type}, has_pr={has_pr}")
         return jsonify({"status": "ignored"})
 
