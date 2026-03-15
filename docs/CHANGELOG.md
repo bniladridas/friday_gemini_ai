@@ -5,7 +5,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ## [1.4.0](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.3.0...friday_gemini_ai/v1.4.0) (2026-03-15)
 
-
 ### Features
 
 * process sync events in webhook ([02beaa5](https://github.com/bniladridas/friday_gemini_ai/commit/02beaa54d5a8f07bdf976340ef2ae141cc01d1ff))
