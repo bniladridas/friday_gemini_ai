@@ -151,7 +151,7 @@ jobs:
         run: |
           # Try to push and handle "already exists" error gracefully
           set +e
-          OUTPUT=$(gem push *.gem --host https://rubygems.org --key rubygems_api_key 2>&1)
+          OUTPUT=$(gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }} --key github 2>&1)
           EXIT_CODE=$?
           set -e
 
