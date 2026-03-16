@@ -54,6 +54,25 @@ except ImportError:
 
     request = None  # type: ignore[assignment]
 
+def fetch_pr_diff(diff_url: str, token: str | None) -> str:
+    headers = {"Accept": "application/vnd.github.v3.diff"}
+    if token:
+        headers["Authorization"] = f"token {token}"
+    try:
+        response = requests.get(diff_url, headers=headers, timeout=20)
+    except requests.RequestException as e:
+        logging.warning(f"Failed to fetch PR diff: {str(e)}")
+        return ""
+
+    if response.status_code != 200:
+        snippet = (response.text or "").strip().replace("\n", " ")
+        if len(snippet) > 200:
+            snippet = snippet[:200] + "…"
+        logging.warning(f"Failed to fetch PR diff (HTTP {response.status_code}): {snippet}")
+        return ""
+
+    return response.text or ""
+
 
 def find_diff_position(diff, file_path, line_number):
     """
@@ -139,11 +158,7 @@ def get_pr_details(github_token, repo_name, pr_number):
     diff_url = pr.diff_url
 
     # Get diff content
-    diff_content = requests.get(
-        diff_url,
-        headers={"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3.diff"},
-        timeout=20,
-    ).text
+    diff_content = fetch_pr_diff(diff_url, github_token)
 
     return {
         "title": pr.title,
@@ -959,10 +974,7 @@ def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | No
     files_changed = [f.filename for f in pr.get_files()]
 
     # Get diff content using diff_url
-    headers = {"Accept": "application/vnd.github.v3.diff"}
-    if installation_token:
-        headers["Authorization"] = f"token {installation_token}"
-    diff_content = requests.get(pr.diff_url, headers=headers, timeout=20).text
+    diff_content = fetch_pr_diff(pr.diff_url, installation_token)
 
     return {
         "title": pr.title,

@@ -21,6 +21,7 @@ from harperbot.harperbot import (  # noqa: E402
     analyze_with_gemini,
     apply_suggestions_to_pr,
     create_branch,
+    fetch_pr_diff,
     find_diff_position,
     get_pr_details_webhook,
     handle_pr_comment_command,
@@ -413,6 +414,14 @@ class TestHarperBot(unittest.TestCase):
         _args, kwargs = mock_get.call_args
         self.assertIn("Authorization", kwargs["headers"])
         self.assertEqual(kwargs["headers"]["Authorization"], "token inst-token")
+
+    @patch("harperbot.harperbot.requests.get")
+    def test_fetch_pr_diff_returns_empty_on_non_200(self, mock_get):
+        response = Mock()
+        response.status_code = 403
+        response.text = "forbidden"
+        mock_get.return_value = response
+        self.assertEqual(fetch_pr_diff("https://example.invalid/diff", token="t"), "")
 
     def test_post_inline_suggestions_creates_review_without_inline(self):
         """When no inline suggestions are valid, still post a review entry."""
