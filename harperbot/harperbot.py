@@ -767,18 +767,42 @@ def post_inline_suggestions(pr, pr_details, suggestions, g, repo):
                 logging.warning(f"Invalid line number format '{line}' for suggestion in '{file_path}'. Skipping.")
                 continue
 
-            position = find_diff_position(pr_details["diff"], file_path, line_num)
-            if position is not None:
-                # Use standard GitHub suggestion format for interactive batch applying
-                body = f"```suggestion\n{suggestion}\n```"
-                review_comments.append({"path": file_path, "position": position, "body": body})
+            # Prefer modern "line + side" review comments (more robust than diff position math).
+            body = f"```suggestion\n{suggestion}\n```"
+            review_comments.append({"path": file_path, "line": line_num, "side": "RIGHT", "body": body})
 
-        if review_comments:
-            body = f"HarperBot Analysis for {head_sha}\n<!-- harperbot-sha: {head_sha} -->"
-            pr.create_review(commit=commit, body=body, comments=review_comments, event="COMMENT")
+        review_body = f"HarperBot Analysis for {head_sha}\n<!-- harperbot-sha: {head_sha} -->"
+
+        if not review_comments:
+            # Still create a review so it shows up in the PR review timeline.
+            pr.create_review(commit=commit, body=review_body, event="COMMENT")
+            logging.info("Posted a review without inline suggestions")
+            return
+
+        try:
+            pr.create_review(commit=commit, body=review_body, comments=review_comments, event="COMMENT")
             logging.info(f"Posted {len(review_comments)} inline suggestions as a review")
-        else:
-            logging.info("No valid inline suggestions to post")
+        except Exception as e:
+            # Fallback to legacy `position` field if the API rejects line-based comments.
+            logging.warning(f"Line-based review comments failed, retrying with diff positions: {str(e)}")
+            position_comments = []
+            for file_path, line, suggestion in suggestions:
+                try:
+                    line_num = int(line)
+                except (ValueError, TypeError):
+                    continue
+                position = find_diff_position(pr_details.get("diff", ""), file_path, line_num)
+                if position is None:
+                    continue
+                body = f"```suggestion\n{suggestion}\n```"
+                position_comments.append({"path": file_path, "position": position, "body": body})
+
+            if position_comments:
+                pr.create_review(commit=commit, body=review_body, comments=position_comments, event="COMMENT")
+                logging.info(f"Posted {len(position_comments)} inline suggestions as a review (position fallback)")
+            else:
+                pr.create_review(commit=commit, body=review_body, event="COMMENT")
+                logging.info("Posted a review without inline suggestions (fallback)")
     except Exception as e:
         logging.error(f"Error posting review with suggestions: {str(e)}")
         # Don't fail the whole process for review posting errors

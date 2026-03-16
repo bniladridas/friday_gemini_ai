@@ -22,6 +22,7 @@ from harperbot.harperbot import (  # noqa: E402
     find_diff_position,
     load_config,
     parse_diff_for_suggestions,
+    post_inline_suggestions,
     run_analysis_for_pr,
     verify_webhook_signature,
 )
@@ -299,6 +300,38 @@ class TestHarperBot(unittest.TestCase):
 
         mock_analyze.assert_called_once()
         mock_post_comment.assert_called_once()
+
+    def test_post_inline_suggestions_creates_review_without_inline(self):
+        """When no inline suggestions are valid, still post a review entry."""
+        pr = Mock()
+        pr_details = {"head_sha": "deadbeef", "diff": ""}
+        repo = Mock()
+        repo.get_commit.return_value = Mock()
+
+        pr.get_reviews.return_value = []
+        post_inline_suggestions(pr, pr_details, [], g=Mock(), repo=repo)
+
+        pr.create_review.assert_called_once()
+        _args, kwargs = pr.create_review.call_args
+        self.assertEqual(kwargs["event"], "COMMENT")
+        self.assertIn("harperbot-sha: deadbeef", kwargs["body"])
+
+    def test_post_inline_suggestions_uses_line_based_comments_first(self):
+        """Inline suggestions default to modern line-based review comments."""
+        pr = Mock()
+        pr_details = {"head_sha": "deadbeef", "diff": "diff --git a/a.txt b/a.txt\n@@ -1,1 +1,1 @@\n-old\n+new\n"}
+        repo = Mock()
+        repo.get_commit.return_value = Mock()
+
+        pr.get_reviews.return_value = []
+        suggestions = [("a.txt", "1", "new")]
+        post_inline_suggestions(pr, pr_details, suggestions, g=Mock(), repo=repo)
+
+        _args, kwargs = pr.create_review.call_args
+        self.assertIn("comments", kwargs)
+        self.assertEqual(kwargs["comments"][0]["path"], "a.txt")
+        self.assertEqual(kwargs["comments"][0]["line"], 1)
+        self.assertEqual(kwargs["comments"][0]["side"], "RIGHT")
 
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
