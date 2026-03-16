@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>L2 Technical Support - HarperBot</title>
+    <meta
+      name="description"
+      content="Level 2 Technical Support notes for HarperBot GitHub App setup, permissions, webhooks, and command troubleshooting."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <nav class="pill-nav">
+      <a href="./index.html">Home</a>
+      <a href="./app.html">HarperBot</a>
+      <a href="./support.html" class="active">Support</a>
+      <a href="./experience.html">Journal</a>
+    </nav>
+
+    <div class="hero hero-blue">
+      <div class="hero-content">
+        <div class="hero-label">Support We Love</div>
+        <h1>L2 Technical Support</h1>
+        <p>Runbook and troubleshooting notes for HarperBot (GitHub App + Webhook Mode).</p>
+      </div>
+    </div>
+
+    <main>
+      <div class="section-grid">
+        <section class="card card-span-2">
+          <h2>What this covers</h2>
+          <p>
+            A Level 2 support summary of issues found and fixes shipped while validating HarperBot’s webhook deployment
+            (Vercel) against a test repository.
+          </p>
+          <ul class="link-list">
+            <li><span></span>Required GitHub App permissions + webhook events</li>
+            <li><span></span>Slash command behavior: <code>/analyze</code>, <code>/apply</code>, <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
+            <li><span></span>Why reviews/inline suggestions sometimes don’t appear</li>
+            <li><span></span>Common log patterns and how to interpret them</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="section-grid">
+        <section class="card">
+          <h2>Baseline permissions</h2>
+          <p>Minimum repository permissions for review + merge + apply:</p>
+          <pre><code>Metadata: read (required)
+Pull requests: read &amp; write
+Issues: read &amp; write
+Code/Contents: read &amp; write</code></pre>
+          <p class="card-subtext">Everything else: No access (Actions/Checks/Secrets/Administration/etc.).</p>
+        </section>
+
+        <section class="card">
+          <h2>Webhook events</h2>
+          <pre><code>Pull request
+Issue comment
+Pull request review comment</code></pre>
+          <p class="card-subtext">
+            The third event enables commands posted as inline comments on the “Files changed” tab.
+          </p>
+        </section>
+      </div>
+
+      <div class="section-grid">
+        <section class="card card-span-2">
+          <h2>Fixes shipped (L2 summary)</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Symptom</th>
+                <th>Root cause</th>
+                <th>Resolution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/apply</code> returned 500 with <code>pr</code> unbound</td>
+                <td>Code path referenced <code>pr</code> when there were no suggestions</td>
+                <td>Always fetch <code>repo</code>/<code>pr</code> before branching; added tests</td>
+              </tr>
+              <tr>
+                <td><code>/analyze</code> skipped due to “analysis already exists for SHA …”</td>
+                <td>Dedup logic applied to manual reruns</td>
+                <td>Added <code>force</code> rerun mode for manual <code>/analyze</code></td>
+              </tr>
+              <tr>
+                <td>PR comment posted but no PR review / inline suggestions</td>
+                <td>Review creation only happened when inline suggestions existed; brittle diff-position math</td>
+                <td>Always create a review; use line-based inline comments with a fallback</td>
+              </tr>
+              <tr>
+                <td>Inline <code>/analyze</code> comment in “Files changed” was ignored</td>
+                <td>Webhook handler only processed issue comments</td>
+                <td>Added handling for pull_request_review_comment “created” events</td>
+              </tr>
+              <tr>
+                <td><code>/apply</code> said “No code suggestions found” even when diff blocks were present</td>
+                <td>Parser expected <code>--- a/</code> headers; deletions weren’t supported</td>
+                <td>Support simplified diff blocks + deletion operations; apply deletes safely</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="card-subtext">
+            Tip: When triaging “ignored” events, remember the handler processes PR actions (<code>opened</code>,
+            <code>reopened</code>, <code>synchronize</code>) plus comment events. Review “submitted” events are expected
+            to be ignored.
+          </p>
+        </section>
+      </div>
+
+      <div class="section-grid">
+        <section class="card">
+          <h2>Validation checklist</h2>
+          <ul class="link-list">
+            <li><span></span>Create a PR with a small code change</li>
+            <li><span></span>Comment <code>/analyze</code> in Conversation (and optionally as an inline file comment)</li>
+            <li><span></span>Verify a PR review appears (“View reviewed changes”)</li>
+            <li><span></span>Comment <code>/apply</code> and confirm a bot-authored commit lands on the PR branch</li>
+            <li><span></span>Optionally test merges: <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2>Log signals</h2>
+          <p>Useful strings to filter in Vercel logs:</p>
+          <pre><code>Processing /analyze
+Error handling apply comment:
+Posted ... inline suggestions as a review
+Posted a review without inline suggestions
+Ignored webhook event:</code></pre>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Friday Gemini AI</p>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

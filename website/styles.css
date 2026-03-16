@@ -142,6 +142,37 @@ code {
   color: #ff7b72;
 }
 
+/* Tables */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table th,
+.table td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table thead th {
+  border-top: none;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.table tbody td {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
 /* Links & Buttons */
 .btn-primary {
   display: inline-block;
