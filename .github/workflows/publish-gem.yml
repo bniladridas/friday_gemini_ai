@@ -130,7 +130,9 @@ jobs:
     name: Publish to RubyGems
     runs-on: ubuntu-latest
     needs: build
-    if: false  # Disabled - use manual workflow for RubyGems publishing
+    if: always()
+    permissions:
+      contents: read
 
     steps:
       - name: Download gem artifact
@@ -138,8 +140,29 @@ jobs:
         with:
           name: gem-package
 
+      - name: Configure gem credentials
+        run: |
+          mkdir -p ~/.gem
+          echo "---" > ~/.gem/credentials
+          echo ":rubygems_api_key: ${RUBYGEMS_API_KEY}" >> ~/.gem/credentials
+          chmod 600 ~/.gem/credentials
+
       - name: Publish to RubyGems
         run: |
-          gem push *.gem --host https://rubygems.org --key rubygems_api_key
+          # Try to push and handle "already exists" error gracefully
+          set +e
+          OUTPUT=$(gem push *.gem --host https://rubygems.org --key rubygems_api_key 2>&1)
+          EXIT_CODE=$?
+          set -e
+          
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "Successfully published gem to RubyGems"
+          elif echo "$OUTPUT" | grep -q "already been pushed"; then
+            echo "Gem version already exists in RubyGems. Skipping."
+            exit 0
+          else
+            echo "$OUTPUT"
+            exit $EXIT_CODE
+          fi
         env:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
