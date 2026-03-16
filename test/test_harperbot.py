@@ -22,13 +22,13 @@ from harperbot.harperbot import (  # noqa: E402
     apply_suggestions_to_pr,
     create_branch,
     find_diff_position,
+    get_pr_details_webhook,
     handle_pr_comment_command,
     is_quota_exceeded_message,
     load_config,
     parse_diff_for_suggestions,
     post_inline_suggestions,
     run_analysis_for_pr,
-    get_pr_details_webhook,
     verify_webhook_signature,
 )
 
