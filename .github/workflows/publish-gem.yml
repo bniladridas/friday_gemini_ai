@@ -94,11 +94,6 @@ jobs:
       packages: write
 
     steps:
-      - name: Debug job status
-        run: |
-          echo "Publish job started"
-          echo "Needs build result: ${{ needs.build.result }}"
-
       - name: Download gem artifact
         uses: actions/download-artifact@v4
         with:
