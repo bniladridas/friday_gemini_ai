@@ -458,36 +458,97 @@ def analyze_with_gemini(client, pr_details):
 
 
 def parse_diff_for_suggestions(diff_text):
-    """Parse a diff block to extract file, line, and suggestion code."""
+    """Parse a diff block into (file_path, line, suggestion) tuples.
+
+    Supports two common formats:
+
+    1) Standard unified diff headers:
+       --- a/path
+       +++ b/path
+       @@ -old +new @@
+
+    2) The simplified format HarperBot asks the model to emit:
+       path
+       @@ -old +new @@
+       - old
+       + new
+    """
     lines = diff_text.strip().split("\n")
-    if not lines or not lines[0].startswith("--- a/"):
+    if not lines:
         return None
-    file_path = lines[0][6:]  # --- a/file
-    hunk_start = None
-    suggestion_lines = []
-    current_line = 0
-    line_num = 0
-    for line in lines:
+
+    file_path = None
+    start_idx = 0
+    if lines[0].startswith("--- a/"):
+        file_path = lines[0][6:]
+        start_idx = 0
+    else:
+        candidate = lines[0].strip()
+        if candidate and not candidate.startswith("@@") and not candidate.startswith(("+", "-", "diff --git")):
+            file_path = candidate
+            start_idx = 1
+
+    if not file_path:
+        return None
+
+    suggestions = []
+    in_hunk = False
+    old_line = 0
+    pending_plus_lines = []
+    pending_plus_line_num = None
+    pending_minus_line_num = None
+    pending_minus_count = 0
+
+    def flush_pending():
+        nonlocal pending_plus_lines, pending_plus_line_num, pending_minus_line_num, pending_minus_count
+        if pending_plus_lines and pending_plus_line_num is not None:
+            # Treat (- then +) as a replacement at the first removed line.
+            suggestions.append((file_path, pending_plus_line_num, "\n".join(pending_plus_lines)))
+            pending_plus_lines = []
+            pending_plus_line_num = None
+            pending_minus_line_num = None
+            pending_minus_count = 0
+            return
+
+        if pending_minus_count and pending_minus_line_num is not None:
+            for i in range(pending_minus_count):
+                suggestions.append((file_path, pending_minus_line_num + i, "__DELETE__"))
+        pending_minus_line_num = None
+        pending_minus_count = 0
+
+    for line in lines[start_idx:]:
         if line.startswith("@@"):
-            match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
-            if match:
-                hunk_start = int(match.group(1))
-                current_line = hunk_start
-        elif hunk_start is not None:
-            if line.startswith("+"):
-                if not suggestion_lines:  # First + line
-                    line_num = current_line
-                suggestion_lines.append(line[1:])  # remove +
-                current_line += 1
-            elif line.startswith("-"):
-                # Removed line, no change to current_line
-                pass
-            else:
-                # Context line
-                current_line += 1
-    if suggestion_lines:
-        return file_path, line_num, "\n".join(suggestion_lines)
-    return None
+            flush_pending()
+            match = re.match(r"@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
+            if not match:
+                in_hunk = False
+                continue
+            in_hunk = True
+            old_line = int(match.group(1))
+            continue
+
+        if not in_hunk:
+            continue
+
+        if line.startswith("+"):
+            if pending_plus_line_num is None:
+                pending_plus_line_num = pending_minus_line_num if pending_minus_line_num is not None else old_line
+            pending_plus_lines.append(line[1:])
+            continue
+
+        if line.startswith("-"):
+            if pending_minus_line_num is None:
+                pending_minus_line_num = old_line
+            pending_minus_count += 1
+            old_line += 1
+            continue
+
+        # Context line (or an unprefixed line treated as context)
+        flush_pending()
+        old_line += 1
+
+    flush_pending()
+    return suggestions or None
 
 
 def format_comment(analysis, sha=None):
@@ -524,8 +585,9 @@ def parse_code_suggestions(analysis):
     suggestions = []
     for diff_text in diff_blocks:
         parsed = parse_diff_for_suggestions(diff_text)
-        if parsed:
-            file_path, line, suggestion = parsed
+        if not parsed:
+            continue
+        for file_path, line, suggestion in parsed:
             suggestions.append((file_path, str(line), suggestion))
     return suggestions
 
@@ -669,8 +731,12 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
                     )
                     continue
 
-                sugg_lines = suggestion.split("\n")
-                num_old = 1  # Assume replacing 1 line (simplified; full diff parsing needed for accurate replacements)
+                if suggestion == "__DELETE__":
+                    sugg_lines = []
+                else:
+                    sugg_lines = suggestion.split("\n")
+
+                num_old = 1  # Simplified: treat each suggestion as replacing/removing one line.
                 num_new = len(sugg_lines)
 
                 lines = lines[:adjusted_line] + sugg_lines + lines[adjusted_line + num_old :]

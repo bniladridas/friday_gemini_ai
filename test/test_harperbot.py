@@ -179,10 +179,24 @@ class TestHarperBot(unittest.TestCase):
 +new line"""
         result = parse_diff_for_suggestions(diff_text)
         self.assertIsNotNone(result)
-        file_path, line, suggestion = result
-        self.assertEqual(file_path, "test.py")
-        self.assertEqual(line, 1)
-        self.assertEqual(suggestion, "new line")
+        self.assertEqual(result, [("test.py", 1, "new line")])
+
+    def test_parse_diff_for_suggestions_simplified_format_valid(self):
+        """Supports `file_path`-first diff blocks (no ---/+++ headers)."""
+        diff_text = """test.py
+@@ -1,1 +1,1 @@
+-old line
++new line"""
+        result = parse_diff_for_suggestions(diff_text)
+        self.assertEqual(result, [("test.py", 1, "new line")])
+
+    def test_parse_diff_for_suggestions_deletion_only(self):
+        """Deletion-only hunks are surfaced as __DELETE__ operations."""
+        diff_text = """test.py
+@@ -2,1 +2,0 @@
+-remove me"""
+        result = parse_diff_for_suggestions(diff_text)
+        self.assertEqual(result, [("test.py", 2, "__DELETE__")])
 
     def test_parse_diff_for_suggestions_invalid(self):
         """Test parsing invalid diff."""
@@ -495,6 +509,29 @@ class TestHarperBot(unittest.TestCase):
 
         # Should not create commit since suggestion is skipped
         self.assertFalse(mock_repo.create_git_commit.called)
+
+    def test_apply_suggestions_deletes_line(self):
+        """__DELETE__ removes the targeted line."""
+        mock_repo = Mock()
+        mock_pr = Mock()
+        mock_pr.number = 123
+        mock_pr.head.ref = "feature-branch"
+        mock_pr.head.sha = "def456"
+
+        mock_ref = Mock()
+        mock_repo.get_git_ref.return_value = mock_ref
+
+        suggestions = [("test.py", "2", "__DELETE__")]
+
+        mock_file = Mock()
+        mock_file.decoded_content.decode.return_value = "line 1\nline 2\nline 3"
+        mock_repo.get_contents.return_value = mock_file
+
+        apply_suggestions_to_pr(mock_repo, mock_pr, suggestions)
+
+        self.assertTrue(mock_repo.create_git_commit.called)
+        expected_content = "line 1\nline 3"
+        mock_repo.create_git_blob.assert_called_with(expected_content, "utf-8")
 
 
 if __name__ == "__main__":
