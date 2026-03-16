@@ -14,6 +14,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime, timezone
 
 import google.genai as genai
 import yaml
@@ -23,6 +24,8 @@ from google.genai import errors as genai_errors
 from google.genai import types
 
 PAUSE_LABEL = "harperbot:paused"
+QUOTA_COOLDOWN_SECONDS = int(os.getenv("HARPERBOT_QUOTA_COOLDOWN_SECONDS", "1800"))
+QUOTA_UNTIL_MARKER_RE = re.compile(r"harperbot-quota-until:\s*(\d+)")
 
 try:
     from .harperbot_apply import handle_apply_comment
@@ -1055,6 +1058,13 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *,
             if paused:
                 logging.info(f"Skipping analysis for PR #{pr_number}: paused via label '{PAUSE_LABEL}'")
                 return
+
+            pr = repo.get_pull(pr_number)
+            quota_until = get_quota_cooldown_until(pr)
+            if quota_until is not None and time.time() < quota_until:
+                until_iso = datetime.fromtimestamp(quota_until, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                logging.info(f"Skipping analysis for PR #{pr_number}: quota cooldown until {until_iso}")
+                return
         except Exception as e:
             # Do not hard-fail analysis for label lookup issues.
             logging.warning(f"Pause label check failed for PR #{pr_number}: {str(e)}")
@@ -1096,6 +1106,25 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *,
             "HarperBot did not receive a response from the model.",
         )
         return
+
+    if is_quota_exceeded_message(analysis):
+        quota_until = int(time.time()) + max(0, QUOTA_COOLDOWN_SECONDS)
+        until_iso = datetime.fromtimestamp(quota_until, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        post_notice_comment(
+            installation_token,
+            repo_name,
+            pr_number,
+            "Gemini quota exceeded",
+            (
+                "HarperBot hit a Gemini quota/rate limit and will pause auto-analysis for this PR.\n\n"
+                f"Auto-analysis resumes after: **{until_iso}**\n\n"
+                "You can retry immediately with `/analyze`.\n\n"
+                f"<!-- harperbot-quota-until: {quota_until} -->"
+            ),
+        )
+        logging.warning(f"Quota exceeded for PR #{pr_number}; cooldown until {until_iso}")
+        return
+
     post_comment_webhook(installation_token, repo_name, pr_details, analysis)
 
 
@@ -1154,13 +1183,21 @@ def handle_pr_comment_command(
             return {"status": "ok"}, 200
 
         # /status
+        repo = g.get_repo(repo_name)
+        pr = repo.get_pull(pr_number)
+        quota_until = get_quota_cooldown_until(pr)
+        quota_msg = ""
+        if quota_until is not None and time.time() < quota_until:
+            until_iso = datetime.fromtimestamp(quota_until, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+            quota_msg = f"\n\nQuota cooldown active until: **{until_iso}**"
+
         state = "paused" if is_paused else "enabled"
         post_notice_comment(
             installation_token,
             repo_name,
             pr_number,
             "Status",
-            f"Auto analysis is **{state}** for this PR.\n\nLabel: `{PAUSE_LABEL}`",
+            f"Auto analysis is **{state}** for this PR.{quota_msg}\n\nLabel: `{PAUSE_LABEL}`",
         )
         return {"status": "ok"}, 200
     if command == "/help":
@@ -1189,6 +1226,31 @@ def handle_pr_comment_command(
     if command == "/rebase":
         return handle_merge_command(installation_id, repo_name, pr_number, "rebase", commenter_login)
     return {"status": "ignored"}, 200
+
+
+def is_quota_exceeded_message(analysis: str) -> bool:
+    text = (analysis or "").lower()
+    return "api quota exceeded" in text or "rate limit" in text or "quota" in text and "exceeded" in text
+
+
+def get_quota_cooldown_until(pr) -> int | None:
+    """Return a unix timestamp until which auto-analysis should be skipped."""
+    latest = None
+    try:
+        for comment in pr.get_issue_comments():
+            body = comment.body or ""
+            match = QUOTA_UNTIL_MARKER_RE.search(body)
+            if not match:
+                continue
+            try:
+                value = int(match.group(1))
+            except ValueError:
+                continue
+            if latest is None or value > latest:
+                latest = value
+    except Exception:
+        return None
+    return latest
 
 
 def handle_merge_command(

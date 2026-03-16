@@ -21,6 +21,7 @@ from harperbot.harperbot import (  # noqa: E402
     create_branch,
     find_diff_position,
     handle_pr_comment_command,
+    is_quota_exceeded_message,
     load_config,
     parse_diff_for_suggestions,
     post_inline_suggestions,
@@ -281,6 +282,47 @@ class TestHarperBot(unittest.TestCase):
         mock_analyze.assert_not_called()
         mock_post_comment.assert_not_called()
 
+    @patch("harperbot.harperbot.time.time")
+    @patch("harperbot.harperbot.analyze_with_gemini")
+    @patch("harperbot.harperbot.get_pr_details_webhook")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_run_analysis_for_pr_skips_when_quota_cooldown_active(
+        self,
+        mock_setup_env,
+        mock_get_pr_details,
+        mock_analyze,
+        mock_time,
+    ):
+        mock_time.return_value = 1000
+        g = Mock()
+        repo = Mock()
+        pr = Mock()
+        issue = Mock()
+
+        label = Mock()
+        label.name = "something-else"
+        issue.get_labels.return_value = [label]
+
+        comment = Mock()
+        comment.body = "<!-- harperbot-quota-until: 2000 -->"
+        pr.get_issue_comments.return_value = [comment]
+
+        repo.get_issue.return_value = issue
+        repo.get_pull.return_value = pr
+        g.get_repo.return_value = repo
+
+        mock_setup_env.return_value = (g, "token", Mock())
+        mock_get_pr_details.return_value = {
+            "number": 1,
+            "files_changed": ["x.py"],
+            "diff": "diff",
+            "head_sha": "deadbeef",
+        }
+
+        run_analysis_for_pr(123, "o/r", 1, force=False)
+
+        mock_analyze.assert_not_called()
+
     @patch("harperbot.harperbot.post_comment_webhook")
     @patch("harperbot.harperbot.analyze_with_gemini")
     @patch("harperbot.harperbot.get_pr_details_webhook")
@@ -315,6 +357,41 @@ class TestHarperBot(unittest.TestCase):
 
         mock_analyze.assert_called_once()
         mock_post_comment.assert_called_once()
+
+    def test_is_quota_exceeded_message(self):
+        self.assertTrue(is_quota_exceeded_message("Error generating analysis: API quota exceeded."))
+        self.assertTrue(is_quota_exceeded_message("rate limit hit, try later"))
+        self.assertFalse(is_quota_exceeded_message("all good"))
+
+    @patch("harperbot.harperbot.post_notice_comment")
+    @patch("harperbot.harperbot.analyze_with_gemini")
+    @patch("harperbot.harperbot.get_pr_details_webhook")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    @patch("harperbot.harperbot.time.time")
+    def test_run_analysis_for_pr_posts_quota_notice_and_skips_comment_webhook(
+        self,
+        mock_time,
+        mock_setup_env,
+        mock_get_pr_details,
+        mock_analyze,
+        mock_post_notice,
+    ):
+        mock_time.return_value = 1000
+        g = Mock()
+        mock_setup_env.return_value = (g, "token", Mock())
+        mock_get_pr_details.return_value = {
+            "number": 1,
+            "files_changed": ["x.py"],
+            "diff": "diff",
+            "head_sha": "deadbeef",
+        }
+        mock_analyze.return_value = "Error generating analysis: API quota exceeded."
+
+        with patch("harperbot.harperbot.post_comment_webhook") as mock_post_comment:
+            run_analysis_for_pr(123, "o/r", 1, force=True)
+            mock_post_comment.assert_not_called()
+
+        mock_post_notice.assert_called_once()
 
     def test_post_inline_suggestions_creates_review_without_inline(self):
         """When no inline suggestions are valid, still post a review entry."""
