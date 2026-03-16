@@ -107,9 +107,11 @@ jobs:
       - name: Configure gem credentials
         run: |
           mkdir -p ~/.gem
-          printf ":github: Bearer ${GITHUB_TOKEN}\n" > ~/.gem/credentials
+          echo ":github: Bearer $GITHUB_TOKEN" > ~/.gem/credentials
           chmod 600 ~/.gem/credentials
           cat ~/.gem/credentials
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to GitHub Packages
         run: |
