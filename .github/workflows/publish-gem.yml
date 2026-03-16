@@ -105,7 +105,20 @@ jobs:
           echo "---" > ~/.gem/credentials
           echo ":github: Bearer ${PACKAGE_TOKEN}" >> ~/.gem/credentials
           chmod 600 ~/.gem/credentials
-          gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }} --key github
+          
+          # Try to push and handle "already exists" error gracefully
+          OUTPUT=$(gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }} --key github 2>&1)
+          EXIT_CODE=$?
+          
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "Successfully published gem to GitHub Packages"
+          elif echo "$OUTPUT" | grep -q "already been pushed"; then
+            echo "Gem version already exists in GitHub Packages. Skipping."
+            exit 0
+          else
+            echo "$OUTPUT"
+            exit $EXIT_CODE
+          fi
         env:
           PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
 
