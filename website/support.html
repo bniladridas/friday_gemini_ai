@@ -132,6 +132,17 @@ Pull request review comment</code></pre>
         </section>
 
         <section class="card">
+          <h2>Quota cooldown</h2>
+          <p>
+            When Gemini returns a quota/rate-limit error, HarperBot posts a notice and temporarily skips auto-analysis on
+            new commits for a short cooldown window.
+          </p>
+          <p class="card-subtext">Config (Vercel → Project → Settings → Environment Variables):</p>
+          <pre><code>HARPERBOT_QUOTA_COOLDOWN_SECONDS=1800</code></pre>
+          <p class="card-subtext">Examples: <code>300</code> (5 min), <code>1800</code> (30 min, default), <code>0</code> (disable cooldown).</p>
+        </section>
+
+        <section class="card">
           <h2>Log signals</h2>
           <p>Useful strings to filter in Vercel logs:</p>
           <pre><code>Processing /analyze

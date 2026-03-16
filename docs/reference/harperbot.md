@@ -130,5 +130,6 @@ Modify `harperbot/config.yaml` to adjust:
 
 **Common Issues:**
 - Invalid Gemini API key: Check quota and key validity
+- Quota/rate-limit hits: HarperBot auto-cools down per PR (env: `HARPERBOT_QUOTA_COOLDOWN_SECONDS`, default `1800`)
 - Webhook signature errors: Ensure webhook secret matches
 - Permission errors: Verify GitHub App has required permissions
