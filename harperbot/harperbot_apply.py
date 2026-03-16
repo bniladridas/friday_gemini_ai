@@ -38,13 +38,15 @@ def handle_apply_comment(installation_id, repo_name, pr_number):
             setup_environment_webhook,
         )
 
-        g, installation_token, client = setup_environment_webhook(installation_id)
+        g, _, client = setup_environment_webhook(installation_id)
         pr_details = get_pr_details_webhook(g, repo_name, pr_number)
         analysis = analyze_with_gemini(client, pr_details)
         suggestions = parse_code_suggestions(analysis)
+
+        repo = g.get_repo(repo_name)
+        pr = repo.get_pull(pr_number)
+
         if suggestions:
-            repo = g.get_repo(repo_name)
-            pr = repo.get_pull(pr_number)
             apply_suggestions_to_pr(repo, pr, suggestions)
             # Post confirmation comment
             pr.create_issue_comment("Applied code suggestions from HarperBot analysis.")
