@@ -108,6 +108,7 @@ jobs:
         run: |
           mkdir -p ~/.gem
           echo "https://${PACKAGE_TOKEN}:x-oauth-basic@rubygems.pkg.github.com/${{ github.repository_owner }}" > ~/.gem/credentials
+          chmod 600 ~/.gem/credentials
           gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }}
         env:
           PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
