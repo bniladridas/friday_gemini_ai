@@ -74,7 +74,7 @@ jobs:
         run: gem build *.gemspec
 
       - name: Upload gem artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gem-package
           path: "*.gem"
@@ -95,7 +95,7 @@ jobs:
 
     steps:
       - name: Download gem artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: gem-package
 
@@ -134,7 +134,7 @@ jobs:
 
     steps:
       - name: Download gem artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: gem-package
 
