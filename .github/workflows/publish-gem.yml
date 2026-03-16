@@ -35,7 +35,13 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-          bundler-cache: true
+          bundler-cache: false
+
+      - name: Configure Bundler
+        run: bundle config set frozen false
+
+      - name: Install dependencies
+        run: bundle install
 
       - name: Run tests
         run: bundle exec ruby tests/runner.rb
