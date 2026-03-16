@@ -54,6 +54,7 @@ except ImportError:
 
     request = None  # type: ignore[assignment]
 
+
 def fetch_pr_diff(diff_url: str, token: str | None) -> str:
     headers = {"Accept": "application/vnd.github.v3.diff"}
     if token:
