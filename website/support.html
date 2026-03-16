@@ -37,6 +37,7 @@
           <ul class="link-list">
             <li><span></span>Required GitHub App permissions + webhook events</li>
             <li><span></span>Slash command behavior: <code>/analyze</code>, <code>/apply</code>, <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
+            <li><span></span>Operational controls: <code>/pause</code>, <code>/resume</code>, <code>/status</code></li>
             <li><span></span>Why reviews/inline suggestions sometimes don’t appear</li>
             <li><span></span>Common log patterns and how to interpret them</li>
           </ul>
@@ -102,6 +103,11 @@ Pull request review comment</code></pre>
                 <td>Parser expected <code>--- a/</code> headers; deletions weren’t supported</td>
                 <td>Support simplified diff blocks + deletion operations; apply deletes safely</td>
               </tr>
+              <tr>
+                <td>Need to temporarily stop auto reviews on a noisy PR</td>
+                <td>No per-PR control for auto triggers</td>
+                <td>Introduce <code>/pause</code> and <code>/resume</code> using the <code>harperbot:paused</code> label</td>
+              </tr>
             </tbody>
           </table>
           <p class="card-subtext">
@@ -121,6 +127,7 @@ Pull request review comment</code></pre>
             <li><span></span>Verify a PR review appears (“View reviewed changes”)</li>
             <li><span></span>Comment <code>/apply</code> and confirm a bot-authored commit lands on the PR branch</li>
             <li><span></span>Optionally test merges: <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
+            <li><span></span>Pause auto runs: <code>/pause</code>; re-enable: <code>/resume</code></li>
           </ul>
         </section>
 

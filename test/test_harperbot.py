@@ -375,6 +375,42 @@ class TestHarperBot(unittest.TestCase):
         self.assertEqual(result, ({"status": "ok"}, 200))
         mock_post_notice.assert_called_once()
 
+    @patch("harperbot.harperbot.post_notice_comment")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_handle_pr_comment_command_pause_adds_label(self, mock_setup_env, mock_post_notice):
+        g = Mock()
+        repo = Mock()
+        issue = Mock()
+        g.get_repo.return_value = repo
+        repo.get_issue.return_value = issue
+        issue.get_labels.return_value = []
+        mock_setup_env.return_value = (g, "token", Mock())
+
+        result = handle_pr_comment_command(123, "o/r", 1, "/pause", "alice")
+
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        issue.add_to_labels.assert_called_once()
+        mock_post_notice.assert_called_once()
+
+    @patch("harperbot.harperbot.post_notice_comment")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_handle_pr_comment_command_resume_removes_label(self, mock_setup_env, mock_post_notice):
+        g = Mock()
+        repo = Mock()
+        issue = Mock()
+        g.get_repo.return_value = repo
+        repo.get_issue.return_value = issue
+        paused_label = Mock()
+        paused_label.name = "harperbot:paused"
+        issue.get_labels.return_value = [paused_label]
+        mock_setup_env.return_value = (g, "token", Mock())
+
+        result = handle_pr_comment_command(123, "o/r", 1, "/resume", "alice")
+
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        issue.remove_from_labels.assert_called_once()
+        mock_post_notice.assert_called_once()
+
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
         import textwrap

@@ -22,6 +22,8 @@ from github import Auth, Github
 from google.genai import errors as genai_errors
 from google.genai import types
 
+PAUSE_LABEL = "harperbot:paused"
+
 try:
     from .harperbot_apply import handle_apply_comment
 except ImportError:
@@ -1045,6 +1047,18 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *,
     pr_details = get_pr_details_webhook(g, repo_name, pr_number)
     head_sha = pr_details.get("head_sha")
 
+    if not force:
+        try:
+            repo = g.get_repo(repo_name)
+            issue = repo.get_issue(number=pr_number)
+            paused = any((label.name == PAUSE_LABEL) for label in issue.get_labels())
+            if paused:
+                logging.info(f"Skipping analysis for PR #{pr_number}: paused via label '{PAUSE_LABEL}'")
+                return
+        except Exception as e:
+            # Do not hard-fail analysis for label lookup issues.
+            logging.warning(f"Pause label check failed for PR #{pr_number}: {str(e)}")
+
     # De-duplication check: Skip ONLY if analysis already exists for this EXACT commit SHA
     if not force:
         repo = g.get_repo(repo_name)
@@ -1108,6 +1122,47 @@ def handle_pr_comment_command(
         except Exception as e:
             logging.error(f"Error processing /analyze: {str(e)}")
             return {"error": "Processing failed"}, 500
+    if command in {"/pause", "/resume", "/status"}:
+        g, installation_token, _ = setup_environment_webhook(installation_id)
+        repo = g.get_repo(repo_name)
+        issue = repo.get_issue(number=pr_number)
+        label_names = {label.name for label in issue.get_labels()}
+        is_paused = PAUSE_LABEL in label_names
+
+        if command == "/pause":
+            if not is_paused:
+                issue.add_to_labels(PAUSE_LABEL)
+            post_notice_comment(
+                installation_token,
+                repo_name,
+                pr_number,
+                "Paused",
+                f"Auto analysis is paused for this PR.\n\nUse `/resume` to turn it back on.\n\nLabel: `{PAUSE_LABEL}`",
+            )
+            return {"status": "ok"}, 200
+
+        if command == "/resume":
+            if is_paused:
+                issue.remove_from_labels(PAUSE_LABEL)
+            post_notice_comment(
+                installation_token,
+                repo_name,
+                pr_number,
+                "Resumed",
+                f"Auto analysis is enabled for this PR.\n\nUse `/pause` to pause again.\n\nLabel: `{PAUSE_LABEL}`",
+            )
+            return {"status": "ok"}, 200
+
+        # /status
+        state = "paused" if is_paused else "enabled"
+        post_notice_comment(
+            installation_token,
+            repo_name,
+            pr_number,
+            "Status",
+            f"Auto analysis is **{state}** for this PR.\n\nLabel: `{PAUSE_LABEL}`",
+        )
+        return {"status": "ok"}, 200
     if command == "/help":
         _, installation_token, _ = setup_environment_webhook(installation_id)
         help_text = """
@@ -1116,6 +1171,7 @@ def handle_pr_comment_command(
 - Automatic analysis on PR open/reopen
 - Manual analysis: `/analyze`
 - Apply suggestions: `/apply`
+- Pause/resume auto analysis: `/pause`, `/resume`, `/status`
 - Merge commands (write/admin only): `/merge`, `/squash`, `/rebase`
 """.strip()
         post_notice_comment(
