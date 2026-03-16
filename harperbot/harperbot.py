@@ -939,19 +939,25 @@ def post_notice_comment(github_token: str, repo_name: str, pr_number: int, title
     pr.create_issue_comment(format_notice(title, details))
 
 
-def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int):
-    """Fetch PR details, run analysis, and post comments for a PR."""
+def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *, force: bool = False):
+    """Fetch PR details, run analysis, and post comments for a PR.
+
+    Args:
+        force: If True, re-run analysis even when an analysis already exists for
+            the current PR head SHA (useful for manual `/analyze` requests).
+    """
     g, installation_token, client = setup_environment_webhook(installation_id)
     pr_details = get_pr_details_webhook(g, repo_name, pr_number)
     head_sha = pr_details.get("head_sha")
 
     # De-duplication check: Skip ONLY if analysis already exists for this EXACT commit SHA
-    repo = g.get_repo(repo_name)
-    pr = repo.get_pull(pr_number)
-    for comment in pr.get_issue_comments():
-        if f"harperbot-sha: {head_sha}" in (comment.body or ""):
-            logging.info(f"Skipping analysis for PR #{pr_number}: Analysis already exists for SHA {head_sha}")
-            return
+    if not force:
+        repo = g.get_repo(repo_name)
+        pr = repo.get_pull(pr_number)
+        for comment in pr.get_issue_comments():
+            if f"harperbot-sha: {head_sha}" in (comment.body or ""):
+                logging.info(f"Skipping analysis for PR #{pr_number}: Analysis already exists for SHA {head_sha}")
+                return
 
     if not pr_details.get("files_changed"):
         post_notice_comment(
@@ -1079,7 +1085,7 @@ def webhook_handler():
         if comment_body.lower() == "/analyze":
             logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
             try:
-                run_analysis_for_pr(installation_id, repo_name, pr_number)
+                run_analysis_for_pr(installation_id, repo_name, pr_number, force=True)
                 return jsonify({"status": "ok"})
             except Exception as e:
                 logging.error(f"Error processing /analyze: {str(e)}")

@@ -12,16 +12,17 @@ import sys
 import unittest
 from unittest.mock import Mock, patch
 
-# Add the harperbot directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "harperbot"))
+# Add the repo root to path so we can import `harperbot.*` as a package.
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from harperbot import (  # noqa: E402
+from harperbot.harperbot import (  # noqa: E402
     analyze_with_gemini,
     apply_suggestions_to_pr,
     create_branch,
     find_diff_position,
     load_config,
     parse_diff_for_suggestions,
+    run_analysis_for_pr,
     verify_webhook_signature,
 )
 
@@ -61,7 +62,7 @@ class TestHarperBot(unittest.TestCase):
             self.assertEqual(config["max_output_tokens"], 4096)
             self.assertIn("prompt", config)  # Should include default prompt
 
-    @patch("harperbot.load_config")
+    @patch("harperbot.harperbot.load_config")
     def test_analyze_with_gemini_success(self, mock_load_config):
         """Test successful Gemini analysis."""
         # Mock config with all required keys
@@ -87,8 +88,8 @@ class TestHarperBot(unittest.TestCase):
         self.assertEqual(result, "Test analysis")
         mock_client.models.generate_content.assert_called_once()
 
-    @patch("harperbot.time.sleep", return_value=None)
-    @patch("harperbot.load_config")
+    @patch("harperbot.harperbot.time.sleep", return_value=None)
+    @patch("harperbot.harperbot.load_config")
     def test_analyze_with_gemini_retries_on_server_error(self, mock_load_config, _mock_sleep):
         """Retries on 5xx and succeeds when API recovers."""
         from google.genai import errors as genai_errors
@@ -115,8 +116,8 @@ class TestHarperBot(unittest.TestCase):
         self.assertEqual(result, "Recovered analysis")
         self.assertEqual(mock_client.models.generate_content.call_count, 3)
 
-    @patch("harperbot.time.sleep", return_value=None)
-    @patch("harperbot.load_config")
+    @patch("harperbot.harperbot.time.sleep", return_value=None)
+    @patch("harperbot.harperbot.load_config")
     def test_analyze_with_gemini_server_error_message_includes_http(self, mock_load_config, _mock_sleep):
         """Server errors return a helpful message with HTTP details."""
         from google.genai import errors as genai_errors
@@ -140,7 +141,7 @@ class TestHarperBot(unittest.TestCase):
         self.assertIn("api unavailable", result.lower())
         self.assertIn("http 503", result.lower())
 
-    @patch("harperbot.load_config")
+    @patch("harperbot.harperbot.load_config")
     def test_analyze_with_gemini_prompt_backcompat_files_diff(self, mock_load_config):
         """Supports legacy {files}/{diff} placeholders in prompt templates."""
         mock_load_config.return_value = {
@@ -189,7 +190,7 @@ class TestHarperBot(unittest.TestCase):
 
     def test_format_comment_does_not_add_hr(self):
         """HarperBot comment should not add extra decorations."""
-        from harperbot import format_comment
+        from harperbot.harperbot import format_comment
 
         formatted = format_comment("hello")
         self.assertNotIn("\n---", formatted)
@@ -197,7 +198,7 @@ class TestHarperBot(unittest.TestCase):
 
     def test_format_comment_with_sha(self):
         """HarperBot comment should include SHA marker when provided."""
-        from harperbot import format_comment
+        from harperbot.harperbot import format_comment
 
         formatted = format_comment("analysis content", sha="abc123")
         self.assertIn("harperbot-sha: abc123", formatted)
@@ -206,7 +207,7 @@ class TestHarperBot(unittest.TestCase):
 
     def test_format_comment_without_sha(self):
         """HarperBot comment should not include SHA marker when not provided."""
-        from harperbot import format_comment
+        from harperbot.harperbot import format_comment
 
         formatted = format_comment("analysis content")
         self.assertNotIn("harperbot-sha:", formatted)
@@ -215,7 +216,7 @@ class TestHarperBot(unittest.TestCase):
 
     def test_format_notice_includes_warning(self):
         """Notice comment should include warning emoji and title."""
-        from harperbot import format_notice
+        from harperbot.harperbot import format_notice
 
         formatted = format_notice("Test Title", "Test details")
         self.assertIn("⚠️ **HarperBot Notice: Test Title**", formatted)
@@ -223,12 +224,81 @@ class TestHarperBot(unittest.TestCase):
 
     def test_format_notice_does_not_include_sha_marker(self):
         """Notice comment should NOT include SHA marker (format_notice no longer accepts sha parameter)."""
-        from harperbot import format_notice
+        from harperbot.harperbot import format_notice
 
         formatted = format_notice("Test Title", "Test details")
         self.assertNotIn("harperbot-sha:", formatted)
         self.assertIn("⚠️ **HarperBot Notice: Test Title**", formatted)
         self.assertIn("Test details", formatted)
+
+    @patch("harperbot.harperbot.post_comment_webhook")
+    @patch("harperbot.harperbot.analyze_with_gemini")
+    @patch("harperbot.harperbot.get_pr_details_webhook")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_run_analysis_for_pr_skips_when_sha_already_commented(
+        self,
+        mock_setup_env,
+        mock_get_pr_details,
+        mock_analyze,
+        mock_post_comment,
+    ):
+        """Auto analysis skips when the same head SHA is already posted."""
+        g = Mock()
+        repo = Mock()
+        pr = Mock()
+        comment = Mock()
+        comment.body = "hello\nharperbot-sha: deadbeef\n"
+        pr.get_issue_comments.return_value = [comment]
+        repo.get_pull.return_value = pr
+        g.get_repo.return_value = repo
+
+        mock_setup_env.return_value = (g, "token", Mock())
+        mock_get_pr_details.return_value = {
+            "number": 1,
+            "files_changed": ["x.py"],
+            "diff": "diff",
+            "head_sha": "deadbeef",
+        }
+
+        run_analysis_for_pr(123, "o/r", 1)
+
+        mock_analyze.assert_not_called()
+        mock_post_comment.assert_not_called()
+
+    @patch("harperbot.harperbot.post_comment_webhook")
+    @patch("harperbot.harperbot.analyze_with_gemini")
+    @patch("harperbot.harperbot.get_pr_details_webhook")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_run_analysis_for_pr_force_reruns_even_with_existing_sha_comment(
+        self,
+        mock_setup_env,
+        mock_get_pr_details,
+        mock_analyze,
+        mock_post_comment,
+    ):
+        """Manual /analyze forces a re-run even if SHA comment exists."""
+        g = Mock()
+        repo = Mock()
+        pr = Mock()
+        comment = Mock()
+        comment.body = "hello\nharperbot-sha: deadbeef\n"
+        pr.get_issue_comments.return_value = [comment]
+        repo.get_pull.return_value = pr
+        g.get_repo.return_value = repo
+
+        mock_setup_env.return_value = (g, "token", Mock())
+        mock_get_pr_details.return_value = {
+            "number": 1,
+            "files_changed": ["x.py"],
+            "diff": "diff",
+            "head_sha": "deadbeef",
+        }
+        mock_analyze.return_value = "analysis text"
+
+        run_analysis_for_pr(123, "o/r", 1, force=True)
+
+        mock_analyze.assert_called_once()
+        mock_post_comment.assert_called_once()
 
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
@@ -246,7 +316,7 @@ class TestHarperBot(unittest.TestCase):
         position = find_diff_position(diff, "test.py", 2)
         self.assertEqual(position, 3)
 
-    @patch("harperbot.load_config")
+    @patch("harperbot.harperbot.load_config")
     def test_load_config_with_authoring_defaults(self, mock_load_config):
         """Test loading config with authoring defaults."""
         with patch("os.path.exists", return_value=False):
