@@ -46,7 +46,7 @@ jobs:
     name: Build Gem
     runs-on: ubuntu-latest
     needs: [test]
-    if: always() && (needs.test.result == 'success' || inputs.skip_tests)
+    if: always() && (needs.test.result != 'failure' || inputs.skip_tests)
 
     steps:
       - name: Checkout code
