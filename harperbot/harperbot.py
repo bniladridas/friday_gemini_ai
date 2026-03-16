@@ -1061,7 +1061,11 @@ def webhook_handler():
     has_comment = "issue" in data and "comment" in data
 
     installation_id = data["installation"]["id"]
-    repo_name = data["repository"]["full_name"]
+    repo_name = data.get("repository", {}).get("full_name") or data.get("repo", {}).get("full_name")
+
+    if not repo_name:
+        logging.warning(f"Webhook payload missing repository field: {data.keys()}")
+        return jsonify({"error": "Missing repository information"}), 400
 
     if event_type == "created" and has_comment:
         issue = data["issue"]
