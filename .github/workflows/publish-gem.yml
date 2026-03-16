@@ -104,6 +104,12 @@ jobs:
         with:
           name: gem-package
 
+      - name: Configure gem credentials
+        run: |
+          mkdir -p ~/.gem
+          echo ":github: Bearer ${GITHUB_TOKEN}" > ~/.gem/credentials
+          chmod 600 ~/.gem/credentials
+
       - name: Publish to GitHub Packages
         run: |
           gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }} --key github
