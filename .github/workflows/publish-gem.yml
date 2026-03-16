@@ -107,8 +107,13 @@ jobs:
           chmod 600 ~/.gem/credentials
 
           # Try to push and handle "already exists" error gracefully
+          set +e
           OUTPUT=$(gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }} --key github 2>&1)
           EXIT_CODE=$?
+          set -e
+
+          echo "Exit code: $EXIT_CODE"
+          echo "Output: $OUTPUT"
 
           if [ $EXIT_CODE -eq 0 ]; then
             echo "Successfully published gem to GitHub Packages"
