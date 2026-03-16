@@ -40,6 +40,7 @@
             <li><span></span>Slash command behavior: <code>/analyze</code>, <code>/apply</code>, <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
             <li><span></span>Operational controls: <code>/pause</code>, <code>/resume</code>, <code>/status</code></li>
             <li><span></span>Why reviews/inline suggestions sometimes don’t appear</li>
+            <li><span></span>Optional multi-line inline review comments (“comment on lines …”)</li>
             <li><span></span>Common log patterns and how to interpret them</li>
           </ul>
         </section>
@@ -105,6 +106,11 @@ Pull request review comment</code></pre>
                 <td>Support simplified diff blocks + deletion operations; apply deletes safely</td>
               </tr>
               <tr>
+                <td>Wanted “comment on lines +X to +Y” style inline reviews</td>
+                <td>Inline reviews were posted as single-line comments only</td>
+                <td>Added optional range comments (multi-line) gated by <code>HARPERBOT_ENABLE_RANGE_COMMENTS</code></td>
+              </tr>
+              <tr>
                 <td>Need to temporarily stop auto reviews on a noisy PR</td>
                 <td>No per-PR control for auto triggers</td>
                 <td>Introduce <code>/pause</code> and <code>/resume</code> using the <code>harperbot:paused</code> label</td>
@@ -141,6 +147,20 @@ Pull request review comment</code></pre>
           <p class="card-subtext">Config (Vercel → Project → Settings → Environment Variables):</p>
           <pre><code>HARPERBOT_QUOTA_COOLDOWN_SECONDS=1800</code></pre>
           <p class="card-subtext">Examples: <code>300</code> (5 min), <code>1800</code> (30 min, default), <code>0</code> (disable cooldown).</p>
+        </section>
+
+        <section class="card">
+          <h2>Multi-line inline reviews</h2>
+          <p>
+            By default, HarperBot posts inline review comments anchored to a single line. If you want GitHub’s
+            “comment on lines +X to +Y” style UI for block feedback, enable range comments.
+          </p>
+          <p class="card-subtext">Config (Vercel → Project → Settings → Environment Variables):</p>
+          <pre><code>HARPERBOT_ENABLE_RANGE_COMMENTS=1</code></pre>
+          <p class="card-subtext">
+            Notes: keep this off if you only want one-line <code>```suggestion```</code> fixes. Range comments are best
+            for block-level guidance; <code>/apply</code> continues to work for suggestions.
+          </p>
         </section>
 
         <section class="card">

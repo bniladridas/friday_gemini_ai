@@ -28,6 +28,7 @@ from google.genai import types
 PAUSE_LABEL = "harperbot:paused"
 QUOTA_COOLDOWN_SECONDS = int(os.getenv("HARPERBOT_QUOTA_COOLDOWN_SECONDS", "1800"))
 QUOTA_UNTIL_MARKER_RE = re.compile(r"harperbot-quota-until:\s*(\d+)")
+ENABLE_RANGE_COMMENTS = os.getenv("HARPERBOT_ENABLE_RANGE_COMMENTS", "0").strip().lower() in {"1", "true", "yes", "on"}
 
 try:
     from .harperbot_apply import handle_apply_comment
@@ -483,7 +484,7 @@ def analyze_with_gemini(client, pr_details):
 
 
 def parse_diff_for_suggestions(diff_text):
-    """Parse a diff block into (file_path, line, suggestion) tuples.
+    """Parse a diff block into structured suggestion operations.
 
     Supports two common formats:
 
@@ -497,6 +498,13 @@ def parse_diff_for_suggestions(diff_text):
        @@ -old +new @@
        - old
        + new
+
+    Returns a list of dicts:
+      - path: str
+      - start_line: int (1-based, against the *current* file the patch applies to)
+      - end_line: int (inclusive; equals start_line for inserts)
+      - op: "replace" | "insert" | "delete"
+      - suggestion: str | None (replacement text for replace/insert)
     """
     lines = diff_text.strip().split("\n")
     if not lines:
@@ -520,24 +528,48 @@ def parse_diff_for_suggestions(diff_text):
     in_hunk = False
     old_line = 0
     pending_plus_lines = []
-    pending_plus_line_num = None
+    pending_anchor_line_num = None
     pending_minus_line_num = None
     pending_minus_count = 0
 
     def flush_pending():
-        nonlocal pending_plus_lines, pending_plus_line_num, pending_minus_line_num, pending_minus_count
-        if pending_plus_lines and pending_plus_line_num is not None:
+        nonlocal pending_plus_lines, pending_anchor_line_num, pending_minus_line_num, pending_minus_count
+        if pending_plus_lines and pending_anchor_line_num is not None:
             # Treat (- then +) as a replacement at the first removed line.
-            suggestions.append((file_path, pending_plus_line_num, "\n".join(pending_plus_lines)))
+            # If there are no '-' lines, this is an insertion anchored at the current old_line.
+            if pending_minus_count:
+                op = "replace"
+                start_line_num = pending_minus_line_num
+                end_line_num = pending_minus_line_num + pending_minus_count - 1
+            else:
+                op = "insert"
+                start_line_num = pending_anchor_line_num
+                end_line_num = pending_anchor_line_num
+            suggestions.append(
+                {
+                    "path": file_path,
+                    "start_line": start_line_num,
+                    "end_line": end_line_num,
+                    "op": op,
+                    "suggestion": "\n".join(pending_plus_lines),
+                }
+            )
             pending_plus_lines = []
-            pending_plus_line_num = None
+            pending_anchor_line_num = None
             pending_minus_line_num = None
             pending_minus_count = 0
             return
 
         if pending_minus_count and pending_minus_line_num is not None:
-            for i in range(pending_minus_count):
-                suggestions.append((file_path, pending_minus_line_num + i, "__DELETE__"))
+            suggestions.append(
+                {
+                    "path": file_path,
+                    "start_line": pending_minus_line_num,
+                    "end_line": pending_minus_line_num + pending_minus_count - 1,
+                    "op": "delete",
+                    "suggestion": None,
+                }
+            )
         pending_minus_line_num = None
         pending_minus_count = 0
 
@@ -556,8 +588,8 @@ def parse_diff_for_suggestions(diff_text):
             continue
 
         if line.startswith("+"):
-            if pending_plus_line_num is None:
-                pending_plus_line_num = pending_minus_line_num if pending_minus_line_num is not None else old_line
+            if pending_anchor_line_num is None:
+                pending_anchor_line_num = pending_minus_line_num if pending_minus_line_num is not None else old_line
             pending_plus_lines.append(line[1:])
             continue
 
@@ -593,7 +625,7 @@ def parse_code_suggestions(analysis):
     """
     Parse code suggestions from analysis text.
 
-    Extracts diff blocks and parses them into (file_path, line, suggestion) tuples.
+    Extracts diff blocks and parses them into structured operations.
     """
     diff_blocks = []
     start_pos = 0
@@ -607,13 +639,12 @@ def parse_code_suggestions(analysis):
         diff_text = analysis[start_pos + 8 : end_pos]
         diff_blocks.append(diff_text)
         start_pos = end_pos + 4
-    suggestions = []
+    suggestions: list[dict] = []
     for diff_text in diff_blocks:
         parsed = parse_diff_for_suggestions(diff_text)
         if not parsed:
             continue
-        for file_path, line, suggestion in parsed:
-            suggestions.append((file_path, str(line), suggestion))
+        suggestions.extend(parsed)
     return suggestions
 
 
@@ -716,7 +747,7 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
     Args:
         repo: GitHub repository object
         pr: Pull request object
-        suggestions: List of (file_path, line, suggestion) tuples
+        suggestions: List of suggestion operation dicts from parse_code_suggestions()
     """
     try:
         from collections import defaultdict
@@ -726,8 +757,16 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
 
         # Group suggestions by file
         suggestion_groups = defaultdict(list)
-        for file_path, line, suggestion in suggestions:
-            suggestion_groups[file_path].append((int(line), suggestion))
+        for sugg in suggestions or []:
+            file_path = sugg.get("path")
+            start_line = sugg.get("start_line")
+            end_line = sugg.get("end_line")
+            op = sugg.get("op")
+            suggestion_text = sugg.get("suggestion")
+
+            if not file_path or not isinstance(start_line, int) or not isinstance(end_line, int) or not op:
+                continue
+            suggestion_groups[file_path].append((start_line, end_line, op, suggestion_text))
 
         # Apply suggestions per file
         changes = {}
@@ -743,29 +782,46 @@ def apply_suggestions_to_pr(repo, pr, suggestions):
             lines = current_content.split("\n")
 
             # Sort suggestions by line number
-            suggs.sort(key=lambda x: x[0])
+            suggs.sort(key=lambda x: (x[0], x[1]))
 
             offset = 0
             applied = False
-            for line, suggestion in suggs:
-                adjusted_line = line - 1 + offset  # Convert to 0-based and adjust for previous changes
+            for start_line, end_line, op, suggestion_text in suggs:
+                adjusted_start = start_line - 1 + offset  # 0-based
+                adjusted_end = end_line - 1 + offset
 
-                if not (0 <= adjusted_line < len(lines)):
+                if op == "insert":
+                    # Insertion is anchored at a single line; insert before it (or at end if beyond).
+                    insert_at = max(0, min(adjusted_start, len(lines)))
+                    new_lines = (suggestion_text or "").split("\n")
+                    lines = lines[:insert_at] + new_lines + lines[insert_at:]
+                    offset += len(new_lines)
+                    applied = True
+                    continue
+
+                if (
+                    not (0 <= adjusted_start < len(lines))
+                    or not (0 <= adjusted_end < len(lines))
+                    or adjusted_end < adjusted_start
+                ):
                     logging.warning(
-                        f"Suggestion for {file_path}:{line} is out of bounds (adjusted line {adjusted_line}), skipping"
+                        f"Suggestion for {file_path}:{start_line}-{end_line} is out of bounds "
+                        f"(adjusted {adjusted_start}-{adjusted_end}), skipping"
                     )
                     continue
 
-                if suggestion == "__DELETE__":
-                    sugg_lines = []
-                else:
-                    sugg_lines = suggestion.split("\n")
+                if op == "delete":
+                    old_len = adjusted_end - adjusted_start + 1
+                    lines = lines[:adjusted_start] + lines[adjusted_end + 1 :]
+                    offset -= old_len
+                    applied = True
+                    continue
 
-                num_old = 1  # Simplified: treat each suggestion as replacing/removing one line.
-                num_new = len(sugg_lines)
-
-                lines = lines[:adjusted_line] + sugg_lines + lines[adjusted_line + num_old :]
-                offset += num_new - num_old
+                # replace
+                new_lines = (suggestion_text or "").split("\n")
+                old_len = adjusted_end - adjusted_start + 1
+                lines = lines[:adjusted_start] + new_lines + lines[adjusted_end + 1 :]
+                offset += len(new_lines) - old_len
                 applied = True
 
             if applied:
@@ -856,16 +912,35 @@ def post_inline_suggestions(pr, pr_details, suggestions, g, repo):
 
         commit = repo.get_commit(head_sha)
         review_comments = []
-        for file_path, line, suggestion in suggestions:
-            try:
-                line_num = int(line)
-            except (ValueError, TypeError):
-                logging.warning(f"Invalid line number format '{line}' for suggestion in '{file_path}'. Skipping.")
+        for sugg in suggestions or []:
+            file_path = sugg.get("path")
+            start_line = sugg.get("start_line")
+            end_line = sugg.get("end_line")
+            op = sugg.get("op")
+            suggestion_text = sugg.get("suggestion")
+
+            if not file_path or not isinstance(start_line, int) or not isinstance(end_line, int):
+                logging.warning(f"Invalid suggestion payload for inline comment: {sugg!r}. Skipping.")
                 continue
 
-            # Prefer modern "line + side" review comments (more robust than diff position math).
-            body = f"```suggestion\n{suggestion}\n```"
-            review_comments.append({"path": file_path, "line": line_num, "side": "RIGHT", "body": body})
+            if op == "delete":
+                body = "Suggested deletion."
+            else:
+                body = f"```suggestion\n{suggestion_text or ''}\n```"
+
+            comment = {"path": file_path, "body": body}
+            if ENABLE_RANGE_COMMENTS and end_line > start_line:
+                comment.update(
+                    {
+                        "start_line": start_line,
+                        "start_side": "RIGHT",
+                        "line": end_line,
+                        "side": "RIGHT",
+                    }
+                )
+            else:
+                comment.update({"line": start_line, "side": "RIGHT"})
+            review_comments.append(comment)
 
         review_body = f"HarperBot Analysis for {head_sha}\n<!-- harperbot-sha: {head_sha} -->"
 
@@ -882,15 +957,18 @@ def post_inline_suggestions(pr, pr_details, suggestions, g, repo):
             # Fallback to legacy `position` field if the API rejects line-based comments.
             logging.warning(f"Line-based review comments failed, retrying with diff positions: {str(e)}")
             position_comments = []
-            for file_path, line, suggestion in suggestions:
-                try:
-                    line_num = int(line)
-                except (ValueError, TypeError):
+            for sugg in suggestions or []:
+                file_path = sugg.get("path")
+                start_line = sugg.get("start_line")
+                op = sugg.get("op")
+                suggestion_text = sugg.get("suggestion")
+                if not file_path or not isinstance(start_line, int):
                     continue
-                position = find_diff_position(pr_details.get("diff", ""), file_path, line_num)
+
+                position = find_diff_position(pr_details.get("diff", ""), file_path, start_line)
                 if position is None:
                     continue
-                body = f"```suggestion\n{suggestion}\n```"
+                body = "Suggested deletion." if op == "delete" else f"```suggestion\n{suggestion_text or ''}\n```"
                 position_comments.append({"path": file_path, "position": position, "body": body})
 
             if position_comments:

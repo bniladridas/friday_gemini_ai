@@ -184,7 +184,18 @@ class TestHarperBot(unittest.TestCase):
 +new line"""
         result = parse_diff_for_suggestions(diff_text)
         self.assertIsNotNone(result)
-        self.assertEqual(result, [("test.py", 1, "new line")])
+        self.assertEqual(
+            result,
+            [
+                {
+                    "path": "test.py",
+                    "start_line": 1,
+                    "end_line": 1,
+                    "op": "replace",
+                    "suggestion": "new line",
+                }
+            ],
+        )
 
     def test_parse_diff_for_suggestions_simplified_format_valid(self):
         """Supports `file_path`-first diff blocks (no ---/+++ headers)."""
@@ -193,15 +204,37 @@ class TestHarperBot(unittest.TestCase):
 -old line
 +new line"""
         result = parse_diff_for_suggestions(diff_text)
-        self.assertEqual(result, [("test.py", 1, "new line")])
+        self.assertEqual(
+            result,
+            [
+                {
+                    "path": "test.py",
+                    "start_line": 1,
+                    "end_line": 1,
+                    "op": "replace",
+                    "suggestion": "new line",
+                }
+            ],
+        )
 
     def test_parse_diff_for_suggestions_deletion_only(self):
-        """Deletion-only hunks are surfaced as __DELETE__ operations."""
+        """Deletion-only hunks are surfaced as delete operations with ranges."""
         diff_text = """test.py
 @@ -2,1 +2,0 @@
 -remove me"""
         result = parse_diff_for_suggestions(diff_text)
-        self.assertEqual(result, [("test.py", 2, "__DELETE__")])
+        self.assertEqual(
+            result,
+            [
+                {
+                    "path": "test.py",
+                    "start_line": 2,
+                    "end_line": 2,
+                    "op": "delete",
+                    "suggestion": None,
+                }
+            ],
+        )
 
     def test_parse_diff_for_suggestions_invalid(self):
         """Test parsing invalid diff."""
@@ -446,7 +479,7 @@ class TestHarperBot(unittest.TestCase):
         repo.get_commit.return_value = Mock()
 
         pr.get_reviews.return_value = []
-        suggestions = [("a.txt", "1", "new")]
+        suggestions = [{"path": "a.txt", "start_line": 1, "end_line": 1, "op": "replace", "suggestion": "new"}]
         post_inline_suggestions(pr, pr_details, suggestions, g=Mock(), repo=repo)
 
         _args, kwargs = pr.create_review.call_args
@@ -589,7 +622,7 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [("test.py", "1", "new content")]
+        suggestions = [{"path": "test.py", "start_line": 1, "end_line": 1, "op": "replace", "suggestion": "new content"}]
 
         # Mock file content
         mock_file = Mock()
@@ -612,7 +645,7 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [("test.py", "1", "new line content")]
+        suggestions = [{"path": "test.py", "start_line": 1, "end_line": 1, "op": "replace", "suggestion": "new line content"}]
 
         # Mock file content with multiple lines
         mock_file = Mock()
@@ -640,7 +673,15 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [("test.py", "2", "new line 1\nnew line 2\nnew line 3")]
+        suggestions = [
+            {
+                "path": "test.py",
+                "start_line": 2,
+                "end_line": 2,
+                "op": "replace",
+                "suggestion": "new line 1\nnew line 2\nnew line 3",
+            }
+        ]
 
         mock_file = Mock()
         mock_file.decoded_content.decode.return_value = "line 1\nline 2\nline 3"
@@ -664,7 +705,7 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [("test.py", "10", "new content")]  # Line 10, but file has only 3 lines
+        suggestions = [{"path": "test.py", "start_line": 10, "end_line": 10, "op": "replace", "suggestion": "new content"}]
 
         mock_file = Mock()
         mock_file.decoded_content.decode.return_value = "line 1\nline 2\nline 3"
@@ -676,7 +717,7 @@ class TestHarperBot(unittest.TestCase):
         self.assertFalse(mock_repo.create_git_commit.called)
 
     def test_apply_suggestions_deletes_line(self):
-        """__DELETE__ removes the targeted line."""
+        """Delete operations remove the targeted line."""
         mock_repo = Mock()
         mock_pr = Mock()
         mock_pr.number = 123
@@ -686,7 +727,7 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [("test.py", "2", "__DELETE__")]
+        suggestions = [{"path": "test.py", "start_line": 2, "end_line": 2, "op": "delete", "suggestion": None}]
 
         mock_file = Mock()
         mock_file.decoded_content.decode.return_value = "line 1\nline 2\nline 3"
