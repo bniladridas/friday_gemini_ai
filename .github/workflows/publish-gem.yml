@@ -79,15 +79,26 @@ jobs:
           name: gem-package
           path: "*.gem"
 
+      - name: Debug artifact info
+        run: |
+          echo "Artifact uploaded successfully"
+          ls -la *.gem
+
   publish-github-packages:
     name: Publish to GitHub Packages
     runs-on: ubuntu-latest
     needs: build
+    if: always()
     permissions:
       contents: read
       packages: write
 
     steps:
+      - name: Debug job status
+        run: |
+          echo "Publish job started"
+          echo "Needs build result: ${{ needs.build.result }}"
+
       - name: Download gem artifact
         uses: actions/download-artifact@v4
         with:
