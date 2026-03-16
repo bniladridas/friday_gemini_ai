@@ -15,6 +15,8 @@ from unittest.mock import Mock, patch
 # Add the repo root to path so we can import `harperbot.*` as a package.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from github.GithubException import GithubException  # noqa: E402
+
 from harperbot.harperbot import (  # noqa: E402
     analyze_with_gemini,
     apply_suggestions_to_pr,
@@ -467,6 +469,28 @@ class TestHarperBot(unittest.TestCase):
 
         self.assertEqual(result, ({"status": "ok"}, 200))
         issue.add_to_labels.assert_called_once()
+        mock_post_notice.assert_called_once()
+
+    @patch("harperbot.harperbot.ensure_label_exists")
+    @patch("harperbot.harperbot.post_notice_comment")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_handle_pr_comment_command_pause_creates_label_if_missing(
+        self, mock_setup_env, mock_post_notice, mock_ensure_label
+    ):
+        g = Mock()
+        repo = Mock()
+        issue = Mock()
+        g.get_repo.return_value = repo
+        repo.get_issue.return_value = issue
+        issue.get_labels.return_value = []
+        issue.add_to_labels.side_effect = [GithubException(404, {"message": "Not Found"}, None), None]
+        mock_setup_env.return_value = (g, "token", Mock())
+
+        result = handle_pr_comment_command(123, "o/r", 1, "/pause", "alice")
+
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        mock_ensure_label.assert_called_once()
+        self.assertEqual(issue.add_to_labels.call_count, 2)
         mock_post_notice.assert_called_once()
 
     @patch("harperbot.harperbot.post_notice_comment")

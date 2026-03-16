@@ -20,6 +20,7 @@ import google.genai as genai
 import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
+from github.GithubException import GithubException
 from google.genai import errors as genai_errors
 from google.genai import types
 
@@ -1160,7 +1161,11 @@ def handle_pr_comment_command(
 
         if command == "/pause":
             if not is_paused:
-                issue.add_to_labels(PAUSE_LABEL)
+                try:
+                    issue.add_to_labels(PAUSE_LABEL)
+                except GithubException:
+                    ensure_label_exists(repo, PAUSE_LABEL)
+                    issue.add_to_labels(PAUSE_LABEL)
             post_notice_comment(
                 installation_token,
                 repo_name,
@@ -1172,7 +1177,11 @@ def handle_pr_comment_command(
 
         if command == "/resume":
             if is_paused:
-                issue.remove_from_labels(PAUSE_LABEL)
+                try:
+                    issue.remove_from_labels(PAUSE_LABEL)
+                except GithubException:
+                    # If the label was deleted/renamed, treat it as already resumed.
+                    pass
             post_notice_comment(
                 installation_token,
                 repo_name,
@@ -1251,6 +1260,18 @@ def get_quota_cooldown_until(pr) -> int | None:
     except Exception:
         return None
     return latest
+
+
+def ensure_label_exists(repo, name: str):
+    """Ensure a repository label exists (best-effort)."""
+    try:
+        # If it already exists, GitHub will return 422 on create; swallow it.
+        repo.create_label(name=name, color="6e7681", description="HarperBot control label")
+    except GithubException as e:
+        status = getattr(e, "status", None)
+        if status in {422, 409}:
+            return
+        raise
 
 
 def handle_merge_command(
