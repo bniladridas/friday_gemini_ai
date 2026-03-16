@@ -20,6 +20,7 @@ from harperbot.harperbot import (  # noqa: E402
     apply_suggestions_to_pr,
     create_branch,
     find_diff_position,
+    handle_pr_comment_command,
     load_config,
     parse_diff_for_suggestions,
     post_inline_suggestions,
@@ -332,6 +333,33 @@ class TestHarperBot(unittest.TestCase):
         self.assertEqual(kwargs["comments"][0]["path"], "a.txt")
         self.assertEqual(kwargs["comments"][0]["line"], 1)
         self.assertEqual(kwargs["comments"][0]["side"], "RIGHT")
+
+    @patch("harperbot.harperbot.handle_merge_command")
+    @patch("harperbot.harperbot.handle_apply_comment")
+    @patch("harperbot.harperbot.run_analysis_for_pr")
+    def test_handle_pr_comment_command_dispatches_analyze(self, mock_run_analysis, _mock_apply, _mock_merge):
+        result = handle_pr_comment_command(123, "o/r", 1, "/analyze", "alice")
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        mock_run_analysis.assert_called_once_with(123, "o/r", 1, force=True)
+
+    @patch("harperbot.harperbot.handle_merge_command")
+    @patch("harperbot.harperbot.handle_apply_comment")
+    @patch("harperbot.harperbot.run_analysis_for_pr")
+    def test_handle_pr_comment_command_dispatches_merge(self, mock_run_analysis, mock_apply, mock_merge):
+        mock_merge.return_value = {"status": "merged"}
+        result = handle_pr_comment_command(123, "o/r", 1, " /merge ", "alice")
+        self.assertEqual(result, {"status": "merged"})
+        mock_merge.assert_called_once_with(123, "o/r", 1, "merge", "alice")
+        mock_run_analysis.assert_not_called()
+        mock_apply.assert_not_called()
+
+    @patch("harperbot.harperbot.post_notice_comment")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_handle_pr_comment_command_help_posts_notice(self, mock_setup_env, mock_post_notice):
+        mock_setup_env.return_value = (Mock(), "token", Mock())
+        result = handle_pr_comment_command(123, "o/r", 1, "/help", "alice")
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        mock_post_notice.assert_called_once()
 
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""

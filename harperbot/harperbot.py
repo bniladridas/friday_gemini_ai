@@ -40,7 +40,12 @@ try:
         return webhook_handler()
 
 except ImportError:
-    pass
+    # Allow non-Flask environments (CLI/tests) to import and call helpers that
+    # return JSON-ish payloads.
+    def jsonify(payload):  # type: ignore[no-redef]
+        return payload
+
+    request = None  # type: ignore[assignment]
 
 
 def find_diff_position(diff, file_path, line_number):
@@ -1014,6 +1019,56 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *,
     post_comment_webhook(installation_token, repo_name, pr_details, analysis)
 
 
+def handle_pr_comment_command(
+    installation_id: int,
+    repo_name: str,
+    pr_number: int,
+    comment_body: str,
+    commenter_login: str,
+):
+    """Handle slash-commands posted as PR comments.
+
+    Supports both PR conversation comments (issue_comment events) and inline
+    "Files changed" comments (pull_request_review_comment events).
+    """
+    command = (comment_body or "").strip().lower()
+    if command == "/apply":
+        return handle_apply_comment(installation_id, repo_name, pr_number)
+    if command == "/analyze":
+        logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
+        try:
+            run_analysis_for_pr(installation_id, repo_name, pr_number, force=True)
+            return {"status": "ok"}, 200
+        except Exception as e:
+            logging.error(f"Error processing /analyze: {str(e)}")
+            return {"error": "Processing failed"}, 500
+    if command == "/help":
+        _, installation_token, _ = setup_environment_webhook(installation_id)
+        help_text = """
+**HarperBot Capabilities**
+
+- Automatic analysis on PR open/reopen
+- Manual analysis: `/analyze`
+- Apply suggestions: `/apply`
+- Merge commands (write/admin only): `/merge`, `/squash`, `/rebase`
+""".strip()
+        post_notice_comment(
+            installation_token,
+            repo_name,
+            pr_number,
+            "Help",
+            help_text,
+        )
+        return {"status": "ok"}, 200
+    if command == "/merge":
+        return handle_merge_command(installation_id, repo_name, pr_number, "merge", commenter_login)
+    if command == "/squash":
+        return handle_merge_command(installation_id, repo_name, pr_number, "squash", commenter_login)
+    if command == "/rebase":
+        return handle_merge_command(installation_id, repo_name, pr_number, "rebase", commenter_login)
+    return {"status": "ignored"}, 200
+
+
 def handle_merge_command(
     installation_id: int,
     repo_name: str,
@@ -1089,6 +1144,7 @@ def webhook_handler():
     event_type = data.get("action")
     has_pr = "pull_request" in data
     has_comment = "issue" in data and "comment" in data
+    has_review_comment = "comment" in data and has_pr and "issue" not in data
 
     installation_id = data["installation"]["id"]
     repo_name = data.get("repository", {}).get("full_name") or data.get("repo", {}).get("full_name")
@@ -1097,49 +1153,41 @@ def webhook_handler():
         logging.warning(f"Webhook payload missing repository field: {data.keys()}")
         return jsonify({"error": "Missing repository information"}), 400
 
+    # Inline PR review comments (Files changed tab)
+    if event_type == "created" and has_review_comment:
+        pr_number = data["pull_request"]["number"]
+        comment_body = data["comment"]["body"]
+        commenter_login = data.get("comment", {}).get("user", {}).get("login", "")
+        result = handle_pr_comment_command(
+            installation_id,
+            repo_name,
+            pr_number,
+            comment_body,
+            commenter_login,
+        )
+        if isinstance(result, tuple) and len(result) == 2 and isinstance(result[0], dict):
+            payload, status = result
+            return jsonify(payload), status
+        return result
+
     if event_type == "created" and has_comment:
         issue = data["issue"]
         if "pull_request" not in issue:
             return jsonify({"status": "ignored"})  # Not a PR comment
         pr_number = issue["number"]
-        comment_body = data["comment"]["body"].strip()
+        comment_body = data["comment"]["body"]
         commenter_login = data.get("comment", {}).get("user", {}).get("login", "")
-        if comment_body.lower() == "/apply":
-            return handle_apply_comment(installation_id, repo_name, pr_number)
-        if comment_body.lower() == "/analyze":
-            logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
-            try:
-                run_analysis_for_pr(installation_id, repo_name, pr_number, force=True)
-                return jsonify({"status": "ok"})
-            except Exception as e:
-                logging.error(f"Error processing /analyze: {str(e)}")
-                return jsonify({"error": "Processing failed"}), 500
-        if comment_body.lower() == "/help":
-            _, installation_token, _ = setup_environment_webhook(installation_id)
-            help_text = """
-**HarperBot Capabilities**
-
-- Automatic analysis on PR open/reopen
-- Manual analysis: `/analyze`
-- Apply suggestions: `/apply`
-- Merge commands (write/admin only): `/merge`, `/squash`, `/rebase`
-""".strip()
-            post_notice_comment(
-                installation_token,
-                repo_name,
-                pr_number,
-                "Help",
-                help_text,
-            )
-            return jsonify({"status": "ok"})
-        if comment_body.lower() == "/merge":
-            return handle_merge_command(installation_id, repo_name, pr_number, "merge", commenter_login)
-        if comment_body.lower() == "/squash":
-            return handle_merge_command(installation_id, repo_name, pr_number, "squash", commenter_login)
-        if comment_body.lower() == "/rebase":
-            return handle_merge_command(installation_id, repo_name, pr_number, "rebase", commenter_login)
-        else:
-            return jsonify({"status": "ignored"})
+        result = handle_pr_comment_command(
+            installation_id,
+            repo_name,
+            pr_number,
+            comment_body,
+            commenter_login,
+        )
+        if isinstance(result, tuple) and len(result) == 2 and isinstance(result[0], dict):
+            payload, status = result
+            return jsonify(payload), status
+        return result
 
     # Only process PR events
     if event_type not in ["opened", "reopened", "synchronize"] or not has_pr:
