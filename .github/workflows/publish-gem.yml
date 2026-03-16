@@ -154,7 +154,7 @@ jobs:
           OUTPUT=$(gem push *.gem --host https://rubygems.org --key rubygems_api_key 2>&1)
           EXIT_CODE=$?
           set -e
-          
+
           if [ $EXIT_CODE -eq 0 ]; then
             echo "Successfully published gem to RubyGems"
           elif echo "$OUTPUT" | grep -q "already been pushed"; then
