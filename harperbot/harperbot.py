@@ -17,6 +17,7 @@ import time
 from datetime import datetime, timezone
 
 import google.genai as genai
+import requests
 import yaml
 from dotenv import load_dotenv
 from github import Auth, Github
@@ -138,9 +139,11 @@ def get_pr_details(github_token, repo_name, pr_number):
     diff_url = pr.diff_url
 
     # Get diff content
-    import requests
-
-    diff_content = requests.get(diff_url).text
+    diff_content = requests.get(
+        diff_url,
+        headers={"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3.diff"},
+        timeout=20,
+    ).text
 
     return {
         "title": pr.title,
@@ -948,7 +951,7 @@ def setup_environment_webhook(installation_id):
     return g, installation_auth.token, client
 
 
-def get_pr_details_webhook(g, repo_name, pr_number):
+def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | None = None):
     """Fetch PR details using GitHub App authentication."""
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
@@ -956,9 +959,10 @@ def get_pr_details_webhook(g, repo_name, pr_number):
     files_changed = [f.filename for f in pr.get_files()]
 
     # Get diff content using diff_url
-    import requests
-
-    diff_content = requests.get(pr.diff_url).text
+    headers = {"Accept": "application/vnd.github.v3.diff"}
+    if installation_token:
+        headers["Authorization"] = f"token {installation_token}"
+    diff_content = requests.get(pr.diff_url, headers=headers, timeout=20).text
 
     return {
         "title": pr.title,
@@ -1048,7 +1052,7 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *,
             the current PR head SHA (useful for manual `/analyze` requests).
     """
     g, installation_token, client = setup_environment_webhook(installation_id)
-    pr_details = get_pr_details_webhook(g, repo_name, pr_number)
+    pr_details = get_pr_details_webhook(g, repo_name, pr_number, installation_token=installation_token)
     head_sha = pr_details.get("head_sha")
 
     if not force:

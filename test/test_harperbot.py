@@ -28,6 +28,7 @@ from harperbot.harperbot import (  # noqa: E402
     parse_diff_for_suggestions,
     post_inline_suggestions,
     run_analysis_for_pr,
+    get_pr_details_webhook,
     verify_webhook_signature,
 )
 
@@ -394,6 +395,24 @@ class TestHarperBot(unittest.TestCase):
             mock_post_comment.assert_not_called()
 
         mock_post_notice.assert_called_once()
+
+    @patch("harperbot.harperbot.requests.get")
+    def test_get_pr_details_webhook_uses_auth_header_when_token_provided(self, mock_get):
+        g = Mock()
+        repo = Mock()
+        pr = Mock()
+        g.get_repo.return_value = repo
+        repo.get_pull.return_value = pr
+        pr.get_files.return_value = []
+        pr.diff_url = "https://example.invalid/diff"
+
+        mock_get.return_value = Mock(text="diff")
+
+        get_pr_details_webhook(g, "o/r", 1, installation_token="inst-token")
+
+        _args, kwargs = mock_get.call_args
+        self.assertIn("Authorization", kwargs["headers"])
+        self.assertEqual(kwargs["headers"]["Authorization"], "token inst-token")
 
     def test_post_inline_suggestions_creates_review_without_inline(self):
         """When no inline suggestions are valid, still post a review entry."""

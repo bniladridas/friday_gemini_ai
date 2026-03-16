@@ -38,8 +38,8 @@ def handle_apply_comment(installation_id, repo_name, pr_number):
             setup_environment_webhook,
         )
 
-        g, _, client = setup_environment_webhook(installation_id)
-        pr_details = get_pr_details_webhook(g, repo_name, pr_number)
+        g, installation_token, client = setup_environment_webhook(installation_id)
+        pr_details = get_pr_details_webhook(g, repo_name, pr_number, installation_token=installation_token)
         analysis = analyze_with_gemini(client, pr_details)
         suggestions = parse_code_suggestions(analysis)
 
