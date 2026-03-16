@@ -4,7 +4,6 @@ All notable changes are tracked here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: [SemVer](https://semver.org/spec/v2.0.0.html)
 
 ## [1.4.1](https://github.com/bniladridas/friday_gemini_ai/compare/friday_gemini_ai/v1.4.0...friday_gemini_ai/v1.4.1) (2026-03-16)
-
 ### Bug Fixes
 
 * handle missing repo field ([bc52c31](https://github.com/bniladridas/friday_gemini_ai/commit/bc52c31f10c6407386109ca0f4052787549cb4cd))
