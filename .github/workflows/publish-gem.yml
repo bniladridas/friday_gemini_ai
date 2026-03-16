@@ -112,8 +112,7 @@ jobs:
           EXIT_CODE=$?
           set -e
 
-          echo "Exit code: $EXIT_CODE"
-          echo "Output: $OUTPUT"
+
 
           if [ $EXIT_CODE -eq 0 ]; then
             echo "Successfully published gem to GitHub Packages"
