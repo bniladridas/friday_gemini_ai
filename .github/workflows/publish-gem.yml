@@ -138,32 +138,25 @@ jobs:
         with:
           name: gem-package
 
-      - name: Configure gem credentials
+      - name: Check if version exists on RubyGems
+        id: check-rubygems
         run: |
-          if [ -z "${RUBYGEMS_API_KEY}" ]; then
-            echo "RUBYGEMS_API_KEY secret is not set. Skipping RubyGems publish."
-            exit 78
+          if gem list -r -e friday_gemini_ai | grep -q "${{ inputs.version }}"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️  Version ${{ inputs.version }} already exists on RubyGems"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Version ${{ inputs.version }} is new, proceeding with publish"
           fi
-          mkdir -p ~/.gem
-          printf ":rubygems_api_key: %s\n" "${RUBYGEMS_API_KEY}" > ~/.gem/credentials
-          chmod 600 ~/.gem/credentials
 
       - name: Publish to RubyGems
+        if: steps.check-rubygems.outputs.exists == 'false'
         run: |
-          # Try to push and handle "already exists" error gracefully
-          set +e
-          OUTPUT=$(gem push *.gem --host https://rubygems.org --key rubygems_api_key 2>&1)
-          EXIT_CODE=$?
-          set -e
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
 
-          if [ $EXIT_CODE -eq 0 ]; then
-            echo "Successfully published gem to RubyGems"
-          elif echo "$OUTPUT" | grep -q "already been pushed"; then
-            echo "Gem version already exists in RubyGems. Skipping."
-            exit 0
-          else
-            echo "$OUTPUT"
-            exit $EXIT_CODE
-          fi
+          gem push *.gem
         env:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
