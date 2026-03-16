@@ -112,8 +112,6 @@ jobs:
           EXIT_CODE=$?
           set -e
 
-
-
           if [ $EXIT_CODE -eq 0 ]; then
             echo "Successfully published gem to GitHub Packages"
           elif echo "$OUTPUT" | grep -q "already been pushed"; then
@@ -151,7 +149,7 @@ jobs:
         run: |
           # Try to push and handle "already exists" error gracefully
           set +e
-          OUTPUT=$(gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }} --key github 2>&1)
+          OUTPUT=$(gem push *.gem --host https://rubygems.org --key rubygems_api_key 2>&1)
           EXIT_CODE=$?
           set -e
 
