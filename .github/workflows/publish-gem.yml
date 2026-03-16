@@ -106,6 +106,7 @@ jobs:
 
       - name: Publish to GitHub Packages
         run: |
+          mkdir -p ~/.gem
           echo "https://${PACKAGE_TOKEN}:x-oauth-basic@rubygems.pkg.github.com/${{ github.repository_owner }}" > ~/.gem/credentials
           gem push *.gem --host https://rubygems.pkg.github.com/${{ github.repository_owner }}
         env:
