@@ -1,12 +1,29 @@
 :root {
   --bg-color: #000000;
   --hero-bg: linear-gradient(180deg, #5c632e 0%, #000000 100%); /* Olive gradient from screenshot */
-  --accent-color: #ff453a;
+  --accent-rgb: 255 69 58;
+  --accent-color: rgb(var(--accent-rgb));
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.6);
   --card-bg: #1c1c1e;
   --pill-bg: rgba(255, 255, 255, 0.1);
   --font-main: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+body.theme-home {
+  --accent-rgb: 255 69 58; /* red */
+}
+
+body.theme-app {
+  --accent-rgb: 88 166 255; /* blue */
+}
+
+body.theme-support {
+  --accent-rgb: 48 209 88; /* green */
+}
+
+body.theme-journal {
+  --accent-rgb: 175 82 222; /* purple */
 }
 
 * {
@@ -109,15 +126,72 @@ main {
   margin-bottom: 60px;
 }
 
+.section-grid.max-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 section.card {
   background-color: var(--card-bg);
   border-radius: 24px;
   padding: 40px;
-  transition: transform 0.3s ease;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+section.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px; /* ring thickness */
+  opacity: 0;
+  pointer-events: none;
+  --ring-angle: 0deg;
+  --ring-progress: 0deg;
+  background: conic-gradient(
+    from calc(var(--ring-angle) - 90deg),
+    rgb(var(--accent-rgb) / 0.55) 0 var(--ring-progress),
+    rgb(var(--accent-rgb) / 0) var(--ring-progress) 360deg
+  );
+  /* Show only the border "ring" */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 section.card:hover {
-  transform: scale(1.02);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+section.card:hover::before {
+  opacity: 1;
+  animation: card-ring 320ms ease-out forwards;
+}
+
+@keyframes card-ring {
+  0% {
+    --ring-angle: 0deg;
+    --ring-progress: 18deg;
+  }
+  75% {
+    --ring-angle: 360deg;
+    --ring-progress: 18deg;
+  }
+  100% {
+    --ring-angle: 360deg;
+    --ring-progress: 360deg; /* freeze as full ring */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  section.card:hover::before {
+    animation: none;
+    --ring-progress: 360deg;
+  }
 }
 
 h2 {
@@ -192,6 +266,34 @@ code {
   transform: scale(1.05);
 }
 
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.card-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .link-list li {
   list-style: none;
   margin-bottom: 15px;
@@ -211,6 +313,18 @@ code {
 
 .link-list a:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Inline links inside card copy */
+.inline-link {
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  text-underline-offset: 3px;
+}
+
+.inline-link:hover {
+  text-decoration-color: rgba(255, 255, 255, 0.7);
 }
 
 /* Animations */
@@ -273,6 +387,10 @@ footer {
   background: linear-gradient(180deg, #632e52 0%, #000000 100%);
 }
 
+.hero-teal {
+  background: linear-gradient(180deg, #2e635b 0%, #000000 100%);
+}
+
 .link-disabled {
   opacity: 0.6;
   cursor: default;
@@ -286,6 +404,9 @@ footer {
   /* Collapse card-span-2 and grid-2-col on mobile */
   .card-span-2 {
     grid-column: auto;
+  }
+  .section-grid.max-2 {
+    grid-template-columns: 1fr;
   }
   .grid-2-col {
     grid-template-columns: 1fr;

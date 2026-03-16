@@ -10,7 +10,7 @@
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body>
+	  <body class="theme-support">
     <nav class="pill-nav">
       <a href="./index.html">Home</a>
       <a href="./app.html">HarperBot</a>
@@ -18,16 +18,17 @@
       <a href="./experience.html">Journal</a>
     </nav>
 
-    <div class="hero hero-blue">
+    <div class="hero hero-teal">
       <div class="hero-content">
         <div class="hero-label">Support We Love</div>
         <h1>L2 Technical Support</h1>
         <p>Runbook and troubleshooting notes for HarperBot (GitHub App + Webhook Mode).</p>
+        <a href="#runbook" class="btn-primary">Open Runbook</a>
       </div>
     </div>
 
-    <main>
-      <div class="section-grid">
+    <main id="runbook">
+      <div class="section-grid max-2">
         <section class="card card-span-2">
           <h2>What this covers</h2>
           <p>
@@ -44,7 +45,7 @@
         </section>
       </div>
 
-      <div class="section-grid">
+      <div class="section-grid max-2">
         <section class="card">
           <h2>Baseline permissions</h2>
           <p>Minimum repository permissions for review + merge + apply:</p>
@@ -66,7 +67,7 @@ Pull request review comment</code></pre>
         </section>
       </div>
 
-      <div class="section-grid">
+      <div class="section-grid max-2">
         <section class="card card-span-2">
           <h2>Fixes shipped (L2 summary)</h2>
           <table class="table">
@@ -118,7 +119,7 @@ Pull request review comment</code></pre>
         </section>
       </div>
 
-      <div class="section-grid">
+      <div class="section-grid max-2">
         <section class="card">
           <h2>Validation checklist</h2>
           <ul class="link-list">
