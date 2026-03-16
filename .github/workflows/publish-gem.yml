@@ -140,10 +140,13 @@ jobs:
 
       - name: Configure gem credentials
         run: |
+          if [ -z "${RUBYGEMS_API_KEY}" ]; then
+            echo "RUBYGEMS_API_KEY secret is not set. Skipping RubyGems publish."
+            exit 78
+          fi
           mkdir -p ~/.gem
           printf ":rubygems_api_key: %s\n" "${RUBYGEMS_API_KEY}" > ~/.gem/credentials
           chmod 600 ~/.gem/credentials
-          cat ~/.gem/credentials
 
       - name: Publish to RubyGems
         run: |
