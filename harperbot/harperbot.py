@@ -1296,12 +1296,13 @@ def handle_pr_comment_command(
             quota_msg = f"\n\nQuota cooldown active until: **{until_iso}**"
 
         state = "paused" if is_paused else "enabled"
+        label_msg = f"Paused label present: `{PAUSE_LABEL}`" if is_paused else f"Paused label not present: `{PAUSE_LABEL}`"
         post_notice_comment(
             installation_token,
             repo_name,
             pr_number,
             "Status",
-            f"Auto analysis is **{state}** for this PR.{quota_msg}\n\nLabel: `{PAUSE_LABEL}`",
+            f"Auto analysis is **{state}** for this PR.{quota_msg}\n\n{label_msg}",
         )
         return {"status": "ok"}, 200
     if command == "/help":

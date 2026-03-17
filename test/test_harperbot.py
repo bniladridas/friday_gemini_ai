@@ -601,6 +601,44 @@ class TestHarperBot(unittest.TestCase):
         issue.remove_from_labels.assert_called_once()
         mock_post_notice.assert_called_once()
 
+    @patch("harperbot.harperbot.post_notice_comment")
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_handle_pr_comment_command_status_shows_label_presence(self, mock_setup_env, mock_post_notice):
+        g = Mock()
+        repo = Mock()
+        issue = Mock()
+        pr = Mock()
+
+        g.get_repo.return_value = repo
+        repo.get_issue.return_value = issue
+        repo.get_pull.return_value = pr
+
+        # Enabled (not paused)
+        issue.get_labels.return_value = []
+        mock_setup_env.return_value = (g, "token", Mock())
+
+        result = handle_pr_comment_command(123, "o/r", 1, "/status", "alice")
+
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        _args, kwargs = mock_post_notice.call_args
+        details = kwargs.get("details") if "details" in kwargs else _args[4]
+        self.assertIn("Auto analysis is **enabled**", details)
+        self.assertIn("Paused label not present", details)
+
+        # Paused
+        mock_post_notice.reset_mock()
+        paused_label = Mock()
+        paused_label.name = "harperbot:paused"
+        issue.get_labels.return_value = [paused_label]
+
+        result = handle_pr_comment_command(123, "o/r", 1, "/status", "alice")
+
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        _args, kwargs = mock_post_notice.call_args
+        details = kwargs.get("details") if "details" in kwargs else _args[4]
+        self.assertIn("Auto analysis is **paused**", details)
+        self.assertIn("Paused label present", details)
+
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
         import textwrap
