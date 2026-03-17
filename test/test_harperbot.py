@@ -507,6 +507,34 @@ class TestHarperBot(unittest.TestCase):
         mock_run_analysis.assert_not_called()
         mock_apply.assert_not_called()
 
+    @patch("harperbot.harperbot.jsonify", side_effect=lambda payload: payload)
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_handle_merge_command_rebase_405_returns_notice_not_500(self, mock_setup_env, _mock_jsonify):
+        from harperbot.harperbot import handle_merge_command
+
+        g = Mock()
+        repo = Mock()
+        pr = Mock()
+        g.get_repo.return_value = repo
+        repo.get_collaborator_permission.return_value = "write"
+        repo.get_pull.return_value = pr
+        mock_setup_env.return_value = (g, "token", Mock())
+
+        pr.merged = False
+        pr.mergeable = True
+        pr.merge.side_effect = GithubException(
+            405,
+            {"message": "This branch can't be rebased"},
+            None,
+        )
+
+        payload, status = handle_merge_command(123, "o/r", 8, "rebase", "alice")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["status"], "method_not_allowed")
+        pr.create_issue_comment.assert_called()
+        body = pr.create_issue_comment.call_args[0][0]
+        self.assertIn("Merge method not allowed", body)
+
     @patch("harperbot.harperbot.post_notice_comment")
     @patch("harperbot.harperbot.setup_environment_webhook")
     def test_handle_pr_comment_command_help_posts_notice(self, mock_setup_env, mock_post_notice):

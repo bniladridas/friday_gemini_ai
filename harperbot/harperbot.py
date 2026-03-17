@@ -1414,6 +1414,35 @@ def handle_merge_command(
 
         pr.create_issue_comment(f"Merge failed: {result.message}")
         return jsonify({"status": "merge_failed"}), 409
+    except GithubException as e:
+        status = getattr(e, "status", None)
+        message = ""
+        try:
+            data = getattr(e, "data", None) or {}
+            message = (data.get("message") or "").strip()
+        except Exception:
+            message = ""
+
+        logging.error(f"Error merging PR #{pr_number}: {str(e)}")
+
+        if status == 405:
+            # Common for /rebase when the repo disallows rebase merges.
+            details = message or "GitHub rejected this merge method for the PR."
+            pr.create_issue_comment(
+                format_notice(
+                    "Merge method not allowed",
+                    f"{details}\n\nTry `/merge` or `/squash`, or enable the merge method in repository settings.",
+                )
+            )
+            return jsonify({"status": "method_not_allowed"}), 200
+
+        if status in {409, 422}:
+            details = message or "GitHub rejected the merge request."
+            pr.create_issue_comment(format_notice("Merge rejected", details))
+            return jsonify({"status": "merge_rejected"}), 200
+
+        pr.create_issue_comment(format_notice("Merge failed", "Merge failed due to an error. Check logs for details."))
+        return jsonify({"error": "merge_failed"}), 500
     except Exception as e:
         logging.error(f"Error merging PR #{pr_number}: {str(e)}")
         pr.create_issue_comment(format_notice("Merge failed", "Merge failed due to an error. Check logs for details."))
