@@ -38,7 +38,7 @@
           </p>
           <ul class="link-list">
             <li><span></span>Required GitHub App permissions + webhook events</li>
-            <li><span></span>Slash command behavior: <code>/analyze</code>, <code>/apply</code>, <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
+            <li><span></span>Slash command behavior: <code>/analyze</code> (try <code>/analyze --force-review</code> for a fresh review), <code>/apply</code>, <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
             <li><span></span>Operational controls: <code>/pause</code>, <code>/resume</code>, <code>/status</code></li>
             <li><span></span>Why reviews/inline suggestions sometimes don’t appear</li>
             <li><span></span>Optional multi-line inline review comments (“comment on lines …”)</li>
@@ -89,7 +89,7 @@ Pull request review comment</code></pre>
               <tr>
                 <td><code>/analyze</code> skipped due to “analysis already exists for SHA …”</td>
                 <td>Dedup logic applied to manual reruns</td>
-                <td>Added <code>force</code> rerun mode for manual <code>/analyze</code></td>
+                <td>Manual <code>/analyze</code> reruns; use <code>/analyze --force-review</code> to repost inline suggestions</td>
               </tr>
               <tr>
                 <td>PR comment posted but no PR review / inline suggestions</td>

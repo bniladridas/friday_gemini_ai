@@ -28,6 +28,7 @@ from harperbot.harperbot import (  # noqa: E402
     is_quota_exceeded_message,
     load_config,
     parse_diff_for_suggestions,
+    post_comment_webhook,
     post_inline_suggestions,
     run_analysis_for_pr,
     verify_webhook_signature,
@@ -488,13 +489,65 @@ class TestHarperBot(unittest.TestCase):
         self.assertEqual(kwargs["comments"][0]["line"], 1)
         self.assertEqual(kwargs["comments"][0]["side"], "RIGHT")
 
+    @patch("harperbot.harperbot.post_inline_suggestions")
+    @patch("harperbot.harperbot.Github")
+    @patch("harperbot.harperbot.load_config")
+    def test_post_comment_webhook_force_review_from_config(self, mock_load_config, mock_github, mock_post_inline):
+        """Config can opt-in to reposting reviews on manual /analyze."""
+        mock_load_config.return_value = {"enable_authoring": False, "force_review_on_analyze": True}
+
+        repo = Mock()
+        pr = Mock()
+        pr.get_issue_comments.return_value = []
+        repo.get_pull.return_value = pr
+
+        g = Mock()
+        g.get_repo.return_value = repo
+        mock_github.return_value = g
+
+        pr_details = {"number": 1, "head_sha": "abc123"}
+        post_comment_webhook("token", "o/r", pr_details, "analysis text", manual=True, force_review=False)
+
+        _args, kwargs = mock_post_inline.call_args
+        self.assertTrue(kwargs["force_review"])
+
+    @patch("harperbot.harperbot.post_inline_suggestions")
+    @patch("harperbot.harperbot.Github")
+    @patch("harperbot.harperbot.load_config")
+    def test_post_comment_webhook_force_review_explicit_arg(self, mock_load_config, mock_github, mock_post_inline):
+        """Explicit force_review argument always wins."""
+        mock_load_config.return_value = {"enable_authoring": False, "force_review_on_analyze": False}
+
+        repo = Mock()
+        pr = Mock()
+        pr.get_issue_comments.return_value = []
+        repo.get_pull.return_value = pr
+
+        g = Mock()
+        g.get_repo.return_value = repo
+        mock_github.return_value = g
+
+        pr_details = {"number": 1, "head_sha": "abc123"}
+        post_comment_webhook("token", "o/r", pr_details, "analysis text", manual=True, force_review=True)
+
+        _args, kwargs = mock_post_inline.call_args
+        self.assertTrue(kwargs["force_review"])
+
     @patch("harperbot.harperbot.handle_merge_command")
     @patch("harperbot.harperbot.handle_apply_comment")
     @patch("harperbot.harperbot.run_analysis_for_pr")
     def test_handle_pr_comment_command_dispatches_analyze(self, mock_run_analysis, _mock_apply, _mock_merge):
         result = handle_pr_comment_command(123, "o/r", 1, "/analyze", "alice")
         self.assertEqual(result, ({"status": "ok"}, 200))
-        mock_run_analysis.assert_called_once_with(123, "o/r", 1, force=True)
+        mock_run_analysis.assert_called_once_with(123, "o/r", 1, force=True, force_review=False)
+
+    @patch("harperbot.harperbot.handle_merge_command")
+    @patch("harperbot.harperbot.handle_apply_comment")
+    @patch("harperbot.harperbot.run_analysis_for_pr")
+    def test_handle_pr_comment_command_dispatches_analyze_force_review(self, mock_run_analysis, _mock_apply, _mock_merge):
+        result = handle_pr_comment_command(123, "o/r", 1, "/analyze --force-review", "alice")
+        self.assertEqual(result, ({"status": "ok"}, 200))
+        mock_run_analysis.assert_called_once_with(123, "o/r", 1, force=True, force_review=True)
 
     @patch("harperbot.harperbot.handle_merge_command")
     @patch("harperbot.harperbot.handle_apply_comment")

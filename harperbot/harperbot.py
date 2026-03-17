@@ -239,6 +239,10 @@ Provide a concise code review analysis in this format:
         "max_diff_length": 4000,
         "temperature": 0.2,
         "max_output_tokens": 4096,
+        # When enabled, a manual `/analyze` will post a new PR review even if one already exists
+        # for the current head SHA. This can create extra reviews; prefer `/analyze --force-review`
+        # for one-off reruns.
+        "force_review_on_analyze": False,
         "enable_authoring": False,
         "auto_commit_suggestions": False,
         "create_improvement_prs": False,
@@ -910,7 +914,7 @@ def update_main_comment(analysis):
     return analysis[:start_pos] + "### Code Suggestions\n- Suggestions posted as inline comments below.\n" + analysis[end_pos:]
 
 
-def post_inline_suggestions(pr, pr_details, suggestions, g, repo):
+def post_inline_suggestions(pr, pr_details, suggestions, g, repo, *, force_review: bool = False):
     """
     Post inline code suggestions as a pull request review.
     """
@@ -921,8 +925,11 @@ def post_inline_suggestions(pr, pr_details, suggestions, g, repo):
         # We'll look for reviews that include the harperbot marker.
         for review in pr.get_reviews():
             if f"harperbot-sha: {head_sha}" in (review.body or ""):
-                logging.info(f"Skipping inline suggestions for SHA {head_sha}: Review already exists")
-                return
+                if not force_review:
+                    logging.info(f"Skipping inline suggestions for SHA {head_sha}: Review already exists")
+                    return
+                logging.info(f"Existing review found for SHA {head_sha}; force-posting a new review")
+                break
 
         commit = repo.get_commit(head_sha)
         review_comments = []
@@ -1087,7 +1094,15 @@ def is_harperbot_comment(comment):
     return "<summary>HarperBot</summary>" in (comment.body or "")
 
 
-def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, analysis: str):
+def post_comment_webhook(
+    github_token: str,
+    repo_name: str,
+    pr_details: dict,
+    analysis: str,
+    *,
+    manual: bool = False,
+    force_review: bool = False,
+):
     """
     Post analysis comment and inline suggestions using GitHub App auth.
 
@@ -1119,7 +1134,8 @@ def post_comment_webhook(github_token: str, repo_name: str, pr_details: dict, an
             logging.info(f"Posted new analysis comment to PR #{pr_details['number']}")
 
         # Post inline suggestions (as a Review)
-        post_inline_suggestions(pr, pr_details, suggestions, g, repo)
+        effective_force_review = force_review or (manual and bool(config.get("force_review_on_analyze", False)))
+        post_inline_suggestions(pr, pr_details, suggestions, g, repo, force_review=effective_force_review)
 
         # Apply authoring features if enabled
         if config.get("enable_authoring", False):
@@ -1149,7 +1165,14 @@ def post_notice_comment(github_token: str, repo_name: str, pr_number: int, title
     pr.create_issue_comment(format_notice(title, details))
 
 
-def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *, force: bool = False):
+def run_analysis_for_pr(
+    installation_id: int,
+    repo_name: str,
+    pr_number: int,
+    *,
+    force: bool = False,
+    force_review: bool = False,
+):
     """Fetch PR details, run analysis, and post comments for a PR.
 
     Args:
@@ -1235,7 +1258,14 @@ def run_analysis_for_pr(installation_id: int, repo_name: str, pr_number: int, *,
         logging.warning(f"Quota exceeded for PR #{pr_number}; cooldown until {until_iso}")
         return
 
-    post_comment_webhook(installation_token, repo_name, pr_details, analysis)
+    post_comment_webhook(
+        installation_token,
+        repo_name,
+        pr_details,
+        analysis,
+        manual=force,
+        force_review=force_review,
+    )
 
 
 def handle_pr_comment_command(
@@ -1250,13 +1280,18 @@ def handle_pr_comment_command(
     Supports both PR conversation comments (issue_comment events) and inline
     "Files changed" comments (pull_request_review_comment events).
     """
-    command = (comment_body or "").strip().lower()
+    raw_command = (comment_body or "").strip()
+    command_parts = raw_command.split()
+    command = (command_parts[0] if command_parts else "").lower()
+    command_args = {part.lower() for part in command_parts[1:]}
+
     if command == "/apply":
         return handle_apply_comment(installation_id, repo_name, pr_number)
     if command == "/analyze":
         logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
+        force_review = ("--force-review" in command_args) or ("--force_review" in command_args)
         try:
-            run_analysis_for_pr(installation_id, repo_name, pr_number, force=True)
+            run_analysis_for_pr(installation_id, repo_name, pr_number, force=True, force_review=force_review)
             return {"status": "ok"}, 200
         except Exception as e:
             logging.error(f"Error processing /analyze: {str(e)}")
