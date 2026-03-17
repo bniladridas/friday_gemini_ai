@@ -76,6 +76,20 @@ def fetch_pr_diff(diff_url: str, token: str | None) -> str:
     return response.text or ""
 
 
+def get_build_string() -> str:
+    """Best-effort build identifier for notices (useful in Vercel)."""
+    sha = (
+        os.getenv("VERCEL_GIT_COMMIT_SHA") or os.getenv("VERCEL_GITHUB_COMMIT_SHA") or os.getenv("GITHUB_SHA") or ""
+    ).strip()
+    ref = (os.getenv("VERCEL_GIT_COMMIT_REF") or os.getenv("GITHUB_REF_NAME") or "").strip()
+    if sha:
+        short = sha[:7]
+        return f"Build: `{short}`" + (f" ({ref})" if ref else "")
+    if ref:
+        return f"Build: ({ref})"
+    return ""
+
+
 def find_diff_position(diff, file_path, line_number):
     """
     Find the position in the diff hunk for a given file and line number.
@@ -1297,12 +1311,14 @@ def handle_pr_comment_command(
 
         state = "paused" if is_paused else "enabled"
         label_msg = f"Paused label present: `{PAUSE_LABEL}`" if is_paused else f"Paused label not present: `{PAUSE_LABEL}`"
+        build_msg = get_build_string()
+        build_line = f"\n\n{build_msg}" if build_msg else ""
         post_notice_comment(
             installation_token,
             repo_name,
             pr_number,
             "Status",
-            f"Auto analysis is **{state}** for this PR.{quota_msg}\n\n{label_msg}",
+            f"Auto analysis is **{state}** for this PR.{quota_msg}\n\n{label_msg}{build_line}",
         )
         return {"status": "ok"}, 200
     if command == "/help":

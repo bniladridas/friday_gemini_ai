@@ -603,6 +603,7 @@ class TestHarperBot(unittest.TestCase):
 
     @patch("harperbot.harperbot.post_notice_comment")
     @patch("harperbot.harperbot.setup_environment_webhook")
+    @patch.dict("os.environ", {"VERCEL_GIT_COMMIT_SHA": "0123456789abcdef", "VERCEL_GIT_COMMIT_REF": "main"}, clear=False)
     def test_handle_pr_comment_command_status_shows_label_presence(self, mock_setup_env, mock_post_notice):
         g = Mock()
         repo = Mock()
@@ -624,6 +625,7 @@ class TestHarperBot(unittest.TestCase):
         details = kwargs.get("details") if "details" in kwargs else _args[4]
         self.assertIn("Auto analysis is **enabled**", details)
         self.assertIn("Paused label not present", details)
+        self.assertIn("Build: `0123456`", details)
 
         # Paused
         mock_post_notice.reset_mock()
@@ -638,6 +640,7 @@ class TestHarperBot(unittest.TestCase):
         details = kwargs.get("details") if "details" in kwargs else _args[4]
         self.assertIn("Auto analysis is **paused**", details)
         self.assertIn("Paused label present", details)
+        self.assertIn("Build: `0123456`", details)
 
     def test_find_diff_position(self):
         """Test finding position in diff hunk."""
