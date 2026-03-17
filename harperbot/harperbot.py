@@ -1417,21 +1417,30 @@ def handle_merge_command(
     except GithubException as e:
         status = getattr(e, "status", None)
         message = ""
+        documentation_url = ""
         try:
             data = getattr(e, "data", None) or {}
             message = (data.get("message") or "").strip()
+            documentation_url = (data.get("documentation_url") or "").strip()
         except Exception:
             message = ""
+            documentation_url = ""
 
         logging.error(f"Error merging PR #{pr_number}: {str(e)}")
 
         if status == 405:
             # Common for /rebase when the repo disallows rebase merges.
             details = message or "GitHub rejected this merge method for the PR."
+            docs_line = f"\n\nDocs: {documentation_url}" if documentation_url else ""
             pr.create_issue_comment(
                 format_notice(
                     "Merge method not allowed",
-                    f"{details}\n\nTry `/merge` or `/squash`, or enable the merge method in repository settings.",
+                    (
+                        f"GitHub API rejected this request (HTTP {status}).\n\n"
+                        f"{details}\n\n"
+                        "Try `/merge` or `/squash`, or enable rebase merges in repository settings."
+                        f"{docs_line}"
+                    ),
                 )
             )
             return jsonify({"status": "method_not_allowed"}), 200
