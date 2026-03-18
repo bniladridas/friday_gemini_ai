@@ -12,11 +12,20 @@
   </head>
 	  <body class="theme-support">
     <nav class="pill-nav">
-      <a href="./index.html">Home</a>
-      <a href="./app.html">HarperBot</a>
-      <a href="./support.html" class="active">Support</a>
-      <a href="./experience.html">Journal</a>
-      <a href="./trademark.html">Trademark</a>
+      <div class="nav-links-container">
+        <a href="./index.html">Home</a>
+        <a href="./app.html">HarperBot</a>
+        <a href="./support.html" class="active">Support</a>
+        <a href="./experience.html">Journal</a>
+        <a href="./trademark.html">Trademark</a>
+      </div>
+      <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+        <span class="dots-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
     </nav>
 
     <div class="hero hero-teal">
@@ -29,23 +38,96 @@
     </div>
 
     <main id="runbook">
-      <div class="section-grid max-2">
-        <section class="card card-span-2">
-          <h2>What this covers</h2>
-          <p>
-            A Level 2 support summary of issues found and fixes shipped while validating HarperBot’s webhook deployment
-            (Vercel) against a test repository.
-          </p>
-          <ul class="link-list">
-            <li><span></span>Required GitHub App permissions + webhook events</li>
-            <li><span></span>Slash command behavior: <code>/analyze</code> (try <code>/analyze --force-review</code> for a fresh review), <code>/apply</code>, <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
-            <li><span></span>Operational controls: <code>/pause</code>, <code>/resume</code>, <code>/status</code></li>
-            <li><span></span>Why reviews/inline suggestions sometimes don’t appear</li>
-            <li><span></span>Optional multi-line inline review comments (“comment on lines …”)</li>
-            <li><span></span>Common log patterns and how to interpret them</li>
-          </ul>
-        </section>
-      </div>
+      <section>
+        <h2>What this covers</h2>
+        <p>
+          A Level 2 support summary of issues found and fixes shipped while validating HarperBot's webhook deployment
+          (Vercel) against a test repository.
+        </p>
+        <ul class="link-list">
+          <li><span></span>Required GitHub App permissions + webhook events</li>
+          <li><span></span>Slash command behavior: <code>/analyze</code> (try <code>/analyze --force-review</code> for a fresh review), <code>/apply</code>, <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
+          <li><span></span>Operational controls: <code>/pause</code>, <code>/resume</code>, <code>/status</code></li>
+          <li><span></span>Why reviews/inline suggestions sometimes don't appear</li>
+          <li><span></span>Optional multi-line inline review comments ("comment on lines ...")</li>
+          <li><span></span>Common log patterns and how to interpret them</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Baseline permissions</h2>
+        <p>Minimum repository permissions for review + merge + apply:</p>
+        <pre><code>Metadata: read (required)
+Pull requests: read &amp; write
+Issues: read &amp; write
+Code/Contents: read &amp; write</code></pre>
+        <p class="subtext">Everything else: No access (Actions/Checks/Secrets/Administration/etc.).</p>
+      </section>
+
+      <section>
+        <h2>Webhook events</h2>
+        <pre><code>Pull request
+Issue comment
+Pull request review comment</code></pre>
+        <p class="subtext">
+          The third event enables commands posted as inline comments on the "Files changed" tab.
+        </p>
+      </section>
+
+      <section>
+        <h2>Fixes shipped (L2 summary)</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Symptom</th>
+              <th>Root cause</th>
+              <th>Resolution</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Symptom"><code>/apply</code> returned 500 with <code>pr</code> unbound</td>
+              <td data-label="Root cause">Code path referenced <code>pr</code> when there were no suggestions</td>
+              <td data-label="Resolution">Always fetch <code>repo</code>/<code>pr</code> before branching; added tests</td>
+            </tr>
+            <tr>
+              <td data-label="Symptom"><code>/analyze</code> skipped due to "analysis already exists for SHA ..."</td>
+              <td data-label="Root cause">Dedup logic applied to manual reruns</td>
+              <td data-label="Resolution">Manual <code>/analyze</code> reruns; use <code>/analyze --force-review</code> to repost inline suggestions</td>
+            </tr>
+            <tr>
+              <td data-label="Symptom">PR comment posted but no PR review / inline suggestions</td>
+              <td data-label="Root cause">Review creation only happened when inline suggestions existed; brittle diff-position math</td>
+              <td data-label="Resolution">Always create a review; use line-based inline comments with a fallback</td>
+            </tr>
+            <tr>
+              <td data-label="Symptom">Inline <code>/analyze</code> comment in "Files changed" was ignored</td>
+              <td data-label="Root cause">Webhook handler only processed issue comments</td>
+              <td data-label="Resolution">Added handling for pull_request_review_comment "created" events</td>
+            </tr>
+            <tr>
+              <td data-label="Symptom"><code>/apply</code> said "No code suggestions found" even when diff blocks were present</td>
+              <td data-label="Root cause">Parser expected <code>--- a/</code> headers; deletions weren't supported</td>
+              <td data-label="Resolution">Support simplified diff blocks + deletion operations; apply deletes safely</td>
+            </tr>
+            <tr>
+              <td data-label="Symptom">Wanted "comment on lines +X to +Y" style inline reviews</td>
+              <td data-label="Root cause">Inline reviews were posted as single-line comments only</td>
+              <td data-label="Resolution">Added optional range comments (multi-line) gated by <code>HARPERBOT_ENABLE_RANGE_COMMENTS</code></td>
+            </tr>
+            <tr>
+              <td data-label="Symptom">Need to temporarily stop auto reviews on a noisy PR</td>
+              <td data-label="Root cause">No per-PR control for auto triggers</td>
+              <td data-label="Resolution">Introduce <code>/pause</code> and <code>/resume</code> using the <code>harperbot:paused</code> label</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="subtext">
+          Tip: When triaging "ignored" events, remember the handler processes PR actions (<code>opened</code>,
+          <code>reopened</code>, <code>synchronize</code>) plus comment events. Review "submitted" events are expected
+          to be ignored.
+        </p>
+      </section>
 
       <div class="section-grid max-2">
         <section class="card">
@@ -82,39 +164,39 @@ Pull request review comment</code></pre>
             </thead>
             <tbody>
               <tr>
-                <td><code>/apply</code> returned 500 with <code>pr</code> unbound</td>
-                <td>Code path referenced <code>pr</code> when there were no suggestions</td>
-                <td>Always fetch <code>repo</code>/<code>pr</code> before branching; added tests</td>
+                <td data-label="Symptom"><code>/apply</code> returned 500 with <code>pr</code> unbound</td>
+                <td data-label="Root cause">Code path referenced <code>pr</code> when there were no suggestions</td>
+                <td data-label="Resolution">Always fetch <code>repo</code>/<code>pr</code> before branching; added tests</td>
               </tr>
               <tr>
-                <td><code>/analyze</code> skipped due to “analysis already exists for SHA …”</td>
-                <td>Dedup logic applied to manual reruns</td>
-                <td>Manual <code>/analyze</code> reruns; use <code>/analyze --force-review</code> to repost inline suggestions</td>
+                <td data-label="Symptom"><code>/analyze</code> skipped due to "analysis already exists for SHA ..."</td>
+                <td data-label="Root cause">Dedup logic applied to manual reruns</td>
+                <td data-label="Resolution">Manual <code>/analyze</code> reruns; use <code>/analyze --force-review</code> to repost inline suggestions</td>
               </tr>
               <tr>
-                <td>PR comment posted but no PR review / inline suggestions</td>
-                <td>Review creation only happened when inline suggestions existed; brittle diff-position math</td>
-                <td>Always create a review; use line-based inline comments with a fallback</td>
+                <td data-label="Symptom">PR comment posted but no PR review / inline suggestions</td>
+                <td data-label="Root cause">Review creation only happened when inline suggestions existed; brittle diff-position math</td>
+                <td data-label="Resolution">Always create a review; use line-based inline comments with a fallback</td>
               </tr>
               <tr>
-                <td>Inline <code>/analyze</code> comment in “Files changed” was ignored</td>
-                <td>Webhook handler only processed issue comments</td>
-                <td>Added handling for pull_request_review_comment “created” events</td>
+                <td data-label="Symptom">Inline <code>/analyze</code> comment in "Files changed" was ignored</td>
+                <td data-label="Root cause">Webhook handler only processed issue comments</td>
+                <td data-label="Resolution">Added handling for pull_request_review_comment "created" events</td>
               </tr>
               <tr>
-                <td><code>/apply</code> said “No code suggestions found” even when diff blocks were present</td>
-                <td>Parser expected <code>--- a/</code> headers; deletions weren’t supported</td>
-                <td>Support simplified diff blocks + deletion operations; apply deletes safely</td>
+                <td data-label="Symptom"><code>/apply</code> said "No code suggestions found" even when diff blocks were present</td>
+                <td data-label="Root cause">Parser expected <code>--- a/</code> headers; deletions weren't supported</td>
+                <td data-label="Resolution">Support simplified diff blocks + deletion operations; apply deletes safely</td>
               </tr>
               <tr>
-                <td>Wanted “comment on lines +X to +Y” style inline reviews</td>
-                <td>Inline reviews were posted as single-line comments only</td>
-                <td>Added optional range comments (multi-line) gated by <code>HARPERBOT_ENABLE_RANGE_COMMENTS</code></td>
+                <td data-label="Symptom">Wanted "comment on lines +X to +Y" style inline reviews</td>
+                <td data-label="Root cause">Inline reviews were posted as single-line comments only</td>
+                <td data-label="Resolution">Added optional range comments (multi-line) gated by <code>HARPERBOT_ENABLE_RANGE_COMMENTS</code></td>
               </tr>
               <tr>
-                <td>Need to temporarily stop auto reviews on a noisy PR</td>
-                <td>No per-PR control for auto triggers</td>
-                <td>Introduce <code>/pause</code> and <code>/resume</code> using the <code>harperbot:paused</code> label</td>
+                <td data-label="Symptom">Need to temporarily stop auto reviews on a noisy PR</td>
+                <td data-label="Root cause">No per-PR control for auto triggers</td>
+                <td data-label="Resolution">Introduce <code>/pause</code> and <code>/resume</code> using the <code>harperbot:paused</code> label</td>
               </tr>
             </tbody>
           </table>

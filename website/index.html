@@ -9,11 +9,20 @@
   </head>
 	  <body class="theme-home">
     <nav class="pill-nav">
-      <a href="./index.html" class="active">Home</a>
-      <a href="./app.html">HarperBot</a>
-      <a href="./support.html">Support</a>
-      <a href="./experience.html">Journal</a>
-      <a href="./trademark.html">Trademark</a>
+      <div class="nav-links-container">
+        <a href="./index.html" class="active">Home</a>
+        <a href="./app.html">HarperBot</a>
+        <a href="./support.html">Support</a>
+        <a href="./experience.html">Journal</a>
+        <a href="./trademark.html">Trademark</a>
+      </div>
+      <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+        <span class="dots-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
     </nav>
 
     <div class="hero">
@@ -26,32 +35,28 @@
     </div>
 
     <main>
-      <div class="section-grid">
-        <section class="card">
-          <h2>Quick Install</h2>
-          <pre><code>gem install friday_gemini_ai</code></pre>
-          <p class="card-subtext">Ready for thrills and chills? Just add it to your Gemfile.</p>
-        </section>
+      <section>
+        <h2>Quick Install</h2>
+        <pre><code>gem install friday_gemini_ai</code></pre>
+        <p class="subtext">Ready for thrills and chills? Just add it to your Gemfile.</p>
+      </section>
 
-        <section class="card">
-          <h2>Basic Usage</h2>
-          <pre><code>require 'friday_gemini_ai'
+      <section>
+        <h2>Basic Usage</h2>
+        <pre><code>require 'friday_gemini_ai'
 client = GeminiAI::Client.new('API_KEY')
 puts client.generate_text('Hello!')</code></pre>
-        </section>
-      </div>
+      </section>
 
-      <div class="section-grid">
-        <section class="card card-span-2">
-          <h2>Continue Exploring</h2>
-          <ul class="link-list grid-2-col">
-            <li><a href="./app.html"><span></span>About HarperBot</a></li>
-            <li><a href="https://github.com/apps/harper-new-line"><span></span>Install HarperBot</a></li>
-            <li><a href="./experience.html"><span></span>The Journal</a></li>
-            <li><a href="https://rubygems.org/gems/friday_gemini_ai"><span></span>RubyGems</a></li>
-          </ul>
-        </section>
-      </div>
+      <section>
+        <h2>Continue Exploring</h2>
+        <ul class="link-list">
+          <li><a href="./app.html"><span></span>About HarperBot</a></li>
+          <li><a href="https://github.com/apps/harper-new-line"><span></span>Install HarperBot</a></li>
+          <li><a href="./experience.html"><span></span>The Journal</a></li>
+          <li><a href="https://rubygems.org/gems/friday_gemini_ai"><span></span>RubyGems</a></li>
+        </ul>
+      </section>
     </main>
 
     <footer>

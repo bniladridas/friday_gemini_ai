@@ -8,13 +8,22 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
     <body class="theme-app">
-	    <nav class="pill-nav">
-	      <a href="./index.html">Home</a>
-	      <a href="./app.html" class="active">HarperBot</a>
-	      <a href="./support.html">Support</a>
-	      <a href="./experience.html">Journal</a>
-	      <a href="./trademark.html">Trademark</a>
-	    </nav>
+    <nav class="pill-nav">
+      <div class="nav-links-container">
+        <a href="./index.html">Home</a>
+        <a href="./app.html" class="active">HarperBot</a>
+        <a href="./support.html">Support</a>
+        <a href="./experience.html">Journal</a>
+        <a href="./trademark.html">Trademark</a>
+      </div>
+      <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+        <span class="dots-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+    </nav>
 
     <div class="hero hero-blue">
       <div class="hero-content">
@@ -26,34 +35,30 @@
     </div>
 
     <main>
-      <div class="section-grid">
-        <section class="card">
-          <h2>Smart Reviews</h2>
-          <p>Instant feedback on quality, maintainability, and security for every PR you open.</p>
-        </section>
+      <section>
+        <h2>Smart Reviews</h2>
+        <p>Instant feedback on quality, maintainability, and security for every PR you open.</p>
+      </section>
 
-        <section class="card">
-          <h2>Auto-Commit</h2>
-          <p>Actionable code suggestions that can be applied directly to your branch with a click.</p>
-        </section>
-      </div>
+      <section>
+        <h2>Auto-Commit</h2>
+        <p>Actionable code suggestions that can be applied directly to your branch with a click.</p>
+      </section>
 
-	      <div class="section-grid">
-	        <section class="card card-span-2">
-	          <h2>Capabilities</h2>
-	          <ul class="link-list grid-2-col">
-	            <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Summaries</span></li>
-	            <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Security</span></li>
-	            <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Suggestions</span></li>
-	            <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Commands</span></li>
-	            <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Inline range comments</span></li>
-	          </ul>
-	          <p class="card-subtext">Need setup and troubleshooting help?</p>
-	          <div class="card-actions">
-	            <a href="./support.html" class="btn-secondary">Open L2 Support</a>
-	          </div>
-	        </section>
-	      </div>
+      <section>
+        <h2>Capabilities</h2>
+        <ul class="link-list">
+          <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Summaries</span></li>
+          <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Security</span></li>
+          <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Suggestions</span></li>
+          <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Commands</span></li>
+          <li><span role="button" aria-disabled="true" class="link-disabled"><span></span>Inline range comments</span></li>
+        </ul>
+        <p class="subtext">Need setup and troubleshooting help?</p>
+        <div class="card-actions">
+          <a href="./support.html" class="btn-secondary">Open L2 Support</a>
+        </div>
+      </section>
     </main>
 
     <footer>
