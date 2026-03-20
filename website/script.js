@@ -1,4 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Cookie Banner
+  const cookieBanner = document.getElementById('cookie-banner');
+  const cookieAccept = document.getElementById('cookie-accept');
+  const cookieDecline = document.getElementById('cookie-decline');
+
+  const cookieConsent = localStorage.getItem('cookieConsent');
+
+  if (cookieConsent) {
+    cookieBanner.classList.add('hidden');
+  } else if (cookieBanner) {
+    cookieBanner.classList.add('visible');
+  }
+
+  if (cookieAccept) {
+    cookieAccept.addEventListener('click', () => {
+      localStorage.setItem('cookieConsent', 'accepted');
+      cookieBanner.classList.add('hidden');
+    });
+  }
+
+  if (cookieDecline) {
+    cookieDecline.addEventListener('click', () => {
+      localStorage.setItem('cookieConsent', 'declined');
+      cookieBanner.classList.add('hidden');
+    });
+  }
+
   // Modern reveal animation for sections
   const sections = document.querySelectorAll('section');
   sections.forEach((section, index) => {
@@ -10,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
       section.style.opacity = '1';
       section.style.transform = 'translateY(0)';
 
-      // Clear inline transform after transition ends to allow CSS hover effects
       section.addEventListener('transitionend', function handler() {
         section.style.transform = '';
         section.removeEventListener('transitionend', handler);
@@ -28,14 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
       navLinksContainer.classList.toggle('active');
     });
 
-    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!menuToggle.contains(e.target) && !navLinksContainer.contains(e.target)) {
         navLinksContainer.classList.remove('active');
       }
     });
 
-    // Close menu when clicking a link
     const navLinks = navLinksContainer.querySelectorAll('a');
     navLinks.forEach(link => {
       link.addEventListener('click', () => {

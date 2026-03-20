@@ -28,7 +28,10 @@ body.theme-journal {
 
 body.theme-trademark {
   --accent-rgb: 255 159 67; /* orange/gold */
-  --hero-bg: linear-gradient(180deg, #261c37 0%, #0d0f1a 60%, #05070b 100%);
+}
+
+body.theme-privacy {
+  --accent-rgb: 142 142 147; /* grey */
 }
 
 * {
@@ -170,7 +173,7 @@ pre {
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 0.85rem;
   margin: 15px 0;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: none;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -186,8 +189,7 @@ code {
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: none;
 }
 
 .table th,
@@ -195,7 +197,7 @@ code {
   padding: 14px 16px;
   text-align: left;
   vertical-align: top;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border: none;
 }
 
 .table thead th {
@@ -330,6 +332,15 @@ footer {
   margin-top: 5px;
 }
 
+.section-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 800px;
+}
+
+
+
 .content-centered {
   position: relative;
   text-align: center;
@@ -353,6 +364,14 @@ footer {
 
 .hero-teal {
   background: linear-gradient(180deg, #2e635b 0%, #000000 100%);
+}
+
+.hero-orange {
+  background: linear-gradient(180deg, #63522e 0%, #000000 100%);
+}
+
+.hero-cyan {
+  background: linear-gradient(180deg, #3a3a3c 0%, #000000 100%);
 }
 
 .link-disabled {
@@ -430,10 +449,10 @@ footer {
   .table tr {
     display: block;
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: none;
     border-radius: 12px;
     padding: 15px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.04);
   }
 
   .table td {
@@ -501,40 +520,42 @@ footer {
 
   /* Mobile Navigation */
   nav.pill-nav {
-    width: auto; /* Auto width for just the button */
-    max-width: none; /* Remove max width */
+    position: fixed;
+    width: auto;
+    max-width: none;
     justify-content: flex-end;
-    padding: 0; /* Remove padding to remove pill look */
-    background: none; /* Remove background */
-    border: none; /* Remove border */
-    top: 20px; /* Keep position */
-    right: 20px; /* Position to the right */
-    left: auto; /* Reset left */
-    transform: none; /* Reset transform */
+    padding: 0;
+    background: none;
+    border: none;
+    top: 20px;
+    right: 20px;
+    left: auto;
+    transform: none;
   }
 
   /* Hide the desktop links container on mobile */
   .nav-links-container {
     position: absolute;
-    top: 100%; /* Below the button */
-    right: 0; /* Align to right edge of the container (pill-nav) */
-    background: rgba(28, 28, 30, 0.95);
+    top: 100%;
+    right: 0;
+    background: rgba(28, 28, 30, 0.98);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     padding: 10px 20px;
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     flex-direction: column;
     gap: 10px;
     margin-top: 10px;
     min-width: 150px;
     z-index: 1001;
     width: max-content;
-    display: none !important;
+    display: none;
+    pointer-events: auto;
   }
 
   .nav-links-container.active {
-    display: flex !important;
+    display: flex;
   }
 
   .nav-links-container a {
@@ -545,19 +566,104 @@ footer {
   }
 
   .mobile-menu-toggle {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
-    background: rgba(28, 28, 30, 0.5);
+    background: rgba(28, 28, 30, 0.9) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%; /* Circular button */
-    width: 40px;
-    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
     padding: 0;
     margin: 0;
+    z-index: 1002;
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+  }
+
+  .section-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
   }
 
 
+}
+
+/* Cookie Banner */
+.cookie-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(28, 28, 30, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px 24px;
+  display: none;
+  align-items: center;
+  gap: 20px;
+  z-index: 1001;
+  max-width: 90%;
+  flex-wrap: wrap;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.cookie-banner.visible {
+  display: flex;
+}
+
+.cookie-banner p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.cookie-banner a {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+.cookie-buttons {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-cookie {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-accept {
+  background: var(--accent-color);
+  color: #000;
+}
+
+.btn-accept:hover {
+  opacity: 0.8;
+}
+
+.btn-decline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-decline:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cookie-banner.hidden {
+  display: none;
 }
