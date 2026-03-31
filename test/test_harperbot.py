@@ -67,7 +67,7 @@ class TestHarperBot(unittest.TestCase):
             self.assertEqual(config["model"], "gemini-2.5-flash")
             self.assertEqual(config["max_diff_length"], 4000)
             self.assertEqual(config["temperature"], 0.2)
-            self.assertEqual(config["max_output_tokens"], 4096)
+            self.assertEqual(config["max_output_tokens"], 8192)
             self.assertIn("prompt", config)  # Should include default prompt
 
     @patch("harperbot.harperbot.load_config")
@@ -90,7 +90,12 @@ class TestHarperBot(unittest.TestCase):
         mock_response.text = "Test analysis"
         mock_client.models.generate_content.return_value = mock_response
 
-        pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
+        pr_details = {
+            "title": "Test PR",
+            "body": "Test body",
+            "files_changed": ["test.py"],
+            "diff": "test diff",
+        }
 
         result = analyze_with_gemini(mock_client, pr_details)
         self.assertEqual(result, "Test analysis")
@@ -117,9 +122,18 @@ class TestHarperBot(unittest.TestCase):
         mock_response.text = "Recovered analysis"
 
         server_error = genai_errors.ServerError(503, {"error": {"message": "unavailable", "status": "UNAVAILABLE"}}, None)
-        mock_client.models.generate_content.side_effect = [server_error, server_error, mock_response]
+        mock_client.models.generate_content.side_effect = [
+            server_error,
+            server_error,
+            mock_response,
+        ]
 
-        pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
+        pr_details = {
+            "title": "Test PR",
+            "body": "Test body",
+            "files_changed": ["test.py"],
+            "diff": "test diff",
+        }
         result = analyze_with_gemini(mock_client, pr_details)
         self.assertEqual(result, "Recovered analysis")
         self.assertEqual(mock_client.models.generate_content.call_count, 3)
@@ -144,7 +158,12 @@ class TestHarperBot(unittest.TestCase):
         server_error = genai_errors.ServerError(503, {"error": {"message": "unavailable", "status": "UNAVAILABLE"}}, None)
         mock_client.models.generate_content.side_effect = server_error
 
-        pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
+        pr_details = {
+            "title": "Test PR",
+            "body": "Test body",
+            "files_changed": ["test.py"],
+            "diff": "test diff",
+        }
         result = analyze_with_gemini(mock_client, pr_details)
         self.assertIn("api unavailable", result.lower())
         self.assertIn("http 503", result.lower())
@@ -167,7 +186,12 @@ class TestHarperBot(unittest.TestCase):
         mock_response.text = "OK"
         mock_client.models.generate_content.return_value = mock_response
 
-        pr_details = {"title": "Test PR", "body": "Test body", "files_changed": ["test.py"], "diff": "test diff"}
+        pr_details = {
+            "title": "Test PR",
+            "body": "Test body",
+            "files_changed": ["test.py"],
+            "diff": "test diff",
+        }
         result = analyze_with_gemini(mock_client, pr_details)
         self.assertEqual(result, "OK")
         _args, kwargs = mock_client.models.generate_content.call_args
@@ -175,6 +199,35 @@ class TestHarperBot(unittest.TestCase):
         self.assertIn("test.py", kwargs["contents"])
         self.assertIn("Diff:", kwargs["contents"])
         self.assertIn("test diff", kwargs["contents"])
+
+    @patch("harperbot.harperbot.load_config")
+    def test_analyze_with_gemini_keeps_large_response_with_8k_output_budget(self, mock_load_config):
+        """An 8k-token output budget should not be cut off by the sanitizer's char cap."""
+        mock_load_config.return_value = {
+            "model": "gemini-2.5-flash",
+            "focus": "all",
+            "max_diff_length": 4000,
+            "temperature": 0.2,
+            "max_output_tokens": 8192,
+            "prompt": "Test prompt {num_files} {files_list} {diff_content} {focus_instruction}",
+        }
+
+        mock_client = Mock()
+        mock_client.models = Mock()
+        mock_response = Mock()
+        mock_response.text = "A" * 25000
+        mock_client.models.generate_content.return_value = mock_response
+
+        pr_details = {
+            "title": "Test PR",
+            "body": "Test body",
+            "files_changed": ["test.py"],
+            "diff": "test diff",
+        }
+
+        result = analyze_with_gemini(mock_client, pr_details)
+        self.assertEqual(result, "A" * 25000)
+        self.assertNotIn("... (truncated for length)", result)
 
     def test_parse_diff_for_suggestions_valid(self):
         """Test parsing diff suggestions."""
@@ -475,12 +528,23 @@ class TestHarperBot(unittest.TestCase):
     def test_post_inline_suggestions_uses_line_based_comments_first(self):
         """Inline suggestions default to modern line-based review comments."""
         pr = Mock()
-        pr_details = {"head_sha": "deadbeef", "diff": "diff --git a/a.txt b/a.txt\n@@ -1,1 +1,1 @@\n-old\n+new\n"}
+        pr_details = {
+            "head_sha": "deadbeef",
+            "diff": "diff --git a/a.txt b/a.txt\n@@ -1,1 +1,1 @@\n-old\n+new\n",
+        }
         repo = Mock()
         repo.get_commit.return_value = Mock()
 
         pr.get_reviews.return_value = []
-        suggestions = [{"path": "a.txt", "start_line": 1, "end_line": 1, "op": "replace", "suggestion": "new"}]
+        suggestions = [
+            {
+                "path": "a.txt",
+                "start_line": 1,
+                "end_line": 1,
+                "op": "replace",
+                "suggestion": "new",
+            }
+        ]
         post_inline_suggestions(pr, pr_details, suggestions, g=Mock(), repo=repo)
 
         _args, kwargs = pr.create_review.call_args
@@ -494,7 +558,10 @@ class TestHarperBot(unittest.TestCase):
     @patch("harperbot.harperbot.load_config")
     def test_post_comment_webhook_force_review_from_config(self, mock_load_config, mock_github, mock_post_inline):
         """Config can opt-in to reposting reviews on manual /analyze."""
-        mock_load_config.return_value = {"enable_authoring": False, "force_review_on_analyze": True}
+        mock_load_config.return_value = {
+            "enable_authoring": False,
+            "force_review_on_analyze": True,
+        }
 
         repo = Mock()
         pr = Mock()
@@ -516,7 +583,10 @@ class TestHarperBot(unittest.TestCase):
     @patch("harperbot.harperbot.load_config")
     def test_post_comment_webhook_force_review_explicit_arg(self, mock_load_config, mock_github, mock_post_inline):
         """Explicit force_review argument always wins."""
-        mock_load_config.return_value = {"enable_authoring": False, "force_review_on_analyze": False}
+        mock_load_config.return_value = {
+            "enable_authoring": False,
+            "force_review_on_analyze": False,
+        }
 
         repo = Mock()
         pr = Mock()
@@ -625,7 +695,10 @@ class TestHarperBot(unittest.TestCase):
         g.get_repo.return_value = repo
         repo.get_issue.return_value = issue
         issue.get_labels.return_value = []
-        issue.add_to_labels.side_effect = [GithubException(404, {"message": "Not Found"}, None), None]
+        issue.add_to_labels.side_effect = [
+            GithubException(404, {"message": "Not Found"}, None),
+            None,
+        ]
         mock_setup_env.return_value = (g, "token", Mock())
 
         result = handle_pr_comment_command(123, "o/r", 1, "/pause", "alice")
@@ -656,7 +729,11 @@ class TestHarperBot(unittest.TestCase):
 
     @patch("harperbot.harperbot.post_notice_comment")
     @patch("harperbot.harperbot.setup_environment_webhook")
-    @patch.dict("os.environ", {"VERCEL_GIT_COMMIT_SHA": "0123456789abcdef", "VERCEL_GIT_COMMIT_REF": "main"}, clear=False)
+    @patch.dict(
+        "os.environ",
+        {"VERCEL_GIT_COMMIT_SHA": "0123456789abcdef", "VERCEL_GIT_COMMIT_REF": "main"},
+        clear=False,
+    )
     def test_handle_pr_comment_command_status_shows_label_presence(self, mock_setup_env, mock_post_notice):
         g = Mock()
         repo = Mock()
@@ -719,7 +796,10 @@ class TestHarperBot(unittest.TestCase):
             self.assertFalse(config["enable_authoring"])
             self.assertFalse(config["auto_commit_suggestions"])
             self.assertFalse(config["create_improvement_prs"])
-            self.assertEqual(config["improvement_branch_pattern"], "harperbot-improvements-{timestamp}")
+            self.assertEqual(
+                config["improvement_branch_pattern"],
+                "harperbot-improvements-{timestamp}",
+            )
 
     def test_create_branch_success(self):
         """Test successful branch creation."""
@@ -744,7 +824,15 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [{"path": "test.py", "start_line": 1, "end_line": 1, "op": "replace", "suggestion": "new content"}]
+        suggestions = [
+            {
+                "path": "test.py",
+                "start_line": 1,
+                "end_line": 1,
+                "op": "replace",
+                "suggestion": "new content",
+            }
+        ]
 
         # Mock file content
         mock_file = Mock()
@@ -767,7 +855,15 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [{"path": "test.py", "start_line": 1, "end_line": 1, "op": "replace", "suggestion": "new line content"}]
+        suggestions = [
+            {
+                "path": "test.py",
+                "start_line": 1,
+                "end_line": 1,
+                "op": "replace",
+                "suggestion": "new line content",
+            }
+        ]
 
         # Mock file content with multiple lines
         mock_file = Mock()
@@ -827,7 +923,15 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [{"path": "test.py", "start_line": 10, "end_line": 10, "op": "replace", "suggestion": "new content"}]
+        suggestions = [
+            {
+                "path": "test.py",
+                "start_line": 10,
+                "end_line": 10,
+                "op": "replace",
+                "suggestion": "new content",
+            }
+        ]
 
         mock_file = Mock()
         mock_file.decoded_content.decode.return_value = "line 1\nline 2\nline 3"
@@ -849,7 +953,15 @@ class TestHarperBot(unittest.TestCase):
         mock_ref = Mock()
         mock_repo.get_git_ref.return_value = mock_ref
 
-        suggestions = [{"path": "test.py", "start_line": 2, "end_line": 2, "op": "delete", "suggestion": None}]
+        suggestions = [
+            {
+                "path": "test.py",
+                "start_line": 2,
+                "end_line": 2,
+                "op": "delete",
+                "suggestion": None,
+            }
+        ]
 
         mock_file = Mock()
         mock_file.decoded_content.decode.return_value = "line 1\nline 2\nline 3"

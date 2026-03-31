@@ -238,7 +238,7 @@ Provide a concise code review analysis in this format:
         "model": "gemini-2.5-flash",
         "max_diff_length": 4000,
         "temperature": 0.2,
-        "max_output_tokens": 4096,
+        "max_output_tokens": 8192,
         # When enabled, a manual `/analyze` will post a new PR review even if one already exists
         # for the current head SHA. This can create extra reviews; prefer `/analyze --force-review`
         # for one-off reruns.
@@ -275,7 +275,7 @@ def analyze_with_gemini(client, pr_details):
         focus = config.get("focus", "all")
         max_diff = config.get("max_diff_length", 4000)
         temperature = config.get("temperature", 0.2)
-        max_output_tokens = config.get("max_output_tokens", 4096)
+        max_output_tokens = config.get("max_output_tokens", 8192)
         safety_settings = config.get("safety_settings", [])
 
         # Auto-select model based on PR complexity
@@ -368,8 +368,12 @@ def analyze_with_gemini(client, pr_details):
             try:
                 # Try the standard text accessor first
                 if getattr(resp, "text", None):
-                    logging.debug("Extracted text from direct response.text")
-                    return sanitize_text(resp.text.strip())
+                    text = resp.text.strip()
+                    logging.debug(f"Extracted text from direct response.text (length: {len(text)})")
+                    # Check if text ends abruptly (might indicate incomplete response)
+                    if len(text) > 50 and not text.endswith((".", "!", "?", "\n", "```")):
+                        logging.warning(f"Response text appears incomplete - ends with: '{text[-50:]}'")
+                    return sanitize_text(text)
 
                 # Try candidates structure (most common for Gemini API)
                 candidates = getattr(resp, "candidates", None)
@@ -380,16 +384,26 @@ def analyze_with_gemini(client, pr_details):
                         if content and getattr(content, "parts", None):
                             parts = [getattr(part, "text", "") for part in content.parts if getattr(part, "text", None)]
                             if parts:
-                                logging.debug(f"Extracted text from candidate {i}")
-                                return sanitize_text("\n".join(parts).strip())
+                                text = "\n".join(parts).strip()
+                                logging.debug(f"Extracted text from candidate {i} (length: {len(text)})")
+                                # Check if text ends abruptly
+                                if len(text) > 50 and not text.endswith((".", "!", "?", "\n", "```")):
+                                    logging.warning(
+                                        f"Response text from candidate {i} appears incomplete - ends with: '{text[-50:]}'"
+                                    )
+                                return sanitize_text(text)
 
                 # Try direct parts access as fallback
                 parts = getattr(resp, "parts", None)
                 if parts:
                     parts = [getattr(part, "text", "") for part in parts if getattr(part, "text", None)]
                     if parts:
-                        logging.debug("Extracted text from direct response.parts")
-                        return sanitize_text("\n".join(parts).strip())
+                        text = "\n".join(parts).strip()
+                        logging.debug(f"Extracted text from direct response.parts (length: {len(text)})")
+                        # Check if text ends abruptly
+                        if len(text) > 50 and not text.endswith((".", "!", "?", "\n", "```")):
+                            logging.warning(f"Response text from direct parts appears incomplete - ends with: '{text[-50:]}'")
+                        return sanitize_text(text)
 
                 logging.warning("No text found in any response structure")
             except Exception as extract_error:
@@ -407,28 +421,43 @@ def analyze_with_gemini(client, pr_details):
             text = re.sub(r"<[^>]+>", "", text)  # Remove all HTML tags
             text = re.sub(r"javascript:", "", text, flags=re.IGNORECASE)
             text = re.sub(r"on\w+\s*=", "", text, flags=re.IGNORECASE)  # Remove event handlers
-            # Limit length to prevent abuse (increased to accommodate AI output limits)
-            if len(text) > 20000:
-                text = text[:20000] + "... (truncated for length)"
+            # Keep the character cap aligned with the configured token budget.
+            max_sanitized_chars = max(20000, max_output_tokens * 4)
+            if len(text) > max_sanitized_chars:
+                logging.warning(
+                    "Sanitized Gemini response exceeded %s chars; truncating to fit downstream limits",
+                    max_sanitized_chars,
+                )
+                text = text[:max_sanitized_chars] + "... (truncated for length)"
             return text.strip()
 
         try:
             text = extract_text(response)
             if text:
+                # Additional check for potentially incomplete responses
+                if len(text) < 100 and not any(
+                    indicator in text.lower() for indicator in ["analysis", "review", "summary", "changes"]
+                ):
+                    logging.warning(f"Response seems too short and may be incomplete (length: {len(text)}): {text[:200]}")
                 return text
 
-            # Check for finish reasons that indicate no content
+            # Check for finish reasons that indicate truncation or issues
             candidates = getattr(response, "candidates", None)
             if candidates:
                 for candidate in candidates:
                     finish_reason = getattr(candidate, "finish_reason", None)
                     if finish_reason:
-                        if "MAX_TOKENS" in str(finish_reason):
+                        finish_str = str(finish_reason).upper()
+                        if "MAX" in finish_str and "TOKEN" in finish_str:
+                            logging.warning(f"Analysis truncated due to token limit (finish_reason: {finish_reason})")
                             return "Analysis truncated due to token limit. The code changes are too extensive for a complete analysis. Please review manually or split into smaller PRs."
-                        elif "SAFETY" in str(finish_reason):
+                        elif "SAFETY" in finish_str:
+                            logging.warning(f"Analysis blocked due to safety filters (finish_reason: {finish_reason})")
                             return "Analysis blocked due to content safety filters. Please ensure the PR content complies with usage policies."
-                        elif "STOP" in str(finish_reason):
-                            return "Analysis completed but no content was generated. This may indicate an issue with the prompt or model."
+                        elif "STOP" in finish_str:
+                            logging.info(f"Analysis completed normally (finish_reason: {finish_reason})")
+                        else:
+                            logging.warning(f"Unexpected finish_reason: {finish_reason}")
 
             # If we get here, no text found - log and return safe message
             logging.warning(f"No text extracted from response. Response type: {type(response)}")
@@ -972,7 +1001,12 @@ def post_inline_suggestions(pr, pr_details, suggestions, g, repo, *, force_revie
             return
 
         try:
-            pr.create_review(commit=commit, body=review_body, comments=review_comments, event="COMMENT")
+            pr.create_review(
+                commit=commit,
+                body=review_body,
+                comments=review_comments,
+                event="COMMENT",
+            )
             logging.info(f"Posted {len(review_comments)} inline suggestions as a review")
         except Exception as e:
             # Fallback to legacy `position` field if the API rejects line-based comments.
@@ -993,7 +1027,12 @@ def post_inline_suggestions(pr, pr_details, suggestions, g, repo, *, force_revie
                 position_comments.append({"path": file_path, "position": position, "body": body})
 
             if position_comments:
-                pr.create_review(commit=commit, body=review_body, comments=position_comments, event="COMMENT")
+                pr.create_review(
+                    commit=commit,
+                    body=review_body,
+                    comments=position_comments,
+                    event="COMMENT",
+                )
                 logging.info(f"Posted {len(position_comments)} inline suggestions as a review (position fallback)")
             else:
                 pr.create_review(commit=commit, body=review_body, event="COMMENT")
@@ -1291,7 +1330,13 @@ def handle_pr_comment_command(
         logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
         force_review = ("--force-review" in command_args) or ("--force_review" in command_args)
         try:
-            run_analysis_for_pr(installation_id, repo_name, pr_number, force=True, force_review=force_review)
+            run_analysis_for_pr(
+                installation_id,
+                repo_name,
+                pr_number,
+                force=True,
+                force_review=force_review,
+            )
             return {"status": "ok"}, 200
         except Exception as e:
             logging.error(f"Error processing /analyze: {str(e)}")
