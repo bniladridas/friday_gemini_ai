@@ -33,9 +33,9 @@ def handle_apply_comment(installation_id, repo_name, pr_number, commenter_login=
         from harperbot.harperbot import (
             analyze_with_gemini,
             apply_suggestions_to_pr,
+            build_pr_details_from_pr,
             format_notice,
             get_commenter_permission,
-            get_pr_details_webhook,
             load_config,
             parse_code_suggestions,
             setup_environment_webhook,
@@ -68,7 +68,7 @@ def handle_apply_comment(installation_id, repo_name, pr_number, commenter_login=
             )
             return jsonify({"status": "forbidden"}), 403
 
-        pr_details = get_pr_details_webhook(g, repo_name, pr_number, installation_token=installation_token)
+        pr_details = build_pr_details_from_pr(pr, installation_token=installation_token)
         analysis = analyze_with_gemini(client, pr_details)
         suggestions = parse_code_suggestions(analysis)
 

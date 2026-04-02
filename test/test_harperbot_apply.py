@@ -28,13 +28,12 @@ class TestHarperBotApply(unittest.TestCase):
         pr = Mock()
         g.get_repo.return_value = repo
         repo.get_pull.return_value = pr
-        repo.get_collaborator_permission.return_value = "write"
 
         fake_harperbot_mod.setup_environment_webhook = Mock(return_value=(g, "token", Mock()))
         fake_harperbot_mod.load_config = Mock(return_value={"enable_authoring": True})
         fake_harperbot_mod.format_notice = Mock(side_effect=lambda title, details: f"{title}: {details}")
         fake_harperbot_mod.get_commenter_permission = Mock(return_value="write")
-        fake_harperbot_mod.get_pr_details_webhook = Mock(return_value={"number": 1})
+        fake_harperbot_mod.build_pr_details_from_pr = Mock(return_value={"number": 1})
         fake_harperbot_mod.analyze_with_gemini = Mock(return_value="analysis text")
         fake_harperbot_mod.parse_code_suggestions = Mock(return_value=[])
         fake_harperbot_mod.apply_suggestions_to_pr = Mock()
@@ -60,13 +59,12 @@ class TestHarperBotApply(unittest.TestCase):
         pr = Mock()
         g.get_repo.return_value = repo
         repo.get_pull.return_value = pr
-        repo.get_collaborator_permission.return_value = "write"
 
         fake_harperbot_mod.setup_environment_webhook = Mock(return_value=(g, "token", Mock()))
         fake_harperbot_mod.load_config = Mock(return_value={"enable_authoring": True})
         fake_harperbot_mod.format_notice = Mock(side_effect=lambda title, details: f"{title}: {details}")
         fake_harperbot_mod.get_commenter_permission = Mock(return_value="write")
-        fake_harperbot_mod.get_pr_details_webhook = Mock(return_value={"number": 1})
+        fake_harperbot_mod.build_pr_details_from_pr = Mock(return_value={"number": 1})
         fake_harperbot_mod.analyze_with_gemini = Mock(return_value="analysis text")
         fake_harperbot_mod.parse_code_suggestions = Mock(return_value=[("a.txt", "1", "change")])
         fake_harperbot_mod.apply_suggestions_to_pr = Mock()
@@ -97,7 +95,7 @@ class TestHarperBotApply(unittest.TestCase):
         fake_harperbot_mod.load_config = Mock(return_value={"enable_authoring": False})
         fake_harperbot_mod.format_notice = Mock(side_effect=lambda title, details: f"{title}: {details}")
         fake_harperbot_mod.get_commenter_permission = Mock(return_value="write")
-        fake_harperbot_mod.get_pr_details_webhook = Mock()
+        fake_harperbot_mod.build_pr_details_from_pr = Mock()
         fake_harperbot_mod.analyze_with_gemini = Mock()
         fake_harperbot_mod.parse_code_suggestions = Mock()
         fake_harperbot_mod.apply_suggestions_to_pr = Mock()
@@ -125,13 +123,12 @@ class TestHarperBotApply(unittest.TestCase):
         pr = Mock()
         g.get_repo.return_value = repo
         repo.get_pull.return_value = pr
-        repo.get_collaborator_permission.return_value = "read"
 
         fake_harperbot_mod.setup_environment_webhook = Mock(return_value=(g, "token", Mock()))
         fake_harperbot_mod.load_config = Mock(return_value={"enable_authoring": True})
         fake_harperbot_mod.format_notice = Mock(side_effect=lambda title, details: f"{title}: {details}")
         fake_harperbot_mod.get_commenter_permission = Mock(return_value="read")
-        fake_harperbot_mod.get_pr_details_webhook = Mock()
+        fake_harperbot_mod.build_pr_details_from_pr = Mock()
         fake_harperbot_mod.analyze_with_gemini = Mock()
         fake_harperbot_mod.parse_code_suggestions = Mock()
         fake_harperbot_mod.apply_suggestions_to_pr = Mock()
@@ -164,7 +161,7 @@ class TestHarperBotApply(unittest.TestCase):
         fake_harperbot_mod.load_config = Mock(return_value={"enable_authoring": True})
         fake_harperbot_mod.format_notice = Mock(side_effect=lambda title, details: f"{title}: {details}")
         fake_harperbot_mod.get_commenter_permission = Mock(return_value=None)
-        fake_harperbot_mod.get_pr_details_webhook = Mock()
+        fake_harperbot_mod.build_pr_details_from_pr = Mock()
         fake_harperbot_mod.analyze_with_gemini = Mock()
         fake_harperbot_mod.parse_code_suggestions = Mock()
         fake_harperbot_mod.apply_suggestions_to_pr = Mock()

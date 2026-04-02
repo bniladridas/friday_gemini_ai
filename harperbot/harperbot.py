@@ -1105,11 +1105,8 @@ def setup_environment_webhook(installation_id):
     return g, installation_auth.token, client
 
 
-def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | None = None):
-    """Fetch PR details using GitHub App authentication."""
-    repo = g.get_repo(repo_name)
-    pr = repo.get_pull(pr_number)
-
+def build_pr_details_from_pr(pr, installation_token: str | None = None):
+    """Build normalized PR details from an existing pull request object."""
     files_changed = [f.filename for f in pr.get_files()]
 
     # Get diff content using diff_url
@@ -1124,8 +1121,15 @@ def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | No
         "base": pr.base.ref,
         "head": pr.head.ref,
         "head_sha": pr.head.sha,
-        "number": pr_number,
+        "number": pr.number,
     }
+
+
+def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | None = None):
+    """Fetch PR details using GitHub App authentication."""
+    repo = g.get_repo(repo_name)
+    pr = repo.get_pull(pr_number)
+    return build_pr_details_from_pr(pr, installation_token=installation_token)
 
 
 def is_harperbot_comment(comment):
@@ -1325,32 +1329,6 @@ def handle_pr_comment_command(
     command_args = {part.lower() for part in command_parts[1:]}
 
     if command == "/apply":
-        g, installation_token, _ = setup_environment_webhook(installation_id)
-        repo = g.get_repo(repo_name)
-        pr = repo.get_pull(pr_number)
-        config = load_config()
-
-        if not config.get("enable_authoring", False):
-            post_notice_comment(
-                installation_token,
-                repo_name,
-                pr_number,
-                "Authoring disabled",
-                "The `/apply` command is disabled unless `enable_authoring` is turned on.",
-            )
-            return {"status": "forbidden"}, 403
-
-        permission = get_commenter_permission(repo, commenter_login)
-        if permission not in {"admin", "write"}:
-            pr.create_issue_comment(
-                format_notice(
-                    "Insufficient permissions",
-                    "You need write/admin permissions to use `/apply`.",
-                )
-            )
-            logging.warning(f"User {commenter_login} lacks permission ({permission}) for /apply on PR #{pr_number}")
-            return {"status": "forbidden"}, 403
-
         return handle_apply_comment(installation_id, repo_name, pr_number, commenter_login=commenter_login)
     if command == "/analyze":
         logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
@@ -1517,7 +1495,7 @@ def handle_merge_command(
     """Handle merge/rebase commands from PR comments."""
     g, _, _ = setup_environment_webhook(installation_id)
     repo = g.get_repo(repo_name)
-    permission = repo.get_collaborator_permission(commenter_login)
+    permission = get_commenter_permission(repo, commenter_login)
     if permission not in {"admin", "write"}:
         pr = repo.get_pull(pr_number)
         pr.create_issue_comment(
