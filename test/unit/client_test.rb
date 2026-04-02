@@ -115,6 +115,7 @@ class TestClient < Minitest::Test
 
   def test_initialization_does_not_print_api_key_to_stdout
     GeminiAI::Client.any_instance.unstub(:validate_api_key!)
+    GeminiAI::Client.instance_variable_set(:@logger, nil)
 
     stdout, stderr = capture_io do
       GeminiAI::Client.new(@api_key)
