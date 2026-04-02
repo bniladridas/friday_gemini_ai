@@ -658,6 +658,25 @@ class TestHarperBot(unittest.TestCase):
         body = pr.create_issue_comment.call_args[0][0]
         self.assertIn("Merge method not allowed", body)
 
+    @patch("harperbot.harperbot.jsonify", side_effect=lambda payload: payload)
+    @patch("harperbot.harperbot.setup_environment_webhook")
+    def test_handle_merge_command_blocks_non_collaborator_lookup_failure(self, mock_setup_env, _mock_jsonify):
+        from harperbot.harperbot import handle_merge_command
+
+        g = Mock()
+        repo = Mock()
+        pr = Mock()
+        g.get_repo.return_value = repo
+        repo.get_collaborator_permission.side_effect = GithubException(404, {"message": "Not Found"}, None)
+        repo.get_pull.return_value = pr
+        mock_setup_env.return_value = (g, "token", Mock())
+
+        payload, status = handle_merge_command(123, "o/r", 8, "merge", "external-user")
+
+        self.assertEqual(status, 403)
+        self.assertEqual(payload["status"], "forbidden")
+        pr.create_issue_comment.assert_called_once()
+
     @patch("harperbot.harperbot.post_notice_comment")
     @patch("harperbot.harperbot.setup_environment_webhook")
     def test_handle_pr_comment_command_help_posts_notice(self, mock_setup_env, mock_post_notice):

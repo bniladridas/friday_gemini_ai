@@ -1105,11 +1105,8 @@ def setup_environment_webhook(installation_id):
     return g, installation_auth.token, client
 
 
-def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | None = None):
-    """Fetch PR details using GitHub App authentication."""
-    repo = g.get_repo(repo_name)
-    pr = repo.get_pull(pr_number)
-
+def build_pr_details_from_pr(pr, installation_token: str | None = None):
+    """Build normalized PR details from an existing pull request object."""
     files_changed = [f.filename for f in pr.get_files()]
 
     # Get diff content using diff_url
@@ -1124,8 +1121,15 @@ def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | No
         "base": pr.base.ref,
         "head": pr.head.ref,
         "head_sha": pr.head.sha,
-        "number": pr_number,
+        "number": pr.number,
     }
+
+
+def get_pr_details_webhook(g, repo_name, pr_number, installation_token: str | None = None):
+    """Fetch PR details using GitHub App authentication."""
+    repo = g.get_repo(repo_name)
+    pr = repo.get_pull(pr_number)
+    return build_pr_details_from_pr(pr, installation_token=installation_token)
 
 
 def is_harperbot_comment(comment):
@@ -1325,7 +1329,7 @@ def handle_pr_comment_command(
     command_args = {part.lower() for part in command_parts[1:]}
 
     if command == "/apply":
-        return handle_apply_comment(installation_id, repo_name, pr_number)
+        return handle_apply_comment(installation_id, repo_name, pr_number, commenter_login=commenter_login)
     if command == "/analyze":
         logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
         force_review = ("--force-review" in command_args) or ("--force_review" in command_args)
@@ -1466,6 +1470,21 @@ def ensure_label_exists(repo, name: str):
         raise
 
 
+def get_commenter_permission(repo, commenter_login: str | None):
+    """Best-effort collaborator permission lookup for slash-command authorization."""
+    if not commenter_login:
+        return None
+
+    try:
+        return repo.get_collaborator_permission(commenter_login)
+    except GithubException as e:
+        status = getattr(e, "status", None)
+        if status in {403, 404}:
+            logging.warning(f"Permission lookup failed for user {commenter_login}; treating as unprivileged (status={status})")
+            return None
+        raise
+
+
 def handle_merge_command(
     installation_id: int,
     repo_name: str,
@@ -1476,7 +1495,7 @@ def handle_merge_command(
     """Handle merge/rebase commands from PR comments."""
     g, _, _ = setup_environment_webhook(installation_id)
     repo = g.get_repo(repo_name)
-    permission = repo.get_collaborator_permission(commenter_login)
+    permission = get_commenter_permission(repo, commenter_login)
     if permission not in {"admin", "write"}:
         pr = repo.get_pull(pr_number)
         pr.create_issue_comment(

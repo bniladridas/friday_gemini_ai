@@ -38,7 +38,6 @@ class FaviconManager {
 
 class ResponsiveLayout {
   constructor() {
-    console.log('ResponsiveLayout: Initializing');
     this.init();
     window.addEventListener('resize', () => this.handleResize());
     window.addEventListener('orientationchange', () => this.handleOrientationChange());
@@ -118,13 +117,11 @@ class ResponsiveLayout {
   }
 
   handleResize() {
-    console.log('ResponsiveLayout: Window resized');
     this.setViewportHeight();
     this.adjustContentForScreen();
   }
 
   handleOrientationChange() {
-    console.log('ResponsiveLayout: Orientation changed');
     setTimeout(() => {
       this.setViewportHeight();
       this.adjustContentForScreen();
@@ -134,7 +131,6 @@ class ResponsiveLayout {
 
 class LayoutManager {
   constructor() {
-    console.log('LayoutManager: Initializing');
     this.faviconManager = new FaviconManager();
     this.responsiveLayout = null;
     this.init();
@@ -149,7 +145,6 @@ class LayoutManager {
   }
 
   setup() {
-    console.log('LayoutManager: Setting up layout');
     this.responsiveLayout = new ResponsiveLayout();
     this.setupGlobalStyles();
   }
