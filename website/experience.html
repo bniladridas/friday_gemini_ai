@@ -77,6 +77,7 @@
           <li><span></span>Always create a PR review entry, even when there are no inline suggestions</li>
           <li><span></span>Optional range comments: enable "comment on lines +X to +Y" for block feedback</li>
           <li><span></span><code>/apply</code> needs robust parsing (simplified diff blocks + deletions)</li>
+          <li><span></span><code>/apply</code> is intentionally permission-gated: authoring must be enabled and the commenter must have write/admin access</li>
           <li><span></span>Per-PR controls: <code>/pause</code>, <code>/resume</code>, <code>/status</code></li>
           <li><span></span>Quota handling: temporary cooldown on auto-runs with manual override via <code>/analyze</code></li>
         </ul>
@@ -88,7 +89,7 @@
 /apply
 /pause   /resume   /status
 /merge   /squash   /rebase</code></pre>
-        <p class="subtext">Commands work from Conversation comments, and (when enabled) inline file comments.</p>
+        <p class="subtext">Commands work from Conversation comments, and (when enabled) inline file comments. Write-capable commands still depend on repository permissions and feature flags.</p>
       </section>
 
       <section>

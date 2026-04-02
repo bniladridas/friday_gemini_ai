@@ -53,6 +53,7 @@
           <li><span></span>Optional multi-line inline review comments ("comment on lines ...")</li>
           <li><span></span>Common log patterns and how to interpret them</li>
         </ul>
+        <p class="subtext"><code>/apply</code> is a privileged command. It requires authoring to be enabled and the commenter to have write or admin access on the repository.</p>
       </section>
 
       <section>
@@ -63,6 +64,7 @@ Pull requests: read &amp; write
 Issues: read &amp; write
 Code/Contents: read &amp; write</code></pre>
         <p class="subtext">Everything else: No access (Actions/Checks/Secrets/Administration/etc.).</p>
+        <p class="subtext">Comment-level access is not enough for write operations. A non-collaborator may be able to comment on a PR but should still be denied for <code>/apply</code> and merge commands.</p>
       </section>
 
       <section>
@@ -112,6 +114,11 @@ Pull request review comment</code></pre>
               <td data-label="Resolution">Support simplified diff blocks + deletion operations; apply deletes safely</td>
             </tr>
             <tr>
+              <td data-label="Symptom"><code>/apply</code> should not run for external contributors or when authoring is disabled</td>
+              <td data-label="Root cause">Write-capable command needed explicit config and permission gating</td>
+              <td data-label="Resolution">Require <code>enable_authoring: true</code> and write/admin access; treat collaborator lookup failures as deny</td>
+            </tr>
+            <tr>
               <td data-label="Symptom">Wanted "comment on lines +X to +Y" style inline reviews</td>
               <td data-label="Root cause">Inline reviews were posted as single-line comments only</td>
               <td data-label="Resolution">Added optional range comments (multi-line) gated by <code>HARPERBOT_ENABLE_RANGE_COMMENTS</code></td>
@@ -137,7 +144,7 @@ Pull request review comment</code></pre>
             <li><span></span>Create a PR with a small code change</li>
             <li><span></span>Comment <code>/analyze</code> in Conversation (and optionally as an inline file comment)</li>
             <li><span></span>Verify a PR review appears (“View reviewed changes”)</li>
-            <li><span></span>Comment <code>/apply</code> and confirm a bot-authored commit lands on the PR branch</li>
+            <li><span></span>If authoring is enabled and the commenter has write/admin access, comment <code>/apply</code> and confirm a bot-authored commit lands on the PR branch</li>
             <li><span></span>Optionally test merges: <code>/merge</code>, <code>/squash</code>, <code>/rebase</code></li>
             <li><span></span>Pause auto runs: <code>/pause</code>; re-enable: <code>/resume</code></li>
           </ul>

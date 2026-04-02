@@ -1325,7 +1325,33 @@ def handle_pr_comment_command(
     command_args = {part.lower() for part in command_parts[1:]}
 
     if command == "/apply":
-        return handle_apply_comment(installation_id, repo_name, pr_number)
+        g, installation_token, _ = setup_environment_webhook(installation_id)
+        repo = g.get_repo(repo_name)
+        pr = repo.get_pull(pr_number)
+        config = load_config()
+
+        if not config.get("enable_authoring", False):
+            post_notice_comment(
+                installation_token,
+                repo_name,
+                pr_number,
+                "Authoring disabled",
+                "The `/apply` command is disabled unless `enable_authoring` is turned on.",
+            )
+            return {"status": "forbidden"}, 403
+
+        permission = get_commenter_permission(repo, commenter_login)
+        if permission not in {"admin", "write"}:
+            pr.create_issue_comment(
+                format_notice(
+                    "Insufficient permissions",
+                    "You need write/admin permissions to use `/apply`.",
+                )
+            )
+            logging.warning(f"User {commenter_login} lacks permission ({permission}) for /apply on PR #{pr_number}")
+            return {"status": "forbidden"}, 403
+
+        return handle_apply_comment(installation_id, repo_name, pr_number, commenter_login=commenter_login)
     if command == "/analyze":
         logging.info(f"Processing /analyze for PR #{pr_number} in {repo_name}")
         force_review = ("--force-review" in command_args) or ("--force_review" in command_args)
@@ -1463,6 +1489,21 @@ def ensure_label_exists(repo, name: str):
         status = getattr(e, "status", None)
         if status in {422, 409}:
             return
+        raise
+
+
+def get_commenter_permission(repo, commenter_login: str | None):
+    """Best-effort collaborator permission lookup for slash-command authorization."""
+    if not commenter_login:
+        return None
+
+    try:
+        return repo.get_collaborator_permission(commenter_login)
+    except GithubException as e:
+        status = getattr(e, "status", None)
+        if status in {403, 404}:
+            logging.warning(f"Permission lookup failed for user {commenter_login}; treating as unprivileged (status={status})")
+            return None
         raise
 
 
