@@ -49,7 +49,6 @@ module GeminiAI
     end
 
     def initialize(api_key = nil, model: :pro)
-      puts "Initializing client with api_key: #{api_key.inspect}, model: #{model}"
       # Prioritize passed API key, then environment variable
       @api_key = api_key || ENV.fetch('GEMINI_API_KEY', nil)
 
@@ -64,7 +63,6 @@ module GeminiAI
       self.class.logger.debug("API Key length: #{@api_key&.length}")
 
       # Validate API key before proceeding
-      puts "About to validate API key: #{@api_key.inspect}"
       validate_api_key!
 
       @model = resolve_model(model)
@@ -154,16 +152,13 @@ module GeminiAI
     end
 
     def validate_api_key!
-      puts "Validating API key: #{@api_key.inspect}"
       if @api_key.nil? || @api_key.to_s.strip.empty?
-        puts 'API key is nil or empty'
         self.class.logger.error('API key is missing')
         raise Error, 'API key is required. Set GEMINI_API_KEY environment variable or pass key directly.'
       end
 
       # Optional: Add basic API key format validation
       unless valid_api_key_format?(@api_key)
-        puts 'API key format is invalid'
         self.class.logger.error('Invalid API key format')
         raise Error, 'Invalid API key format. Please check your key.'
       end
@@ -171,7 +166,6 @@ module GeminiAI
       # Optional: Check key length and complexity
       return unless @api_key.length < 40
 
-      puts 'API key is too short'
       self.class.logger.warn('Potentially weak API key detected')
     end
 
