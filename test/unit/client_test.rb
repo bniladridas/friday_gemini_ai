@@ -113,6 +113,17 @@ class TestClient < Minitest::Test
     assert_equal 'gemini-2.5-pro', @client.instance_variable_get(:@model)
   end
 
+  def test_initialization_does_not_print_api_key_to_stdout
+    GeminiAI::Client.any_instance.unstub(:validate_api_key!)
+
+    stdout, stderr = capture_io do
+      GeminiAI::Client.new(@api_key)
+    end
+
+    refute_includes stdout, @api_key, 'Raw API key should not be printed to stdout'
+    refute_includes stderr, @api_key, 'Raw API key should not be printed to stderr'
+  end
+
   def test_api_key_masking_in_logs
     # Create a StringIO to capture logs
     log_output = StringIO.new
